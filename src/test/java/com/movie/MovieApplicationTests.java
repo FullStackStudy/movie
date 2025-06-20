@@ -9,7 +9,7 @@ class MovieApplicationTests {
 	@Test
 	void contextLoads() {
 
-		System.out.println("hello");
+		System.out.println("hello spring");
 	}
 
 }
