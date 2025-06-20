@@ -10,5 +10,5 @@ public class MovieApplication {
 		SpringApplication.run(MovieApplication.class, args);
 	}
 	//test
-	//brqabchtest
+	//brqabchtestda1
 }
