@@ -8,10 +8,10 @@
 		<version>3.5.0</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
-	<groupId>com.shop</groupId>
-	<artifactId>shop</artifactId>
+	<groupId>com.movie</groupId>
+	<artifactId>movie</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>shop</name>
+	<name>MovieFlex</name>
 	<description>shop project for Spring Boot</description>
 	<url/>
 	<licenses>
