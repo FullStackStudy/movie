@@ -1,4 +1,4 @@
-# 🎬 Movie Booking Project
+# 🎬 MovieFlex Project
 
 Spring Boot 기반 영화 예매 웹 애플리케이션입니다.  
 사용자는 영화 목록 확인, 영화관 위치 보기, 예매, 결제 등을 할 수 있습니다.
