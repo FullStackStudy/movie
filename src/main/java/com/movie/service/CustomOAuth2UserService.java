@@ -85,6 +85,8 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
         public static OAuthAttributes of(String registrationId, String userNameAttributeName, Map<String, Object> attributes) {
             if ("google".equals(registrationId)) {
                 return ofGoogle(userNameAttributeName, attributes);
+            } else if ("kakao".equals(registrationId)) {
+                return ofKakao(userNameAttributeName, attributes);
             }
             return null;
         }
@@ -99,12 +101,28 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
             return oAuthAttributes;
         }
 
+        private static OAuthAttributes ofKakao(String userNameAttributeName, Map<String, Object> attributes) {
+            OAuthAttributes oAuthAttributes = new OAuthAttributes();
+            
+            // 카카오 계정 정보
+            Map<String, Object> kakaoAccount = (Map<String, Object>) attributes.get("kakao_account");
+            Map<String, Object> profile = (Map<String, Object>) kakaoAccount.get("profile");
+            
+            oAuthAttributes.name = (String) profile.get("nickname");
+            oAuthAttributes.email = (String) kakaoAccount.get("email");
+            oAuthAttributes.picture = (String) profile.get("profile_image_url");
+            oAuthAttributes.attributes = attributes;
+            oAuthAttributes.nameAttributeKey = userNameAttributeName;
+            
+            return oAuthAttributes;
+        }
+
         public Member toEntity() {
             Member member = new Member();
             member.setMemberId(email);
             member.setName(name != null ? name : "사용자");
             member.setNickname(name != null ? name : "사용자");
-            member.setEmail(null);
+            member.setEmail(email);
             member.setProfile(picture);
             member.setRole(com.movie.constant.Role.USER);
             member.setRegDate(LocalDate.now());

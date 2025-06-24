@@ -24,11 +24,11 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf
                         .ignoringRequestMatchers("/members/new", "/members/login")
-                )
+                ) // csrf 검증 제외
                 .formLogin(form -> form
-                        .loginPage("/members/login")
-                        .defaultSuccessUrl("/main")
-                        .usernameParameter("memberId")
+                        .loginPage("/members/login") // 사용할 로그인 페이지 URL
+                        .defaultSuccessUrl("/main") // 로그인 성공시 이동 페이지
+                        .usernameParameter("memberId") // 사용자명
                         .failureUrl("/members/login/error")
                 )
                 .oauth2Login(oauth2 -> oauth2
@@ -43,12 +43,16 @@ public class SecurityConfig {
                         )
                 )
                 .logout(logout -> logout
-                        .logoutUrl("/members/logout")
-                        .logoutSuccessUrl("/")
+                        .logoutUrl("/logout")
+                        .logoutSuccessUrl("/main")
+                        .invalidateHttpSession(true)
+                        .deleteCookies("JSESSIONID")
+                        .permitAll()
                 )
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/css/**", "/js/**", "/img/**").permitAll()
+                        .requestMatchers("/css/**", "/js/**", "/img/**", "/uploads/**").permitAll()
                         .requestMatchers("/", "/main", "/members/**", "/item/**", "/images/**").permitAll()
+                        .requestMatchers("/mypage/**").authenticated()
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .anyRequest().permitAll()
                 );
