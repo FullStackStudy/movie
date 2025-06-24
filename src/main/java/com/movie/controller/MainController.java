@@ -15,4 +15,9 @@ public class MainController {
     public String main() {
         return "main";
     }
+
+    @GetMapping("/error")
+    public String handleError() {
+        return "error";
+    }
 }
