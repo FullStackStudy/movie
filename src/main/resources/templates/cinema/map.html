@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/layout1}">
+
+
+<!-- Kakao Maps SDK 스크립트 -->
+<th:block layout:fragment="headScript">
+    <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=0002645a847652028848c550afe30640&autoload=false"></script>
+</th:block>
+
+
+<!-- 본문 영역 -->
+<div layout:fragment="content">
+    <!-- 지도 영역 -->
+    <div style="display: flex; justify-content: center;">
+        <div id="map" style="width:100%; height:400px;"></div>
+    </div>
+
+    <!-- 상세 정보 영역 -->
+    <div id="store-detail" style="max-width: 100%; margin: 30px auto; padding: 15px; border: 1px solid #ccc; border-radius: 10px; background: #f9f9f9;">
+        <p style="text-align:center;">상세정보 버튼을 누르면 지점 정보가 표시됩니다.</p>
+    </div>
+
+    <!-- 스크립트 -->
+    <script>
+        // 지점 정보 배열
+        const markerData = [
+            {
+                name: 'MovieFlex_인천점',
+                latlng: { lat: 37.456584, lng: 126.705734 },
+                address: '인천광역시 미추홀구 필동로 123',
+                screens: 5,
+                startTime: '09:00',
+                endTime : '11:30'
+            },
+            {
+                name: 'MovieFlex_성남점',
+                latlng: { lat: 37.419682, lng: 127.128033 },
+                address: '경기도 성남시 분당구 판교로 456',
+                screens: 5,
+                startTime: '09:00',
+                endTime : '11:30'
+            },
+            {
+                name: 'MovieFlex_노량진점',
+                latlng: { lat: 37.515247, lng: 126.942659 },
+                address: '서울 동작구 노량진로 789',
+                screens: 5,
+                startTime: '09:00',
+                endTime : '11:30'
+            }
+        ];
+
+        document.addEventListener('DOMContentLoaded', function () {
+        kakao.maps.load(function () {
+        const container = document.getElementById('map');
+        const centerLatLng = new kakao.maps.LatLng(markerData[0].latlng.lat, markerData[0].latlng.lng);
+        const map = new kakao.maps.Map(container, {
+            center: centerLatLng,
+            level: 11
+        });
+
+        let currentInfoWindow = null;
+
+        markerData.forEach((data, index) => {
+            const marker = new kakao.maps.Marker({
+                map: map,
+                position: new kakao.maps.LatLng(data.latlng.lat, data.latlng.lng),
+                name: data.name
+            });
+
+            const iwContent = `
+                <div style="padding:10px; font-size:13px;">
+                    <strong>${data.name}</strong><br>
+                    <button onclick="showDetail(${index})">상세정보</button>
+                </div>
+            `;
+
+            const infowindow = new kakao.maps.InfoWindow({
+                content: iwContent,
+                removable: true
+            });
+
+            kakao.maps.event.addListener(marker, 'click', function () {
+                if (currentInfoWindow) currentInfoWindow.close();
+                infowindow.open(map, marker);
+                currentInfoWindow = infowindow;
+
+                map.setLevel(12);
+                map.setCenter(marker.getPosition());
+                setTimeout(() => {
+                    map.setLevel(3);
+                }, 1000);
+            });
+        });
+
+            $.ajax({
+                url: '/cinema/api/save-all',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(markerData.map(m => ({
+                    name: m.name,
+                    address: m.address,
+                    screens: m.screens,
+                    lat: m.latlng.lat,
+                    lng: m.latlng.lng,
+                    startTime: m.startTime,
+                    endTime: m.endTime
+                }))),
+                success: function () {
+
+
+                },
+                error: function (xhr, status, error) {
+                    alert('저장 실패: ' + error);
+                    console.error(xhr.responseText);
+                }
+            });
+
+        window.markerData = markerData;
+    });
+});
+
+
+
+    function showDetail(index) {
+    const info = window.markerData[index];
+    const detail = document.getElementById('store-detail');
+    detail.innerHTML = `
+        <div class="card shadow-sm" style="border-radius: 10px;">
+            <div class="card-header bg-light text-dark fw-bold" style="font-size: 1.1rem;">
+                ${info.name}
+            </div>
+            <div class="card-body">
+                <p class="card-text"><strong>📍 주소:</strong> ${info.address}</p>
+                <p class="card-text"><strong>🎬 상영관 수:</strong> ${info.screens}개</p>
+                <p class="card-text"><strong>⏰ 운영 시간:</strong> ${info.startTime} ~ ${info.endTime}</p>
+                <button onclick="">시간표보기</button>
+            </div>
+        </div>
+    `;
+}
+
+    </script>
+</div>
+</html>
