@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<head>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <meta charset="UTF-8">
+    <title>좌석 선택 (임시)</title>
+</head>
+<body>
+
+<h2>좌석 선택 (임시 데이터)</h2>
+
+<form th:object="${reserveData}">
+
+    <p>영화 ID:
+        <input type="text" id="movie_id" name="movie_id" >
+    </p>
+    <p>USer ID:
+        <input type="text" id="user_id" name="user_id">
+    </p>
+
+    <p>선택 좌석 (임의 선택):</p>
+    <label><input type="checkbox" name="seat_id" id="A1" value="A1"> A1</label>
+    <label><input type="checkbox" name="seat_id" id="A2" value="A2"> A2</label>
+    <label><input type="checkbox" name="seat_id" id="A3" value="A3"> A3</label>
+    <label><input type="checkbox" name="seat_id" id="A4" value="A4"> A4</label>
+
+
+    <br><br>
+    <button type="button" id="reserve-btn">예약하기</button>
+</form>
+<script th:inline="javascript">
+    $(function(){
+        $('#reserve-btn').on('click',function(){
+
+
+            var movie_id = $("#movie_id").val();
+            var user_id = $("#user_id").val();
+            var seat_id = $('input[name="seat_id"]:checked').map(function(){
+                return $(this).val();
+            }).get();
+
+            var url = "/reservation/reserve";
+            var paramData = {
+                movie_id : movie_id,
+                user_id : user_id,
+                seat_id : seat_id
+            }
+
+            var param = JSON.stringify(paramData);
+
+            $.ajax({
+                url : url,
+                type : "POST",
+                contentType : "application/json",
+                data: param,
+                success: function(result, status){
+                    alert(result);
+                    console.log('이동 시도');console.log(status);
+                    location.href='/reservation/pay';
+                },
+                error: function(jqXHR, status, error){
+                if(jqXHR.status=='401'){
+                    alert(result);
+
+                }else{
+                    alert(jqXHR.responseText);
+                }
+            }
+
+            });
+        });
+    });
+</script>
+</body>
+</html>

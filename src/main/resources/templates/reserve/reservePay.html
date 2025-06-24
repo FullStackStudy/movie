@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<form method="POST" th:action="@{/reservation/pay}" th:object="${reservedData}">
+
+    <input type="text" th:field="*{user_id}" />
+    <input type="text" th:field="*{movie_id}" />
+
+    <p>선택 좌석 (임의 선택):</p>
+    <label><input type="text" th:field="*{seat_id}" value> </label>
+    <br><br>
+    <label for= "pay">결제 수단</label>
+    <select id="pay" name="pay">
+        <option value="1">현금</option>
+        <option value="2">카드</option>
+        <option value="3">포인트</option>
+    </select>
+    <button type="submit" id="reserve-btn">결제하기</button>
+    <button type="button" id="back">좌석 다시 선택하기</button>
+    <button type="button" id="cancel">취소하기</button>
+</form>
+
+</body>
+</html>
