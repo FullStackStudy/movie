@@ -40,7 +40,7 @@ public class Member {
     private String profile;
 
     @Column(name = "member_email")
-    private String email;
+    private String email = memberId;
 
     @Column(name = "member_nickname", nullable = false)
     private String nickname;
