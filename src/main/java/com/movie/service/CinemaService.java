@@ -1,8 +1,11 @@
 package com.movie.service;
 
 import com.movie.dto.CinemaDto;
+import com.movie.dto.ScreenRoomDto;
 import com.movie.entity.Cinema;
+import com.movie.entity.ScreenRoom;
 import com.movie.repository.CinemaRepository;
+import com.movie.repository.ScreenRoomRepository;
 import jakarta.persistence.EntityExistsException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -17,8 +20,8 @@ import java.util.List;
 @RequiredArgsConstructor
 public class CinemaService {
     private final CinemaRepository cinemaRepository;
-
-    // CinemaService.java
+    private final ScreenRoomRepository screenRoomRepository;
+    //private final SeatRepository seatRepository;
     public void saveCinemas(List<CinemaDto> dtoList) {
         List<Cinema> newCinemas = new ArrayList<>();
 
@@ -27,12 +30,21 @@ public class CinemaService {
                 Cinema cinema = new Cinema();
                 cinema.setName(dto.getName());
                 cinema.setAddress(dto.getAddress());
-                cinema.setScreens(dto.getScreens());
                 cinema.setLatitude(dto.getLat());
+                cinema.setScreens(dto.getScreens());
                 cinema.setLongitude(dto.getLng());
                 cinema.setStartTime(LocalTime.parse(dto.getStartTime()));
                 cinema.setEndTime(LocalTime.parse(dto.getEndTime()));
-                newCinemas.add(cinema);
+                Cinema savedCinema = cinemaRepository.save(cinema);
+
+                for (int i = 1; i <= dto.getScreens(); i++) {
+                    ScreenRoom screenRoom = new ScreenRoom();
+                    screenRoom.setCinema(savedCinema);
+                    screenRoom.setRoomNm(i + "관");
+                    screenRoom.setTotalSeats(50);
+                    //screenRoom.setAvailableSeats();
+                    screenRoomRepository.save(screenRoom);
+                }
             }
         }
 

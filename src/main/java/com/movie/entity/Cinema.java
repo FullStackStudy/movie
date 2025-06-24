@@ -6,6 +6,8 @@ import lombok.Setter;
 
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "cinema")
@@ -23,4 +25,7 @@ public class Cinema {
     private int screens; //보유한 상영관 개수
     private LocalTime startTime; //영업 시작시간
     private LocalTime endTime; //영업 종료시간
+
+    @OneToMany(mappedBy = "cinema", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ScreenRoom> screenRooms = new ArrayList<>();
 }
