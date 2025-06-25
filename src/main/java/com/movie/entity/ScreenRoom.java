@@ -31,6 +31,4 @@ public class ScreenRoom {
     private String roomNm; //상영관 이름
 
     private int totalSeats; //전체 좌석 수
-    private int availableSeats; //잔여석 -> 총 좌석 수에서 얘매불가를 뺄 예정
-
 }

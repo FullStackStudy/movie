@@ -2,6 +2,7 @@ package com.movie.service;
 
 import com.movie.dto.CinemaDto;
 import com.movie.dto.ScheduleDto;
+import com.movie.dto.SeatDto;
 import com.movie.entity.Cinema;
 import com.movie.entity.Movie;
 import com.movie.entity.Schedule;
@@ -54,6 +55,5 @@ public class ScheduleService {
             return dto;
         }).collect(Collectors.toList());
     }
-
 
 }

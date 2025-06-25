@@ -1,10 +1,17 @@
 package com.movie.entity;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
 /* 실제 예약 좌석 */
 @Entity
-public class ReserveSeat {
+@Table(name = "reserved_seat")
+@Getter
+@Setter
+@ToString
+public class ReservedSeat {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
