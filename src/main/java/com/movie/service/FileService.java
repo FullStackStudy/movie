@@ -1,35 +1,51 @@
 package com.movie.service;
 
-import lombok.extern.java.Log;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
-import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.UUID;
 
 @Service
-@Log
 public class FileService {
-    public String uploadFile(String uploadPath, String originalFileName,byte[] fileData)
-        throws Exception{
-        UUID uuid = UUID.randomUUID();
-        String extension = originalFileName.substring(originalFileName.lastIndexOf("."));
-        String savedFileName = uuid.toString()+extension;
-        String fileUploadFulUrl = uploadPath+"/"+savedFileName;
-        FileOutputStream fos = new FileOutputStream(fileUploadFulUrl);
-        fos.write(fileData);
-        fos.close();
-        return savedFileName;
-    }
-    public void deleterFile(String filePath)throws Exception{
-        File deleteFile = new File(filePath);
 
-        if (deleteFile.exists()){
-            deleteFile.delete();
-            log.info("파일을 삭제하였습니다.");
+    @Value("${file.upload.path}")
+    private String uploadPath;
+
+    public String uploadFile(MultipartFile file) throws IOException {
+        // 업로드 디렉토리가 없으면 생성
+        File uploadDir = new File(uploadPath);
+        if (!uploadDir.exists()) {
+            uploadDir.mkdirs();
         }
-        else {
-            log.info("파일이 존재하지 않습니다.");
+
+        // 파일명 중복 방지를 위해 UUID 사용
+        String originalFilename = file.getOriginalFilename();
+        String fileExtension = originalFilename.substring(originalFilename.lastIndexOf("."));
+        String savedFilename = UUID.randomUUID().toString() + fileExtension;
+
+        // 파일 저장
+        Path filePath = Paths.get(uploadPath + savedFilename);
+        Files.write(filePath, file.getBytes());
+
+        // 웹에서 접근할 수 있는 경로 반환
+        return "/uploads/" + savedFilename;
+    }
+
+    public void deleteFile(String filePath) {
+        if (filePath != null && filePath.startsWith("/uploads/")) {
+            String filename = filePath.substring("/uploads/".length());
+            Path path = Paths.get(uploadPath + filename);
+            try {
+                Files.deleteIfExists(path);
+            } catch (IOException e) {
+                System.err.println("파일 삭제 실패: " + e.getMessage());
+            }
         }
     }
 }
