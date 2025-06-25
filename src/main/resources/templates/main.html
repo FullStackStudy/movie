@@ -1,10 +1,51 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/layout1}">
 
-</body>
+<th:block layout:fragment="css">
+    <style>
+        .carousel-inner > .item {
+            height : 350px;
+        }
+        .margin{
+            margin-bottom : 30px;
+        }
+        .banner{
+            height : 300px;
+            position :  absolute; top:0; left:0;
+            width: 100%;
+            height: 100%;
+        }
+        .card-text{
+            text-overflow : ellipsis;
+            white-space : nowrap;
+            overflow : hidden;
+        }
+        a:hover{
+            text-decoration:none;
+        }
+        .center{
+            text-align:center;
+        }
+    </style>
+</th:block>
+
+<div layout:fragment="content">
+
+    <div id="carouselControls" class="carousel slide margin" data-ride="carousel">
+        <div class="carousel-inner">
+            <div class="carousel-item active item">
+                <img src="https://user-images.githubusercontent.com/13268420/112147492-1ab76200-8c20-11eb-8649-3d2f282c3c02.png"
+                     class="d-block w-100 banner" alt="First slide">
+            </div>
+        </div>
+    </div>
+
+    <!-- -->
+
+
+
+
+</div>
 </html>
