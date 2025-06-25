@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
 
+/* 그냥 좌석만 */
 @Entity
 public class Seat {
     @Id
@@ -20,5 +21,5 @@ public class Seat {
     private ScreenRoom screenRoom;
 
     @OneToMany(mappedBy = "seat")
-    private List<ReservationSeat> reservedSeats = new ArrayList<>();
+    private List<ReserveSeat> reservedSeats = new ArrayList<>();
 }

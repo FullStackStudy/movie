@@ -3,6 +3,9 @@ package com.movie.repository;
 import com.movie.entity.ScreenRoom;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface ScreenRoomRepository extends JpaRepository<ScreenRoom, String> {
+import java.util.Optional;
 
+public interface ScreenRoomRepository extends JpaRepository<ScreenRoom, String> {
+    Optional<ScreenRoom> findByRoomNm(String name);
+    //
 }

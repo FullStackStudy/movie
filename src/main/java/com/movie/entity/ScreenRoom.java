@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.List;
+
 @Entity
 @Getter
 @Setter
@@ -14,13 +16,17 @@ public class ScreenRoom {
     @Column(name = "room_id")
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name = "cinema_id")
     private Cinema cinema;
 
-    /*@ManyToOne(fetch = FetchType.LAZY)
+
+    @OneToMany(mappedBy = "screenRoom")
+    private List<Schedule> schedules;
+
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "movie_id")
-    private Movie movie;*/
+    private Movie movie;
 
     private String roomNm; //상영관 이름
 

@@ -1,11 +1,391 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org"
-      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-      layout:decorate="~{layouts/layout1}">
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+    layout:decorate="~{layouts/layout1}">
 
 <head>
-    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf" th:content="${_csrf.token}" />
     <meta name="_csrf_header" th:content="${_csrf.headerName}">
+    <style>
+        .map-page {
+            background-color: #ffffff;
+            min-height: 100vh;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+
+        .map-header {
+            background-color: #ffffff;
+            padding: 2rem 0;
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 0;
+        }
+
+        .map-header h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: #2c3e50;
+        }
+
+        .map-header p {
+            font-size: 1.2rem;
+            color: #7f8c8d;
+            margin: 0;
+            font-weight: 400;
+        }
+
+        .map-content {
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 0;
+            max-width: 1400px;
+            margin: 0 auto;
+            height: calc(100vh - 200px);
+        }
+
+        .map-section {
+            position: relative;
+            background: white;
+            border-radius: 20px 0 0 20px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .map-container {
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+
+        .map-overlay {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+        }
+
+        .map-overlay h3 {
+            margin: 0 0 10px 0;
+            color: #2c3e50;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .map-overlay p {
+            margin: 0;
+            color: #7f8c8d;
+            font-size: 0.9rem;
+        }
+
+        .info-section {
+            background: white;
+            border-radius: 0 20px 20px 0;
+            padding: 2rem;
+            overflow-y: auto;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .info-header {
+            text-align: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .info-header h2 {
+            color: #2c3e50;
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .info-header p {
+            color: #7f8c8d;
+            margin: 0;
+        }
+
+        .cinema-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .cinema-item {
+            background: #f8f9fa;
+            border-radius: 16px;
+            padding: 1.5rem;
+            border: 1px solid #e9ecef;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cinema-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(45deg, #3498db, #2980b9);
+            transform: scaleY(0);
+            transition: transform 0.3s ease;
+        }
+
+        .cinema-item:hover::before {
+            transform: scaleY(1);
+        }
+
+        .cinema-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            background: white;
+        }
+
+        .cinema-item.active {
+            background: white;
+            box-shadow: 0 8px 25px rgba(52, 152, 219, 0.2);
+            border-color: #3498db;
+        }
+
+        .cinema-item.active::before {
+            transform: scaleY(1);
+        }
+
+        .cinema-name {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .cinema-name::before {
+            content: "🎬";
+            font-size: 1.2rem;
+        }
+
+        .cinema-details {
+            display: grid;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .detail-row {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+            color: #555;
+        }
+
+        .detail-row strong {
+            color: #34495e;
+            min-width: 80px;
+        }
+
+        .cinema-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, #3498db, #2980b9);
+            border: none;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            flex: 1;
+            text-decoration: none;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(45deg, #2980b9, #3498db);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 15px rgba(52, 152, 219, 0.3);
+            text-decoration: none;
+            color: white;
+        }
+
+        .btn-secondary {
+            background: linear-gradient(45deg, #95a5a6, #7f8c8d);
+            border: none;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            flex: 1;
+            text-decoration: none;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .btn-secondary:hover {
+            background: linear-gradient(45deg, #7f8c8d, #95a5a6);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 15px rgba(127, 140, 141, 0.3);
+            text-decoration: none;
+            color: white;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem 2rem;
+            color: #7f8c8d;
+        }
+
+        .empty-state::before {
+            content: "🎭";
+            font-size: 4rem;
+            display: block;
+            margin-bottom: 1rem;
+        }
+
+        .empty-state h3 {
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+        }
+
+        /* 카카오맵 커스텀 스타일 */
+        .custom-infowindow {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+            border: 1px solid #e9ecef;
+            padding: 0;
+            overflow: hidden;
+            min-width: 200px;
+        }
+
+        .infowindow-content {
+            padding: 1.5rem;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+
+        .infowindow-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .infowindow-title::before {
+            content: "🎬";
+            font-size: 1.1rem;
+        }
+
+        .infowindow-btn {
+            background: linear-gradient(45deg, #3498db, #2980b9);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+
+        .infowindow-btn:hover {
+            background: linear-gradient(45deg, #2980b9, #3498db);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+        }
+
+        @media (max-width: 1200px) {
+            .map-content {
+                grid-template-columns: 1fr;
+                height: auto;
+            }
+
+            .map-section {
+                border-radius: 20px 20px 0 0;
+                height: 500px;
+            }
+
+            .info-section {
+                border-radius: 0 0 20px 20px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .map-header h1 {
+                font-size: 2rem;
+            }
+
+            .map-content {
+                gap: 1rem;
+                padding: 0 1rem;
+            }
+
+            .map-section {
+                height: 400px;
+            }
+
+            .info-section {
+                padding: 1.5rem;
+            }
+
+            .cinema-actions {
+                flex-direction: column;
+            }
+        }
+
+        /* 애니메이션 */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .cinema-item {
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        .cinema-item:nth-child(1) {
+            animation-delay: 0.1s;
+        }
+
+        .cinema-item:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .cinema-item:nth-child(3) {
+            animation-delay: 0.3s;
+        }
+    </style>
 </head>
 
 <!-- Kakao Maps SDK 스크립트 -->
@@ -13,17 +393,36 @@
     <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=0002645a847652028848c550afe30640&autoload=false"></script>
 </th:block>
 
-
 <!-- 본문 영역 -->
 <div layout:fragment="content">
-    <!-- 지도 영역 -->
-    <div style="display: flex; justify-content: center;">
-        <div id="map" style="width:100%; height:400px;"></div>
-    </div>
+    <div class="map-page">
+        <div class="map-header">
+            <h1>🎬 영화관 찾기</h1>
+            <p>가까운 영화관을 찾아보세요</p>
+        </div>
 
-    <!-- 상세 정보 영역 -->
-    <div id="store-detail" style="max-width: 100%; margin: 30px auto; padding: 15px; border: 1px solid #ccc; border-radius: 10px; background: #f9f9f9;">
-        <p style="text-align:center;">상세정보 버튼을 누르면 지점 정보가 표시됩니다.</p>
+        <div class="map-content">
+            <div class="map-section">
+                <div class="map-container">
+                    <div id="map" style="width:100%; height:100%;"></div>
+                    <div class="map-overlay">
+                        <h3>📍 지도 사용법</h3>
+                        <p>마커를 클릭하거나 오른쪽 목록에서 영화관을 선택하세요</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="info-section">
+                <div class="info-header">
+                    <h2>영화관 목록</h2>
+                    <p>총 3개의 영화관이 있습니다</p>
+                </div>
+
+                <div class="cinema-list" id="cinema-list">
+                    <!-- 동적으로 생성될 영화관 목록 -->
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- 스크립트 -->
@@ -31,56 +430,173 @@
         // 지점 정보 배열
         const markerData = [
             {
-                name: 'MovieFlex_인천점',
+                name: 'MovieFlex 인천',
                 latlng: { lat: 37.456584, lng: 126.705734 },
                 address: '인천광역시 미추홀구 필동로 123',
                 screens: 5,
                 startTime: '07:00',
-                endTime : '11:30'
+                endTime: '11:30'
             },
             {
-                name: 'MovieFlex_성남점',
+                name: 'MovieFlex 성남',
                 latlng: { lat: 37.419682, lng: 127.128033 },
                 address: '경기도 성남시 분당구 판교로 456',
                 screens: 6,
                 startTime: '09:00',
-                endTime : '11:30'
+                endTime: '11:30'
             },
             {
-                name: 'MovieFlex_노량진점',
+                name: 'MovieFlex 노량진',
                 latlng: { lat: 37.515247, lng: 126.942659 },
                 address: '서울 동작구 노량진로 789',
                 screens: 7,
                 startTime: '08:00',
-                endTime : '11:30'
+                endTime: '11:30'
             }
         ];
 
-        document.addEventListener('DOMContentLoaded', function () {
-        kakao.maps.load(function () {
-        var token = $("meta[name='_csrf']").attr("content");
-        var header = $("meta[name='_csrf_header']").attr("content");
+        let map, markers = [], currentInfoWindow = null;
 
-        const container = document.getElementById('map');
-        const centerLatLng = new kakao.maps.LatLng(markerData[0].latlng.lat, markerData[0].latlng.lng);
-        const map = new kakao.maps.Map(container, {
-            center: centerLatLng,
-            level: 11
+        document.addEventListener('DOMContentLoaded', function () {
+            kakao.maps.load(function () {
+                var token = $("meta[name='_csrf']").attr("content");
+                var header = $("meta[name='_csrf_header']").attr("content");
+
+                const container = document.getElementById('map');
+                const centerLatLng = new kakao.maps.LatLng(markerData[0].latlng.lat, markerData[0].latlng.lng);
+                map = new kakao.maps.Map(container, {
+                    center: centerLatLng,
+                    level: 11
+                });
+
+                // 마커 생성 및 이벤트 설정
+                markerData.forEach((data, index) => {
+                    const marker = new kakao.maps.Marker({
+                        map: map,
+                        position: new kakao.maps.LatLng(data.latlng.lat, data.latlng.lng),
+                        name: data.name
+                    });
+
+                    markers.push(marker);
+
+                    const iwContent = `
+                        <div class="custom-infowindow">
+                            <div class="infowindow-content">
+                                <div class="infowindow-title">${data.name}</div>
+                                <button class="infowindow-btn" onclick="selectCinema(${index})">상세보기</button>
+                            </div>
+                        </div>
+                    `;
+
+                    const infowindow = new kakao.maps.InfoWindow({
+                        content: iwContent,
+                        removable: true
+                    });
+
+                    kakao.maps.event.addListener(marker, 'click', function () {
+                        if (currentInfoWindow) currentInfoWindow.close();
+                        infowindow.open(map, marker);
+                        currentInfoWindow = infowindow;
+                        selectCinema(index);
+                    });
+                });
+
+                // 영화관 목록 생성
+                createCinemaList();
+
+                // API 호출
+                $.ajax({
+                    url: '/cinema/api/save-all',
+                    method: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(markerData.map(m => ({
+                        name: m.name,
+                        address: m.address,
+                        screens: m.screens,
+                        lat: m.latlng.lat,
+                        lng: m.latlng.lng,
+                        startTime: m.startTime,
+                        endTime: m.endTime
+                    }))),
+                    beforeSend: function (xhr) {
+                        xhr.setRequestHeader(header, token);
+                    },
+                    success: function () {
+                        console.log('영화관 정보 저장 완료');
+                    },
+                    error: function (xhr, status, error) {
+                        alert('저장 실패: ' + error);
+                        console.error(xhr.responseText);
+                    }
+                });
+
+                window.markerData = markerData;
+            });
         });
 
-        let currentInfoWindow = null;
+        function createCinemaList() {
+            const listContainer = document.getElementById('cinema-list');
+            listContainer.innerHTML = '';
 
-        markerData.forEach((data, index) => {
-            const marker = new kakao.maps.Marker({
-                map: map,
-                position: new kakao.maps.LatLng(data.latlng.lat, data.latlng.lng),
-                name: data.name
+            markerData.forEach((cinema, index) => {
+                const cinemaItem = document.createElement('div');
+                cinemaItem.className = 'cinema-item';
+                cinemaItem.onclick = () => selectCinema(index);
+
+                cinemaItem.innerHTML = `
+                    <div class="cinema-name">${cinema.name}</div>
+                    <div class="cinema-details">
+                        <div class="detail-row">
+                            <strong>📍 주소:</strong>
+                            <span>${cinema.address}</span>
+                        </div>
+                        <div class="detail-row">
+                            <strong>🎬 상영관:</strong>
+                            <span>${cinema.screens}개</span>
+                        </div>
+                        <div class="detail-row">
+                            <strong>⏰ 운영시간:</strong>
+                            <span>${cinema.startTime} ~ ${cinema.endTime}</span>
+                        </div>
+                    </div>
+                    <div class="cinema-actions">
+                        <button class="btn-primary" onclick="event.stopPropagation(); goToSchedule('${cinema.name}')">
+                            📅 시간표 보기
+                        </button>
+                        <button class="btn-secondary" onclick="event.stopPropagation(); showDirections(${index})">
+                            🗺️ 길찾기
+                        </button>
+                    </div>
+                `;
+
+                listContainer.appendChild(cinemaItem);
+            });
+        }
+
+        function selectCinema(index) {
+            // 모든 영화관 아이템에서 active 클래스 제거
+            document.querySelectorAll('.cinema-item').forEach(item => {
+                item.classList.remove('active');
             });
 
+            // 선택된 영화관 아이템에 active 클래스 추가
+            const cinemaItems = document.querySelectorAll('.cinema-item');
+            if (cinemaItems[index]) {
+                cinemaItems[index].classList.add('active');
+            }
+
+            // 지도에서 해당 마커로 이동
+            const marker = markers[index];
+            const data = markerData[index];
+
+            if (currentInfoWindow) currentInfoWindow.close();
+
             const iwContent = `
-                <div style="padding:10px; font-size:13px;">
-                    <strong>${data.name}</strong><br>
-                    <button onclick="showDetail(${index})">상세정보</button>
+                <div class="custom-infowindow">
+                    <div class="infowindow-content">
+                        <div class="infowindow-title">${data.name}</div>
+                        <button class="infowindow-btn" onclick="goToSchedule('${data.name}')">시간표 보기</button>
+                    </div>
                 </div>
             `;
 
@@ -89,71 +605,27 @@
                 removable: true
             });
 
-            kakao.maps.event.addListener(marker, 'click', function () {
+            infowindow.open(map, marker);
+            currentInfoWindow = infowindow;
 
-                if (currentInfoWindow) currentInfoWindow.close();
-                infowindow.open(map, marker);
-                currentInfoWindow = infowindow;
+            map.setLevel(12);
+            map.setCenter(marker.getPosition());
+            setTimeout(() => {
+                map.setLevel(3);
+            }, 1000);
+        }
 
-                map.setLevel(12);
-                map.setCenter(marker.getPosition());
-                setTimeout(() => {
-                    map.setLevel(3);
-                }, 1000);
-            });
-        });
+        function goToSchedule(cinemaName) {
+            const encodedName = encodeURIComponent(cinemaName);
+            window.location.href = `/schedule/${encodedName}`;
+        }
 
-            $.ajax({
-                url: '/cinema/api/save-all',
-                method: 'POST',
-                contentType: 'application/json',
-                data: JSON.stringify(markerData.map(m => ({
-                    name: m.name,
-                    address: m.address,
-                    screens: m.screens,
-                    lat: m.latlng.lat,
-                    lng: m.latlng.lng,
-                    startTime: m.startTime,
-                    endTime: m.endTime
-                }))),
-                beforeSend : function(xhr) {
-                /* 데이터 전송하기 전에 헤더에 csrf 값을 설정 */
-                    xhr.setRequestHeader(header, token);
-                },
-                success: function () {
-
-
-                },
-                error: function (xhr, status, error) {
-                    alert('저장 실패: ' + error);
-                    console.error(xhr.responseText);
-                }
-            });
-
-        window.markerData = markerData;
-    });
-});
-
-
-
-    function showDetail(index) {
-    const info = window.markerData[index];
-    const detail = document.getElementById('store-detail');
-    detail.innerHTML = `
-        <div class="card shadow-sm" style="border-radius: 10px;">
-            <div class="card-header bg-light text-dark fw-bold" style="font-size: 1.1rem;">
-                ${info.name}
-            </div>
-            <div class="card-body">
-                <p class="card-text"><strong>📍 주소:</strong> ${info.address}</p>
-                <p class="card-text"><strong>🎬 상영관 수:</strong> ${info.screens}개</p>
-                <p class="card-text"><strong>⏰ 운영 시간:</strong> ${info.startTime} ~ ${info.endTime}</p>
-                <button onclick="">시간표보기</button>
-            </div>
-        </div>
-    `;
-}
-
+        function showDirections(index) {
+            const data = markerData[index];
+            const url = `https://map.kakao.com/link/to/${data.name},${data.latlng.lat},${data.latlng.lng}`;
+            window.open(url, '_blank');
+        }
     </script>
 </div>
+
 </html>

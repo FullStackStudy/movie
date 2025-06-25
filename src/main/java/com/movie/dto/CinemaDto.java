@@ -9,7 +9,7 @@ import java.util.List;
 @Getter
 @Setter
 public class CinemaDto {
-    private Long id; //지점 아이디
+    private Long id; //지점 ID
     private String name; //지점 이름
     private double lat; //지점 위도
     private double lng; //지점 경도

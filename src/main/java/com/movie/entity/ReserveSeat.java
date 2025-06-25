@@ -2,8 +2,9 @@ package com.movie.entity;
 
 import jakarta.persistence.*;
 
+/* 실제 예약 좌석 */
 @Entity
-public class ReservationSeat {
+public class ReserveSeat {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

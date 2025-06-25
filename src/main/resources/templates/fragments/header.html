@@ -1,16 +1,13 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org"
-      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 
 <!-- header입니다. -->
 
 <div class="header" th:fragment="header">
     <nav class="navbar navbar-expand-lg bg-primary navbar-dark">
         <div class="container-fluid">
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
-                    data-bs-target="#navbarTogglerDemo03"
-                    aria-controls="navbarTogglerDemo03"
-                    aria-expanded="false" aria-label="Toggle navigation">
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarTogglerDemo03"
+                aria-controls="navbarTogglerDemo03" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <a class="navbar-brand" href="/">MovieFlex</a>
@@ -38,16 +35,19 @@
                     </li>
                     <li class="nav-item" sec:authorize="isAuthenticated()">
                         <form th:action="@{/logout}" method="post" style="display: inline;">
-                            <button type="submit" class="nav-link btn btn-link" style="border: none; background: none; padding: 0; margin: 0;">로그아웃</button>
+                            <button type="submit" class="nav-link btn btn-link"
+                                style="border: none; background: none; padding: 0; margin: 0;">로그아웃</button>
                         </form>
                     </li>
                 </ul>
                 <form class="d-flex" th:action="@{/}" method="get">
-                    <input name="searchQuery" class="form-control me-2" type="search" placeholder="Search" aria-label="Search">
+                    <input name="searchQuery" class="form-control me-2" type="search" placeholder="Search"
+                        aria-label="Search">
                     <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
                 </form>
             </div>
         </div>
     </nav>
 </div>
+
 </html>
