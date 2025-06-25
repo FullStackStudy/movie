@@ -3,6 +3,10 @@
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{layouts/layout1}">
 
+<head>
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}">
+</head>
 
 <!-- Kakao Maps SDK 스크립트 -->
 <th:block layout:fragment="headScript">
@@ -54,6 +58,9 @@
 
         document.addEventListener('DOMContentLoaded', function () {
         kakao.maps.load(function () {
+        var token = $("meta[name='_csrf']").attr("content");
+        var header = $("meta[name='_csrf_header']").attr("content");
+
         const container = document.getElementById('map');
         const centerLatLng = new kakao.maps.LatLng(markerData[0].latlng.lat, markerData[0].latlng.lng);
         const map = new kakao.maps.Map(container, {
@@ -83,6 +90,7 @@
             });
 
             kakao.maps.event.addListener(marker, 'click', function () {
+
                 if (currentInfoWindow) currentInfoWindow.close();
                 infowindow.open(map, marker);
                 currentInfoWindow = infowindow;
@@ -108,6 +116,10 @@
                     startTime: m.startTime,
                     endTime: m.endTime
                 }))),
+                beforeSend : function(xhr) {
+                /* 데이터 전송하기 전에 헤더에 csrf 값을 설정 */
+                    xhr.setRequestHeader(header, token);
+                },
                 success: function () {
 
 
