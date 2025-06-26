@@ -1,29 +1,187 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
-      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+      xmlns:layout="http://ultaq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/layout1}">
 <head>
-    <meta charset="UTF-8">
-    <title>Title</title>
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
 </head>
-<body>
-<form method="POST" th:action="@{/reservation/pay}" th:object="${reservedData}">
+<div layout:fragment="css">
+    <style>
+        .table1 {
+            width:100%;
+        }
+        .detail{
+            font-size:12px;
+        }
+    </style>
+</div>
+<div layout:fragment="content">
+<form th:object="${reservedData}">
+    <input id="member_id" type="text" th:field="*{member_id}"  readonly/>
+    <input id="movie_id" type="text" th:field="*{movie_id}" readonly/>
 
-    <input type="text" th:field="*{user_id}" />
-    <input type="text" th:field="*{movie_id}" />
-
-    <p>선택 좌석 (임의 선택):</p>
-    <label><input type="text" th:field="*{seat_id}" value> </label>
+    <p>선택 좌석 (임의 선택):, 결제 정보창임</p>
+    <label><input type="text" th:field="*{seat_id}" id="seat_id"> </label>
     <br><br>
     <label for= "pay">결제 수단</label>
-    <select id="pay" name="pay">
+    <select id="pay" name="pay"  th:field="*{pay_method}" required>
         <option value="1">현금</option>
         <option value="2">카드</option>
         <option value="3">포인트</option>
     </select>
-    <button type="submit" id="reserve-btn">결제하기</button>
-    <button type="button" id="back">좌석 다시 선택하기</button>
-    <button type="button" id="cancel">취소하기</button>
+    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#myModal">결제하기</button>
+    <button type="button" id="back" onclick="cancelRedis('back')">좌석 다시 선택하기</button>
+    <button type="button" id="cancel" onclick="cancelRedis('cancel')">취소하기</button>
+    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
 </form>
+    <div class="modal fade" id="myModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+        <form method="POST" th:action="@{/reservation/pay}" th:object="${reservedData}">
+            <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable" >
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h1 class="modal-title fs-5" id="staticBackdropLabel">예약 정보 확인</h1>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <table class="table1 table-striped-columns">
+                            <thead>
+                            <tr>
+                                <th class="col-6">예약 정보</th>
+                                <th class="col-6">결제 정보</th>
+                            </tr>
+                            </thead>
+                            <tbody class="table-group-divider">
+                                <tr>
+                                    <td>
+                                        <div class="row">
+                                            <div class="col-auto">
+                                                <img src="/image/28yearsLater.jpg" style="max-width: 100px; height: auto;">
+                                            </div>
+                                        <div class="col">
+                                            <table class="table table-borderless table-sm">
+                                                <tr>
+                                                    <td>영화명</td>
+                                                    <td><span id="modal_movie_id"></span></td>
+                                                </tr>
+                                                <!--<tr>
+                                                    <td>극장</td>
+                                                    <td><span  id="modal_cinema_id"></span></td>
+                                                </tr>
+                                                <tr>
+                                                    <td>상영관</td>
+                                                    <td><span  id="modal_screen_id"></span></td>
+                                                </tr>
+                                                <tr>
+                                                    <td>일시</td>
+                                                    <td><span  id="modal_movie_time"></span></td>
+                                                </tr>
+                                                <tr>
+                                                    <td>인원</td>
+                                                    <td><span  id="modal_per"></span></td>
+                                                </tr>-->
+                                                <tr><!--잠깐 넣어놈-->
+                                                    <td>유저이름</td>
+                                                    <td><span id="modal_member_id"></span></td>
+                                                </tr>
+                                                <tr>
+                                                    <td>좌석</td>
+                                                    <td><span id="modal_seat_id"></span></td>
+                                                </tr>
+                                            </table>
 
-</body>
-</html>
+                                        </div>
+                                    </div>
+
+                                    </td>
+                                    <td style="vertical-align: top;">
+                                        <table class="table table-borderless table-sm" style="margin-top:2px">
+                                            <tr>
+                                                <td>결제금액</td>
+                                                <td><span id="modal_price"></span></td>
+                                            </tr>
+                                            <tr>
+                                                <td>결제수단</td>
+                                                <td><span id="modal_pay_method"></span></td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <div>
+                            <ul class="detail">
+                                <li>인터넷 예매는 온라인상으로 영화상영 시간 20분 전 까지 취소 가능하며 20분 이후에는 현장에서 취소를 하셔야 합니다.</li>
+                                <li>현장 취소를 하는 경우 상영시간 이전까지만 가능하며 영화 상영 시작 시간 이후 취소/환불/결제수단 변경은 불가합니다.</li>
+                                <li>입장 지연에 따른 관람 불편을 최소화하기 위해 본 영화는 10분 후 상영이 시작됩니다.</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-primary">결제하기</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">닫기</button>
+                    </div>
+                </div>
+            </div>
+            <input type="hidden" th:field="*{member_id}" id="hidden_member_id">
+            <input type="hidden" th:field="*{movie_id}" id="hidden_movie_id">
+            <input type="hidden" th:field="*{seat_id}" id="hidden_seat_id">
+            <input type="hidden" th:field="*{pay_method}" id="hidden_pay_method">
+        </form>
+</div>
+</div>
+<div layout:fragment="script">
+    <script th:inline="javascript">
+        document.addEventListener("DOMContentLoaded", function () {
+
+            // 1. 모달이 열릴 때 데이터 설정
+            $('#myModal').on('show.bs.modal', function(event){
+                var seat_id = $("#seat_id").val();
+                var member_id = $("#member_id").val();
+                var movie_id = $("#movie_id").val();
+                var payText = $("#pay option:selected").text();
+
+                $("#modal_pay_method").text(payText);
+                $("#modal_movie_id").text(movie_id);
+                $("#modal_member_id").text(member_id);
+                $("#modal_seat_id").text(seat_id);
+
+                // Hidden input에도 값 채우기 (서브밋용)
+                $("#hidden_member_id").val(member_id);
+                $("#hidden_movie_id").val(movie_id);
+                $("#hidden_seat_id").val(seat_id);
+                $("#hidden_pay_method").val(payText);
+            });
+
+            // 2. cancelRedis 함수를 전역으로 정의 (button에서 호출 가능하도록)
+            window.cancelRedis = function(type){
+                var token = $("meta[name='_csrf']").attr("content");
+                var header = $("meta[name='_csrf_header']").attr("content");
+
+                $.ajax({
+                    type: "POST",
+                    url: "/reservation/cancel",
+                    data: { type: type },
+                    beforeSend: function(xhr){
+                        xhr.setRequestHeader(header, token);
+                    },
+                    success: function(result){
+                        alert(result);
+                        // 좌석 다시 선택으로 갈지, 메인으로 갈지 분기
+                        if(type === "back") {
+                            location.href = "/reservation";
+                        } else {
+                            location.href = "/";
+                        }
+                    },
+                    error: function(jqXHR){
+                        alert(jqXHR.responseText);
+                    }
+                });
+            };
+
+        });
+    </script>
+
+</div>

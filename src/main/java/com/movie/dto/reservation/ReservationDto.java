@@ -1,14 +1,10 @@
-package com.movie.dto;
+package com.movie.dto.reservation;
 
 import com.movie.constant.ReservationStatus;
-import com.movie.entity.Reservation;
-import jakarta.persistence.*;
-import lombok.Generated;
+import com.movie.entity.reservation.Reservation;
 import lombok.Getter;
 import lombok.Setter;
 import org.modelmapper.ModelMapper;
-import org.springframework.data.annotation.CreatedBy;
-import org.springframework.data.annotation.CreatedDate;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -16,12 +12,14 @@ import java.util.List;
 @Getter
 @Setter
 public class ReservationDto {
-    private Long id;
-    private String user_id;
+    private String member_id;
     private Long movie_id;
     private List<String> seat_id;
     private LocalDateTime reserved_at;
     private ReservationStatus reservationStatus;
+
+    private Integer price;
+    private String pay_method;
 
     //-----------------modelMapper--------------------//
     private static ModelMapper modelMapper = new ModelMapper();
