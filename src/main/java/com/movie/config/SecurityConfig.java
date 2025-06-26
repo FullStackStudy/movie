@@ -51,7 +51,7 @@ public class SecurityConfig {
                 )
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers("/css/**", "/js/**", "/img/**", "/uploads/**").permitAll()
-                        .requestMatchers("/", "/main", "/members/**", "/item/**", "/images/**").permitAll()
+                        .requestMatchers("/", "/main", "/members/**", "/item/**", "/images/**", "/cinema/**").permitAll()
                         .requestMatchers("/mypage/**").authenticated()
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .anyRequest().permitAll()
