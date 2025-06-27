@@ -2,6 +2,7 @@ package com.movie.dto;
 
 
 import com.movie.constant.ItemSellStatus;
+import com.movie.constant.Menu;
 import com.movie.entity.Item;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -33,6 +34,8 @@ public class ItemFormDto {
     private Integer stockNumber;
 
     private ItemSellStatus itemSellStatus;
+
+    private Menu menu;
 
     private List<ItemImgDto> itemImgDtoList = new ArrayList<>();
 

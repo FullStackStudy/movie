@@ -1,6 +1,7 @@
 package com.movie.repository;
 
 import com.movie.constant.ItemSellStatus;
+import com.movie.constant.Menu;
 import com.movie.dto.ItemSearchDto;
 import com.movie.dto.QStoreMainItemDto;
 import com.movie.dto.StoreMainItemDto;
@@ -68,6 +69,7 @@ public class ItemRepositoryCustomImpl implements ItemRepositoryCustom{
         return new PageImpl<>(content,pageable,total);
     }
     private BooleanExpression itemNmLike(String searchQuery){
+
         return StringUtils.isEmpty(searchQuery) ? null : QItem.item.itemNm.like("%"+searchQuery+"%");
     }
     @Override
@@ -76,7 +78,7 @@ public class ItemRepositoryCustomImpl implements ItemRepositoryCustom{
         QItemImg itemImg = QItemImg.itemImg;
 
         QueryResults<StoreMainItemDto> results = queryFactory.select(new QStoreMainItemDto(item.id,item.itemNm,
-                item.itemDetail,itemImg.imgUrl,item.price))
+                item.itemDetail,itemImg.imgUrl,item.price,item.itemComposition, item.menu))
                 .from(itemImg).join(itemImg.item,item).where(itemImg.repImgYn.eq("Y"))
                 .where(itemNmLike(itemSearchDto.getSearchQuery()))
                 .orderBy(item.id.desc()).offset(pageable.getOffset()).limit(pageable.getPageSize()).fetchResults();

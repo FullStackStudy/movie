@@ -1,5 +1,7 @@
 package com.movie.dto;
 
+import com.movie.constant.Menu;
+import com.movie.entity.Item;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -16,4 +18,8 @@ public class ItemDto {
     private String sellStatus;
     private LocalDateTime regTime;
     private LocalDateTime updateTime;
+    private Menu menu;
+    public ItemDto(Menu menu,Item item){
+    this.menu = item.getMenu();
+    }
 }

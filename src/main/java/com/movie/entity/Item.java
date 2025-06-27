@@ -1,6 +1,7 @@
 package com.movie.entity;
 
 import com.movie.constant.ItemSellStatus;
+import com.movie.constant.Menu;
 import com.movie.dto.ItemFormDto;
 import com.movie.exception.OutOfStockException;
 import jakarta.persistence.*;
@@ -35,15 +36,22 @@ public class Item extends BaseEntity {
     @Column(nullable = false)
     private String itemComposition;
 
+
     @Enumerated(EnumType.STRING)
     private ItemSellStatus itemSellStatus;
+
+    @Enumerated(EnumType.STRING)
+    private Menu menu;
+
     public void updateItem(ItemFormDto itemFormDto){
+        this.id = itemFormDto.getId();
         this.itemNm = itemFormDto.getItemNm();
         this.price = itemFormDto.getPrice();
         this.stockNumber = itemFormDto.getStockNumber();
         this.itemDetail = itemFormDto.getItemDetail();
         this.itemComposition = itemFormDto.getItemComposition();
         this.itemSellStatus = itemFormDto.getItemSellStatus();
+        this.menu = itemFormDto.getMenu();
     }
 
     public void removeStock(int stockNumber){

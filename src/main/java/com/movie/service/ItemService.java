@@ -1,5 +1,6 @@
 package com.movie.service;
 
+import com.movie.constant.Menu;
 import com.movie.dto.ItemFormDto;
 import com.movie.dto.ItemImgDto;
 import com.movie.dto.ItemSearchDto;
@@ -33,6 +34,7 @@ public class ItemService {
         itemRepository.save(item);
         for (int i = 0; i < itemImgFileList.size(); i++) {
             ItemImg itemImg = new ItemImg();
+            itemImg.setItem(item);
             if (i == 0) {
                 itemImg.setRepImgYn("Y");
             } else {
@@ -77,6 +79,7 @@ public Page<Item> getAdminItemPage(ItemSearchDto itemSearchDto, Pageable pageabl
 }
 @Transactional(readOnly = true)
 public Page<StoreMainItemDto> getStoreMainItemPage(ItemSearchDto itemSearchDto, Pageable pageable){
+    System.out.println("pageable"+pageable.getPageNumber());
     return itemRepository.getStoreMainItemPage(itemSearchDto ,pageable);
 }
 }

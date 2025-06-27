@@ -74,7 +74,7 @@ public class Member {
         member.setNickname(memberFormDto.getNickname());
         String password = passwordEncoder.encode(memberFormDto.getPassword());
         member.setPassword(password);
-        member.setRole(Role.USER); // 기본 역할은 USER로 설정
+        member.setRole(Role.ADMIN); // 기본 역할은 USER로 설정
         member.setRegDate(LocalDate.now()); // 가입일은 현재 날짜로 설정
         member.setGrade("일반"); // 기본 등급 설정
         return member;
