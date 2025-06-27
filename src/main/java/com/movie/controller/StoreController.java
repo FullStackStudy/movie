@@ -27,7 +27,6 @@ public class StoreController {
     public String StoreMain(ItemSearchDto itemSearchDto, Optional<Integer> page, Model model) {
         Pageable pageable = PageRequest.of(page.isPresent() ? page.get() : 0, 10);
         Page<StoreMainItemDto> items = itemService.getStoreMainItemPage(itemSearchDto, pageable);
-       System.out.println(items);
         model.addAttribute("items",items);
         model.addAttribute("itemSearchDto",itemSearchDto);
         model.addAttribute("maxPage",10);
