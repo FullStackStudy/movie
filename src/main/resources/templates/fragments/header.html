@@ -1,27 +1,178 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org"
-      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 
 <!-- header입니다. -->
+<meta charset="UTF-8">
 
+<!-- CSS Fragment - 레이아웃의 head에 삽입됨 -->
+<th:block th:fragment="header-css">
+    <style>
+        /* 헤더 스타일 - Bootstrap 덮어쓰기 */
+        .navbar.modern-header {
+            background: linear-gradient(90deg, #232526 0%, #283e51 40%, #43e97b 100%) !important;
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.10) !important;
+            position: sticky !important;
+            top: 0 !important;
+            z-index: 1000 !important;
+            backdrop-filter: blur(8px) !important;
+            animation: fadeInDown 0.7s !important;
+        }
+
+        .navbar.modern-header .navbar-brand {
+            font-size: 2rem !important;
+            font-weight: 700 !important;
+            color: #fff !important;
+            letter-spacing: 1px !important;
+            display: flex !important;
+            align-items: center !important;
+            gap: 0.5rem !important;
+            transition: color 0.2s !important;
+            text-shadow: 0 2px 8px rgba(67, 233, 123, 0.12) !important;
+        }
+
+        .navbar.modern-header .navbar-brand:hover {
+            color: #43e97b !important;
+        }
+
+        .navbar.modern-header .navbar-nav .nav-link {
+            color: rgba(255, 255, 255, 0.92) !important;
+            font-weight: 500 !important;
+            border-radius: 8px !important;
+            margin: 0 0.2rem !important;
+            padding: 0.7rem 1.2rem !important;
+            transition: background 0.2s, color 0.2s, box-shadow 0.2s !important;
+            position: relative !important;
+        }
+
+        .navbar.modern-header .navbar-nav .nav-link:hover,
+        .navbar.modern-header .navbar-nav .nav-link.active {
+            background: linear-gradient(90deg, rgba(67, 233, 123, 0.13) 0%, rgba(67, 233, 123, 0.08) 100%) !important;
+            color: #43e97b !important;
+            box-shadow: 0 2px 8px rgba(67, 233, 123, 0.10) !important;
+        }
+
+        .navbar.modern-header .navbar-toggler {
+            border: none !important;
+            background: rgba(67, 233, 123, 0.15) !important;
+            border-radius: 8px !important;
+        }
+
+        .navbar.modern-header .navbar-toggler:focus {
+            box-shadow: 0 0 0 0.2rem #43e97b !important;
+        }
+
+        .navbar.modern-header .search-form {
+            display: flex !important;
+            align-items: center !important;
+            gap: 0.5rem !important;
+            margin-left: 1rem !important;
+        }
+
+        .navbar.modern-header .search-input {
+            background: rgba(255, 255, 255, 0.13) !important;
+            border: 1px solid rgba(67, 233, 123, 0.25) !important;
+            color: #fff !important;
+            border-radius: 8px !important;
+            padding: 0.5rem 1rem !important;
+            font-size: 1rem !important;
+            transition: background 0.2s, border 0.2s !important;
+        }
+
+        .navbar.modern-header .search-input::placeholder {
+            color: #b2f7cc !important;
+        }
+
+        .navbar.modern-header .search-input:focus {
+            background: rgba(67, 233, 123, 0.10) !important;
+            border-color: #43e97b !important;
+            outline: none !important;
+            color: #232526 !important;
+        }
+
+        .navbar.modern-header .search-btn {
+            background: linear-gradient(90deg, #43e97b 0%, #38f9d7 100%) !important;
+            color: #232526 !important;
+            border: none !important;
+            border-radius: 8px !important;
+            padding: 0.5rem 1.2rem !important;
+            font-weight: 600 !important;
+            transition: background 0.2s, color 0.2s !important;
+            box-shadow: 0 2px 8px rgba(67, 233, 123, 0.10) !important;
+        }
+
+        .navbar.modern-header .search-btn:hover {
+            background: linear-gradient(90deg, #38f9d7 0%, #43e97b 100%) !important;
+            color: #232526 !important;
+        }
+
+        .navbar.modern-header .logout-btn {
+            background: none !important;
+            border: none !important;
+            color: rgba(255, 255, 255, 0.92) !important;
+            font-weight: 500 !important;
+            border-radius: 8px !important;
+            padding: 0.7rem 1.2rem !important;
+            margin: 0 0.2rem !important;
+            transition: background 0.2s, color 0.2s !important;
+            cursor: pointer !important;
+        }
+
+        .navbar.modern-header .logout-btn:hover {
+            background: linear-gradient(90deg, rgba(67, 233, 123, 0.13) 0%, rgba(67, 233, 123, 0.08) 100%) !important;
+            color: #43e97b !important;
+        }
+
+        @media (max-width: 991.98px) {
+            .navbar.modern-header .navbar-nav {
+                padding: 1rem 0 !important;
+            }
+
+            .navbar.modern-header .navbar-nav .nav-link {
+                margin: 0.2rem 0 !important;
+            }
+
+            .navbar.modern-header .search-form {
+                margin-top: 1rem !important;
+                width: 100% !important;
+            }
+
+            .navbar.modern-header .search-input {
+                flex: 1 !important;
+            }
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</th:block>
+
+<!-- Header Fragment -->
 <div class="header" th:fragment="header">
-    <nav class="navbar navbar-expand-lg bg-primary navbar-dark">
+    <nav class="navbar navbar-expand-lg modern-header">
         <div class="container-fluid">
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
-                    data-bs-target="#navbarTogglerDemo03"
-                    aria-controls="navbarTogglerDemo03"
-                    aria-expanded="false" aria-label="Toggle navigation">
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarTogglerDemo03"
+                aria-controls="navbarTogglerDemo03" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
-            <a class="navbar-brand" href="/">MovieFlex</a>
-
+            <a class="navbar-brand" href="/">
+                <span style="font-size:1.5rem;">🎬</span> MovieFlex
+            </a>
             <div class="collapse navbar-collapse" id="navbarTogglerDemo03">
                 <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                     <li class="nav-item" sec:authorize="hasRole('ADMIN')">
                         <a class="nav-link" href="/movie">영화 찾기</a>
                     </li>
-                    <li class="nav-item" sec:authorize="hasRole('ADMIN')">
-                        <a class="nav-link" href="/cinema">영화관 찾기</a>
+                    <li class="nav-item" sec:authorize="!isAuthenticated()">
+                        <a class="nav-link" href="/cinema/map">영화관 찾기</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="/store">스토어</a>
@@ -29,7 +180,6 @@
                     <li class="nav-item" sec:authorize="isAuthenticated()">
                         <a class="nav-link" href="/mypage">마이페이지</a>
                     </li>
-
                     <li class="nav-item" sec:authorize="!isAuthenticated()">
                         <a class="nav-link" href="/members/new">회원가입</a>
                     </li>
@@ -38,16 +188,18 @@
                     </li>
                     <li class="nav-item" sec:authorize="isAuthenticated()">
                         <form th:action="@{/logout}" method="post" style="display: inline;">
-                            <button type="submit" class="nav-link btn btn-link" style="border: none; background: none; padding: 0; margin: 0;">로그아웃</button>
+                            <button type="submit" class="logout-btn">로그아웃</button>
                         </form>
                     </li>
                 </ul>
-                <form class="d-flex" th:action="@{/}" method="get">
-                    <input name="searchQuery" class="form-control me-2" type="search" placeholder="Search" aria-label="Search">
-                    <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
+                <form class="search-form" th:action="@{/}" method="get">
+                    <input name="searchQuery" class="search-input" type="search" placeholder="영화를 검색해보세요..."
+                        aria-label="Search">
+                    <button class="search-btn" type="submit">🔍</button>
                 </form>
             </div>
         </div>
     </nav>
 </div>
+
 </html>
