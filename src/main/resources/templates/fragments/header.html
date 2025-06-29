@@ -160,7 +160,7 @@
     <nav class="navbar navbar-expand-lg modern-header">
         <div class="container-fluid">
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarTogglerDemo03"
-                aria-controls="navbarTogglerDemo03" aria-expanded="false" aria-label="Toggle navigation">
+                    aria-controls="navbarTogglerDemo03" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <a class="navbar-brand" href="/">
@@ -168,13 +168,16 @@
             </a>
             <div class="collapse navbar-collapse" id="navbarTogglerDemo03">
                 <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                    <li class="nav-item" sec:authorize="hasRole('ADMIN')">
+                    <li class="nav-item">
                         <a class="nav-link" href="/movie">영화 찾기</a>
                     </li>
-                    <li class="nav-item" sec:authorize="!isAuthenticated()">
+                    <li class="nav-item">
                         <a class="nav-link" href="/cinema/map">영화관 찾기</a>
                     </li>
-                    <li class="nav-item" sec:authorize="isAuthenticated()">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/admin/schedule">시간표 등록하기</a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link" href="/store">스토어</a>
                     </li>
                     <li class="nav-item" sec:authorize="isAuthenticated()">
@@ -194,10 +197,11 @@
                 </ul>
                 <form class="search-form" th:action="@{/}" method="get">
                     <input name="searchQuery" class="search-input" type="search" placeholder="영화를 검색해보세요..."
-                        aria-label="Search">
+                           aria-label="Search">
                     <button class="search-btn" type="submit">🔍</button>
                 </form>
             </div>
+            <!--sec:authorize="hasRole('ADMIN')"-->
         </div>
     </nav>
 </div>

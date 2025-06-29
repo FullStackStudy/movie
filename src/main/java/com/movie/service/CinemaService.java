@@ -47,6 +47,10 @@ public class CinemaService {
     }
 
 
+    public long count() {
+        return cinemaRepository.count();
+    }
+
 
 
     public List<Cinema> getAll() {
