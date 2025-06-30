@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/layout1}">
+
+
+<head>
+    <meta charset="UTF-8">
+    <title>상영시간표 등록 - MovieFlex</title>
+
+    <style>
+        .schedule-register-container {
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 30px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .form-title {
+            text-align: center;
+            color: #1e3c72;
+            margin-bottom: 30px;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+            font-size: 16px;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            box-sizing: border-box;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #1e3c72;
+            box-shadow: 0 0 0 3px rgba(30, 60, 114, 0.1);
+        }
+
+        .form-row {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+
+        .form-col {
+            flex: 1;
+        }
+
+        .btn-submit {
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(30, 60, 114, 0.3);
+        }
+
+        .btn-cancel {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .btn-cancel:hover {
+            background: #5a6268;
+            transform: translateY(-2px);
+        }
+
+        .alert {
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            font-weight: 500;
+        }
+
+        .alert-success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-danger {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .required {
+            color: #dc3545;
+        }
+
+        .form-hint {
+            font-size: 14px;
+            color: #6c757d;
+            margin-top: 5px;
+        }
+
+        @media (max-width: 768px) {
+            .form-row {
+                flex-direction: column;
+                gap: 0;
+            }
+
+            .schedule-register-container {
+                margin: 20px;
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+<div layout:fragment="content">
+    <div class="schedule-register-container">
+        <h1 class="form-title">🎬 상영시간표 등록</h1>
+
+        <!-- 성공/오류 메시지 -->
+        <div th:if="${successMessage}" class="alert alert-success" role="alert">
+            <span th:text="${successMessage}"></span>
+        </div>
+        <div th:if="${errorMessage}" class="alert alert-danger" role="alert">
+            <span th:text="${errorMessage}"></span>
+        </div>
+
+        <!-- 📌 여기부터 form -->
+        <form action="/admin/schedule" method="post" id="scheduleForm">
+            <div class="form-row">
+                <div class="form-col">
+                    <label for="cinemaName" class="form-label">영화관 <span class="required">*</span></label>
+                    <select id="cinemaName" name="cinemaNm" class="form-control" required>
+                        <option value="">영화관을 선택하세요</option>
+                        <th:block th:if="${cinemas != null and #lists.isEmpty(cinemas)}">
+                            <option disabled>등록된 영화관이 없습니다</option>
+                        </th:block>
+
+                        <th:block th:each="cinema : ${cinemas}">
+                            <option th:value="${cinema.name}" th:text="${cinema.name}"></option>
+                        </th:block>
+                    </select>
+                </div>
+
+                <div class="form-col">
+                    <label for="movieTitle" class="form-label">영화 제목 <span class="required">*</span></label>
+                    <select id="movieTitle" name="movieTitle" class="form-control" required>
+                        <option value="">영화를 선택하세요</option>
+                        <th:block th:if="${movies != null and #lists.isEmpty(movies)}">
+                            <option disabled>등록된 영화가 없습니다</option>
+                        </th:block>
+
+                        <th:block th:each="movie : ${movies}">
+                            <option th:value="${movie.movieTitle}" th:text="${movie.movieTitle}"></option>
+                        </th:block>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-col">
+                    <label for="screenNumber" class="form-label">상영관 번호 <span class="required">*</span></label>
+                    <select id="screenNumber" name="screenRoomName" class="form-control" required>
+                        <option value="">상영관을 선택하세요</option>
+                        <th:block th:if="${screenRooms != null and #lists.isEmpty(screenRooms)}">
+                            <option disabled>등록된 상영관이 없습니다</option>
+                        </th:block>
+
+                        <th:block th:each="screenRoom : ${screenRooms}">
+                            <option
+                                    th:value="${screenRoom.roomNm}"
+                                    th:text="${'[' + screenRoom.cinema.name + ']' + screenRoom.roomNm}">
+                            </option>
+                        </th:block>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-col">
+                    <label for="showDate" class="form-label">상영 날짜 <span class="required">*</span></label>
+                    <input type="date" id="showDate" name="showDate" class="form-control" required>
+                </div>
+
+                <div class="form-col">
+                    <label for="showTime" class="form-label">상영 시간 <span class="required">*</span></label>
+                    <input type="time" id="showTime" name="startTime" class="form-control" required>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-col">
+                    <label for="status" class="form-label">상태 <span class="required">*</span></label>
+                    <select id="status" name="status" class="form-control" required>
+                        <option value="">상태를 선택하세요</option>
+                        <option value="예매가능">예매가능</option>
+                        <option value="예매마감">예매마감</option>
+                        <option value="상영완료">상영완료</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="description" class="form-label">설명</label>
+                <textarea id="description" name="description" class="form-control" rows="4"
+                          placeholder="상영 관련 특별한 사항이나 설명을 입력하세요"></textarea>
+            </div>
+
+            <button type="submit" class="btn-submit">상영시간표 등록</button>
+            <button type="button" class="btn-cancel" onclick="history.back()">취소</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    document.getElementById('scheduleForm').addEventListener('submit', function (e) {
+        const cinemaName = document.getElementById('cinemaName').value;
+        const movieTitle = document.getElementById('movieTitle').value;
+        const screenNumber = document.getElementById('screenNumber').value;
+        const showDate = document.getElementById('showDate').value;
+        const showTime = document.getElementById('showTime').value;
+        const status = document.getElementById('status').value;
+
+        if (!cinemaName || !movieTitle || !screenNumber || !showDate || !showTime || !status) {
+            e.preventDefault();
+            alert('모든 필수 항목을 입력해주세요.');
+            return;
+        }
+
+        const today = new Date();
+        const selectedDate = new Date(showDate);
+        today.setHours(0, 0, 0, 0);
+        selectedDate.setHours(0, 0, 0, 0);
+        if (selectedDate < today) {
+            e.preventDefault();
+            alert('상영 날짜는 오늘 이후로 설정해주세요.');
+            return;
+        }
+    });
+
+    // 오늘 날짜를 최소 날짜로 설정
+    document.getElementById('showDate').min = new Date().toISOString().split('T')[0];
+</script>
+</body>
+</html>
