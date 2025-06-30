@@ -1,26 +1,391 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org"
-      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
 
 <!-- 기본 layout입니다. -->
+
 <head>
     <meta charset="UTF-8">
     <title>Title</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css"/>
-    <link th:href="@{/css/layout1.css}" rel="stylesheet"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" />
+    <link th:href="@{/css/layout1.css}" rel="stylesheet" />
+    <!-- Header CSS Fragment -->
+    <th:block th:replace="~{fragments/header::header-css}"></th:block>
+
+    <!-- 챗봇 CSS -->
+    <style>
+        /* 챗봇 아이콘 스타일 */
+        #chatbot-icon {
+            position: fixed;
+            bottom: 50px;
+            right: 50px;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            border-radius: 50%;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 30px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            animation: float 3s ease-in-out infinite;
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+
+        #chatbot-icon:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        /* 둥둥 떠다니는 애니메이션 */
+        @keyframes float {
+            0% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-10px);
+            }
+
+            100% {
+                transform: translateY(0);
+            }
+        }
+
+        /* 모달 오버레이 */
+        .chatbot-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        /* 챗봇 창 */
+        .chatbot-window {
+            position: fixed;
+            bottom: 120px;
+            right: 50px;
+            width: 450px;
+            height: 600px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            z-index: 1001;
+            animation: slideIn 0.3s ease;
+            overflow: hidden;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateY(20px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        /* 챗봇 헤더 */
+        .chatbot-header {
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .chatbot-header h3 {
+            margin: 0;
+            font-size: 16px;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: background-color 0.3s ease;
+        }
+
+        .close-btn:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        /* 채팅 영역 */
+        .chat-area {
+            height: 480px;
+            padding: 15px;
+            overflow-y: auto;
+            background-color: #f8f9fa;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            display: flex;
+            align-items: flex-start;
+        }
+
+        .message.user {
+            justify-content: flex-end;
+        }
+
+        .message.bot {
+            justify-content: flex-start;
+        }
+
+        .message-content {
+            max-width: 80%;
+            padding: 10px 15px;
+            border-radius: 18px;
+            word-wrap: break-word;
+        }
+
+        .message.user .message-content {
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            color: white;
+        }
+
+        .message.bot .message-content {
+            background: white;
+            color: #333;
+            border: 1px solid #e0e0e0;
+        }
+
+        /* 챗봇 메시지 컨테이너 */
+        .message.bot {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        /* 챗봇 버튼 스타일 */
+        .chatbot-button {
+            margin-top: 8px;
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            color: white;
+            border: none;
+            border-radius: 15px;
+            padding: 8px 16px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .chatbot-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(30, 60, 114, 0.3);
+            color: white;
+            text-decoration: none;
+        }
+
+        /* 입력 영역 */
+        .input-area {
+            padding: 15px;
+            border-top: 1px solid #e0e0e0;
+            display: flex;
+            gap: 10px;
+        }
+
+        .message-input {
+            flex: 1;
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+            border-radius: 20px;
+            outline: none;
+            font-size: 14px;
+        }
+
+        .message-input:focus {
+            border-color: #1e3c72;
+        }
+
+        .send-btn {
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .send-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(30, 60, 114, 0.3);
+        }
+
+        /* 반응형 */
+        @media (max-width: 480px) {
+            .chatbot-window {
+                width: 95%;
+                height: 80vh;
+                right: 2.5%;
+                left: 2.5%;
+                bottom: 100px;
+            }
+
+            .chat-area {
+                height: calc(80vh - 140px);
+            }
+        }
+    </style>
+
     <!-- JS, Popper, js and Jquery -->
     <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js"></script>
-
+    <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=0002645a847652028848c550afe30640&autoload=false"></script>
     <th:block layout:fragment="script"></th:block>
     <th:block layout:fragment="css"></th:block>
 </head>
+
 <body>
 
 <div th:replace="~{fragments/header::header}"></div>
 <div layout:fragment="content" class="content"></div>
 <div th:replace="~{fragments/footer::footer}"></div>
 
+<!-- 챗봇 HTML -->
+<div id="chatbot-icon" onclick="toggleChatbot()">💬</div>
+
+<div class="chatbot-modal" id="chatbotModal" onclick="closeChatbot()">
+    <div class="chatbot-window" onclick="event.stopPropagation()">
+        <div class="chatbot-header">
+            <h3>🎬 MovieFlex</h3>
+            <button class="close-btn" onclick="closeChatbot()">×</button>
+        </div>
+
+        <div class="chat-area" id="chatArea">
+            <div class="message bot">
+                <div class="message-content">
+                    안녕하세요! 🎬 MovieFlex 입니다. 무엇을 도와드릴까요?
+                </div>
+            </div>
+        </div>
+
+        <div class="input-area">
+            <input type="text" class="message-input" id="messageInput" placeholder="메시지를 입력하세요..."
+                   onkeypress="handleKeyPress(event)">
+            <button class="send-btn" onclick="sendMessage()">전송</button>
+        </div>
+    </div>
+</div>
+
+<!-- 챗봇 JavaScript -->
+<script>
+    let isOpen = false;
+
+    function toggleChatbot() {
+        const modal = document.getElementById('chatbotModal');
+        if (isOpen) {
+            closeChatbot();
+        } else {
+            openChatbot();
+        }
+    }
+
+    function openChatbot() {
+        const modal = document.getElementById('chatbotModal');
+        modal.style.display = 'block';
+        isOpen = true;
+        document.getElementById('messageInput').focus();
+    }
+
+    function closeChatbot() {
+        const modal = document.getElementById('chatbotModal');
+        modal.style.display = 'none';
+        isOpen = false;
+    }
+
+    function addMessage(text, sender, buttonText = null, buttonUrl = null) {
+        const chatArea = document.getElementById('chatArea');
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${sender}`;
+
+        const contentDiv = document.createElement('div');
+        contentDiv.className = 'message-content';
+        contentDiv.textContent = text;
+
+        messageDiv.appendChild(contentDiv);
+
+        // 👉 버튼이 있을 경우 추가
+        if (buttonText && buttonUrl && sender === 'bot') {
+            const button = document.createElement('button');
+            button.textContent = buttonText;
+            button.className = 'chatbot-button';
+            button.onclick = () => window.location.href = buttonUrl;
+
+            messageDiv.appendChild(button);
+        }
+
+        chatArea.appendChild(messageDiv);
+        chatArea.scrollTop = chatArea.scrollHeight;
+    }
+
+    function sendMessage() {
+        const input = document.getElementById('messageInput');
+        const message = input.value.trim();
+
+        if (message) {
+            addMessage(message, 'user');
+            input.value = '';
+
+            fetch(`/api/chatbot?message=${encodeURIComponent(message)}`)
+                .then(response => response.json())
+                .then(data => {
+                    addMessage(data.response, 'bot', data.buttonText, data.buttonUrl);
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    addMessage('⚠️ 서버 오류가 발생했습니다.', 'bot');
+                });
+        }
+    }
+
+    function handleKeyPress(event) {
+        if (event.key === 'Enter') {
+            sendMessage();
+        }
+    }
+
+    // ESC 키로 닫기
+    document.addEventListener('keydown', function (event) {
+        if (event.key === 'Escape' && isOpen) {
+            closeChatbot();
+        }
+    });
+</script>
+
 </body>
+
 </html>

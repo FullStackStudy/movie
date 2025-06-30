@@ -25,7 +25,7 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf
-                        .ignoringRequestMatchers("/api/**", "/members/new", "/members/login", "/members/logout")
+                        .ignoringRequestMatchers("/api/**", "/members/new", "/members/login", "/members/logout","/admin/schedule")
                         .csrfTokenRepository(new HttpSessionCsrfTokenRepository())
                 ) // API 엔드포인트와 특정 페이지에서 CSRF 검증 제외
                 .formLogin(form -> form
@@ -54,10 +54,10 @@ public class SecurityConfig {
                 )
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers("/css/**", "/js/**", "/img/**", "/uploads/**").permitAll()
-                        .requestMatchers("/", "/main", "/members/**", "/item/**", "/images/**").permitAll()
+                        .requestMatchers("/", "/main", "/members/**", "/item/**", "/images/**","/cinema/**").permitAll()
                         .requestMatchers("/api/email/**").permitAll() // 이메일 인증 API 허용
                         .requestMatchers("/mypage/**").authenticated()
-                        .requestMatchers("/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/admin/**").permitAll()
                         .anyRequest().permitAll()
                 );
 
