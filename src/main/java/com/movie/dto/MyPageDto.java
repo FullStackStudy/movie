@@ -33,10 +33,10 @@ public class MyPageDto {
     @NotBlank(message = "주소는 필수 입력 값입니다.")
     private String address;
 
-    private String profile;
-    private String grade;
-    private String reserve;
-    private String point;
-    private String inquiry;
-    private LocalDate regDate;
+    private String profile; // 프로필 UUID
+    private String grade; // 등급
+    private String reserve; // 예매 내역
+    private String point; // 포인트
+    private String inquiry; // 문의내역
+    private LocalDate regDate; // 가입일
 } 

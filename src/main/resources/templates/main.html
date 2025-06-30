@@ -1,51 +1,112 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org"
-      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-      layout:decorate="~{layouts/layout1}">
-
-<th:block layout:fragment="css">
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <title>영화 예매 메인</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- Bootstrap CSS -->
+    <link th:href="@{/css/style.css}" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
     <style>
-        .carousel-inner > .item {
-            height : 350px;
+        .movie-card {
+            transition: transform 0.2s;
         }
-        .margin{
-            margin-bottom : 30px;
+        .movie-card:hover {
+            transform: scale(1.03);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
         }
-        .banner{
-            height : 300px;
-            position :  absolute; top:0; left:0;
+        .movie-rank {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: #ff5a1f;
+            color: #fff;
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+        .movie-poster {
+            height: 320px;
+            object-fit: cover;
+            border-radius: 10px 10px 0 0;
+        }
+        .reserve-btn {
+            background: #ff5a1f;
+            color: #fff;
+            border: none;
+            border-radius: 20px;
+            padding: 6px 18px;
+            font-weight: bold;
+        }
+        .reserve-btn:hover {
+            background: #ff7a3c;
+        }
+        .movie-scroll-wrapper {
+            overflow-x: auto;
+            overflow-y: hidden;
+            white-space: nowrap;
+            padding-bottom: 10px;
+            margin-bottom: 30px;
+        }
+        .movie-scroll-inner {
+            min-width: 1100px; /* 220px * 5개 */
+        }
+        .movie-card {
+            flex: 0 0 auto;
+            width: 220px;
+            min-width: 220px;
+            max-width: 220px;
+            margin-bottom: 0;
+        }
+        .card-title {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: block;
             width: 100%;
-            height: 100%;
-        }
-        .card-text{
-            text-overflow : ellipsis;
-            white-space : nowrap;
-            overflow : hidden;
-        }
-        a:hover{
-            text-decoration:none;
-        }
-        .center{
-            text-align:center;
+            max-width: 100%;
         }
     </style>
-</th:block>
+</head>
+<body>
+    <header th:replace="fragments/header :: header"></header>
 
-<div layout:fragment="content">
-
-    <div id="carouselControls" class="carousel slide margin" data-ride="carousel">
-        <div class="carousel-inner">
-            <div class="carousel-item active item">
-                <img src="https://user-images.githubusercontent.com/13268420/112147492-1ab76200-8c20-11eb-8649-3d2f282c3c02.png"
-                     class="d-block w-100 banner" alt="First slide">
+    <main class="container my-5">
+        <div class="mb-5 text-center">
+            <h1>무비차트</h1>
+            <p class="lead">현재 상영작</p>
+        </div>
+        <!-- 가로 스크롤 무비차트 -->
+        <div class="movie-scroll-wrapper">
+            <div class="d-flex flex-row gap-4 movie-scroll-inner">
+                <div class="movie-card card position-relative h-100" th:each="movie, stat : ${movies}" style="min-width:220px; max-width:220px;">
+                    <div class="movie-rank" th:text="${stat.index + 1}">1</div>
+                    <img th:src="@{${movie.moviePoster}}" class="card-img-top movie-poster" th:alt="${movie.movieTitle}">
+                    <div class="card-body text-center">
+                        <h5 class="card-title" th:text="${movie.movieTitle}">영화 제목</h5>
+                        <p class="mb-1">
+                            <span th:text="'🍿 ' + ${movie.movieRating}">평점 0.0</span>
+                        </p>
+                        <p class="mb-2">
+                            <span th:text="'장르 '+${movie.genre}">장르</span>
+                        </p>
+                        <p class="mb-2">
+                            <span th:text="'개봉일 : ' + ${movie.openDate}">개봉일</span>
+                        </p>
+                        <a th:href="@{'/movie/' + ${movie.movieId}}" class="reserve-btn" sec:authorize="isAuthenticated()">예매하기</a>
+                        <a th:href="@{/members/login}" class="reserve-btn" sec:authorize="!isAuthenticated()">예매하기</a>
+                    </div>
+                </div>
             </div>
         </div>
-    </div>
+    </main>
 
-    <!-- -->
-
-
-
-
-</div>
+    <footer th:replace="fragments/footer :: footer"></footer>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
 </html>

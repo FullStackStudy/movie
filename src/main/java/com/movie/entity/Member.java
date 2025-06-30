@@ -3,6 +3,7 @@ package com.movie.entity;
 import com.movie.constant.Role;
 import com.movie.dto.MemberFormDto;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -18,6 +19,7 @@ import java.time.LocalDate;
 public class Member {
 
     @Id
+    @Email
     @Column(name = "member_id",nullable = false, unique = true) // 중복 X
     private String memberId;
 
@@ -38,9 +40,6 @@ public class Member {
 
     @Column(name = "member_profile")
     private String profile;
-
-    @Column(name = "member_email")
-    private String email = memberId;
 
     @Column(name = "member_nickname", nullable = false)
     private String nickname;

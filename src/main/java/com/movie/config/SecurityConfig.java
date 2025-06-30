@@ -8,6 +8,8 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.csrf.HttpSessionCsrfTokenRepository;
+import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
 
 @Configuration
 @EnableWebSecurity
@@ -23,11 +25,12 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf
-                        .ignoringRequestMatchers("/members/new", "/members/login")
-                ) // csrf 검증 제외
+                        .ignoringRequestMatchers("/api/**", "/members/new", "/members/login", "/members/logout")
+                        .csrfTokenRepository(new HttpSessionCsrfTokenRepository())
+                ) // API 엔드포인트와 특정 페이지에서 CSRF 검증 제외
                 .formLogin(form -> form
                         .loginPage("/members/login") // 사용할 로그인 페이지 URL
-                        .defaultSuccessUrl("/main") // 로그인 성공시 이동 페이지
+                        .successHandler(new SavedRequestAwareAuthenticationSuccessHandler())
                         .usernameParameter("memberId") // 사용자명
                         .failureUrl("/members/login/error")
                 )
@@ -52,6 +55,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers("/css/**", "/js/**", "/img/**", "/uploads/**").permitAll()
                         .requestMatchers("/", "/main", "/members/**", "/item/**", "/images/**").permitAll()
+                        .requestMatchers("/api/email/**").permitAll() // 이메일 인증 API 허용
                         .requestMatchers("/mypage/**").authenticated()
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .anyRequest().permitAll()

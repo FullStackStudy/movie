@@ -89,6 +89,7 @@ public class MemberService implements UserDetailsService {
         memberRepository.save(member);
     }
 
+    // email 중복가입 체크
     private void validateDuplicateMember(Member member) {
         memberRepository.findById(member.getMemberId()).ifPresent(m -> {
             throw new IllegalStateException("이미 가입된 아이디입니다.");

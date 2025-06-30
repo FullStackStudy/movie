@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${movie.movieTitle} + ' - 상세정보'">영화 상세정보</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link th:href="@{/css/style.css}" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+    <style>
+        .movie-detail-poster {
+            width: 100%;
+            max-width: 350px;
+            border-radius: 12px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+        }
+        .movie-info-title {
+            font-size: 2rem;
+            font-weight: bold;
+        }
+        .movie-info-label {
+            color: #888;
+            font-weight: 500;
+            min-width: 80px;
+            display: inline-block;
+        }
+        .movie-content {
+            white-space: pre-line;
+        }
+    </style>
+</head>
+<body>
+<header th:replace="fragments/header :: header"></header>
+<main class="container my-5">
+    <div class="row g-5">
+        <div class="col-md-4 text-center">
+            <img th:src="@{${movie.moviePoster}}" th:alt="${movie.movieTitle}" class="movie-detail-poster mb-3">
+        </div>
+        <div class="col-md-8">
+            <div class="movie-info-title mb-3" th:text="${movie.movieTitle}">영화 제목</div>
+            <div class="mb-2">
+                <span class="movie-info-label">장르</span>
+                <span th:text="'🎥 '+${movie.genre}">장르</span>
+            </div>
+            <div class="mb-2">
+                <span class="movie-info-label">평점</span>
+                <span th:text="'🍿 '+${movie.movieRating}">0.0</span>
+            </div>
+            <div class="mb-2">
+                <span class="movie-info-label">출연</span>
+                <span th:text="${movie.movieCast}">출연진</span>
+            </div>
+            <div class="mb-2">
+                <span class="movie-info-label">상세정보</span>
+                <span th:text="${movie.detailInfo}">상세정보</span>
+            </div>
+            <div class="mb-2">
+                <span class="movie-info-label">개봉일</span>
+                <span th:text="${movie.openDate}">개봉일</span>
+            </div>
+            <div class="mb-2">
+                <span class="movie-info-label">가격</span>
+                <span th:text="${movie.moviePrice} + '원'">12000원</span>
+            </div>
+            <div class="mb-4">
+                <span class="movie-info-label">줄거리</span>
+                <div class="movie-content" th:text="${movie.movieContent}">줄거리</div>
+            </div>
+            <a th:href="@{'/reserve/' + ${movie.movieId}}" class="btn btn-primary btn-lg">예매하기</a>
+        </div>
+    </div>
+</main>
+<footer th:replace="fragments/footer :: footer"></footer>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
