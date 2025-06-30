@@ -26,11 +26,6 @@ public class MainController {
         return "main";
     }
 
-    @GetMapping("/main")
-    public String main() {
-        return "main";
-    }
-
     @GetMapping("/error")
     public String handleError() {
         return "error";
