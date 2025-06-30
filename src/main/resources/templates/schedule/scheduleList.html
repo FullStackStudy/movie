@@ -1,10 +1,8 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-    layout:decorate="~{layouts/layout1}">
+      layout:decorate="~{layouts/layout1}">
 
 <head>
-    <meta name="_csrf" th:content="${_csrf.token}" />
-    <meta name="_csrf_header" th:content="${_csrf.headerName}">
     <style>
         .schedule-container {
             background-color: #ffffff;
@@ -71,18 +69,22 @@
         }
 
         .schedule-details {
-            display: grid;
+            display: flex;
             gap: 15px;
             margin-bottom: 25px;
         }
 
-        .detail-item {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            font-size: 1rem;
-            color: #555;
-        }
+       .detail-item {
+    display: flex;          /* 내부 아이콘-텍스트 정렬을 위해 */
+    align-items: center;    /* 수직 가운데 정렬 */
+    gap: 8px;
+    font-size: 1rem;
+    color: #555;
+    padding: 8px 12px;
+    background: #f1f3f5;
+    border-radius: 8px;
+}
+
 
         .detail-item.screen {
             color: #3498db;
@@ -90,7 +92,6 @@
         }
 
         .detail-item.screen::before {
-            content: "🏢";
             font-size: 1.2rem;
         }
 
@@ -181,58 +182,60 @@
 </head>
 
 <body>
-    <div layout:fragment="content">
-        <div class="schedule-container">
-            <div class="schedule-header">
-                <h2 th:text="${cinemaName}">영화관</h2>
-                <p>🎬 시작 시간을 클릭하면 예매 페이지로 이동합니다</p>
-            </div>
+<div layout:fragment="content">
+    <div class="schedule-container">
+        <div class="schedule-header">
+            <h2 th:text="${cinemaName}">영화관</h2>
+            <p>🎬 시작 시간을 클릭하면 예매 페이지로 이동합니다</p>
+        </div>
 
-            <div class="schedule-grid" th:if="${!#lists.isEmpty(schedules)}">
-                <div class="schedule-card" th:each="schedule : ${schedules}">
-                    <div class="movie-title" th:text="${schedule.movieTitle}">영화 제목</div>
+        <div class="schedule-grid" th:if="${!#lists.isEmpty(schedules)}">
+            <div class="schedule-card" th:each="schedule : ${schedules}">
+                <div class="movie-title" th:text="${schedule.movieTitle}">영화 제목</div>
 
-                    <div class="schedule-details">
-                        <div class="detail-item screen" th:text="${schedule.screenRoomName}">상영관</div>
-                    </div>
-
-                    <a href="#" class="time-button" th:text="${#temporals.format(schedule.startTime, 'HH:mm')} + ' 시작'"
-                        th:onclick="'reserveMovie(\'' + ${schedule.id} + '\')'">
-                        10:00 시작
-                    </a>
+                <div class="schedule-details">
+                    <p class="detail-item screen" th:text="${schedule.showDate}">상영날짜</p>
+                    <p class="detail-item screen" th:text="${schedule.screenRoomName}">상영관</p>
+                    <p class="detail-item screen" th:text="${schedule.description}">설명</p>
                 </div>
-            </div>
 
-            <div class="empty-state" th:if="${#lists.isEmpty(schedules)}">
-                현재 상영 스케줄이 없습니다.<br>
-                잠시 후 다시 확인해주세요.
+                <a href="#" class="time-button" th:text="${#temporals.format(schedule.startTime, 'HH:mm')} + ' 시작'"
+                   th:onclick="'reserveMovie(\'' + ${schedule.id} + '\')'">
+                    10:00 시작
+                </a>
             </div>
         </div>
 
-        <script>
-            function reserveMovie(scheduleId) {
-                // 예매 페이지로 이동하는 로직
-                console.log('예매 페이지로 이동:', scheduleId);
-                // 실제 구현시에는 해당 스케줄 ID로 예매 페이지로 이동
-                // window.location.href = '/reserve?scheduleId=' + scheduleId;
-            }
-
-            // 페이지 로드시 부드러운 애니메이션
-            document.addEventListener('DOMContentLoaded', function () {
-                const cards = document.querySelectorAll('.schedule-card');
-                cards.forEach((card, index) => {
-                    card.style.opacity = '0';
-                    card.style.transform = 'translateY(30px)';
-
-                    setTimeout(() => {
-                        card.style.transition = 'all 0.6s ease';
-                        card.style.opacity = '1';
-                        card.style.transform = 'translateY(0)';
-                    }, index * 100);
-                });
-            });
-        </script>
+        <div class="empty-state" th:if="${#lists.isEmpty(schedules)}">
+            현재 상영 스케줄이 없습니다.<br>
+            잠시 후 다시 확인해주세요!
+        </div>
     </div>
+
+    <script>
+        function reserveMovie(scheduleId) {
+            // 예매 페이지로 이동하는 로직
+            console.log('예매 페이지로 이동:', scheduleId);
+            // 실제 구현시에는 해당 스케줄 ID로 예매 페이지로 이동
+            // window.location.href = '/reserve?scheduleId=' + scheduleId;
+        }
+
+        // 페이지 로드시 부드러운 애니메이션
+        document.addEventListener('DOMContentLoaded', function () {
+            const cards = document.querySelectorAll('.schedule-card');
+            cards.forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(30px)';
+
+                setTimeout(() => {
+                    card.style.transition = 'all 0.6s ease';
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, index * 100);
+            });
+        });
+    </script>
+</div>
 </body>
 
 </html>

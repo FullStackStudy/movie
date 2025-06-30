@@ -23,7 +23,7 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf
-                        .ignoringRequestMatchers("/members/new", "/members/login")
+                        .ignoringRequestMatchers("/members/new", "/members/login","/admin/schedule")
                 ) // csrf 검증 제외
                 .formLogin(form -> form
                         .loginPage("/members/login") // 사용할 로그인 페이지 URL
@@ -53,7 +53,7 @@ public class SecurityConfig {
                         .requestMatchers("/css/**", "/js/**", "/img/**", "/uploads/**").permitAll()
                         .requestMatchers("/", "/main", "/members/**", "/item/**", "/images/**", "/cinema/**").permitAll()
                         .requestMatchers("/mypage/**").authenticated()
-                        .requestMatchers("/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/admin/**").permitAll()
                         .anyRequest().permitAll()
                 );
 
