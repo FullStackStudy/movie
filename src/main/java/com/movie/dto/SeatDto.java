@@ -14,13 +14,14 @@ import java.util.stream.Collectors;
 @Setter
 public class SeatDto {
     private Long id;
-    private Long room_id;
+    private String roomNm;
+    private boolean availableSeats;
+    private Long roomId;
     private Integer price;
     private char seatRow;
-    private int seatCol;
+    private int seatColumn;
+    private List<ScreenRoomDto> screenRooms;  // 상영관 정보 리스트
 
-    //A1, B2...
-    private String seatName= String.valueOf(seatRow) + seatCol;
 
     //-----------------modelMapper--------------------//
     private static ModelMapper modelMapper = new ModelMapper();

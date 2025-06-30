@@ -39,7 +39,7 @@
 
 <form>
     <p>영화 ID:
-        <input type="text" id="movie_id" name="movie_id" />
+        <input type="text" name="movie_name" th:text="${movieTitle}"/>
     </p>
     <p>member ID:
         <span id="member_id" th:text="${member_id}"></span></p>
@@ -53,29 +53,63 @@
     </div>
 
     <br><br>
-    <button type="button" id="reserve-btn">예약하기</button>
+    <div th:replace="~{/reserve/reservationInfo :: info(
+      movieTitle=${movieTitle},
+      cinema_name=${cinemaName},
+      screen_name=${screenRoomName},
+      movie_time=${startTime}
+    )}"></div>
+
+    <label for="payMethod">결제 수단:</label>
+        <select id="payMethod" name="payMethod" required>
+            <option value="">결제 수단 선택</option>
+            <option value="CASH">현금</option>
+            <option value="CARD">카드</option>
+            <option value="POINT">포인트</option>
+        </select>
+    <input type="text" name="scheduleId" id="scheduleId" th:value="${scheduleId}">
     <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
 </form>
 <script th:inline="javascript">
+
     $(function(){
-        $('#reserve-btn').on('click',function(){
+        $('#next_button').on('click',function(){
             var token = $("meta[name='_csrf']").attr("content");
             var header = $("meta[name='_csrf_header']").attr("content");
 
+            var member_id =  $("#member_id").text(); //d이름
+            var movie_name = $("#movie_name").text(); //d이름
+            var cinema_name = $("#cinema_name").text(); //이름
+            var screen_name = $("#screen_name").text();
+            var movie_time = $("#movie_time").text();
+            var per = $("#per").text();
+            var seat_name = $("#seat_name").text();
 
-            var movie_id = $("#movie_id").val();
-            var member_id = $("#member_id").text();
-            const value = document.getElementById("selectedSeats").value;
-            const selectedSeatArray = value.split(",");
-            //var seat_id = $("#selectedSeats").val();
-            //var seat_id = $('input[name="seat_id"]:checked').map(function(){
-            //    return $(this).val();
-            //}).get();
+            var price = $("#price").text();
+            var pay_method = $("#pay_method").text();
+             var scheduleId = $("#scheduleId").val();
+
+
+
+            const value =document.getElementById("selectedSeats").value
+            const selectedSeatArray = value.split(",").map(Number);
+
+            const seatNameList = seat_name.split(",");
+
             var url = "/reservation/reserve";
             var paramData = {
-                movie_id : movie_id,
-                member_id : member_id,
-                seat_id : selectedSeatArray
+                movieName : movie_name,
+                cinemaName : cinema_name,
+                screenName : screen_name,
+                startTime : movie_time,
+                per : per,
+                price : price,
+                payMethod : pay_method,
+                scheduleId : scheduleId,
+                seatId : selectedSeatArray,
+                seatName: seatNameList,
+                memberId : member_id
+
             }
 
             var param = JSON.stringify(paramData);
@@ -130,11 +164,12 @@
         label.textContent = row;
         rowDiv.appendChild(label);
 
-        seatMap[row].sort((a, b) => a.seatCol - b.seatCol).forEach(seat => {
+        seatMap[row].sort((a, b) => a.seatColumn - b.seatColumn).forEach(seat => {
             const div = document.createElement("div");
+            const seatList = document.getElementById("seat_id");
             div.classList.add("seat");
             div.dataset.id = seat.id;
-            div.textContent = row + seat.seatCol;
+            div.textContent = row + seat.seatColumn;
 
             div.onclick = function () {
                 const id = div.dataset.id;
@@ -146,7 +181,23 @@
                     div.classList.add("selected");
                 }
                 document.getElementById("selectedSeats").value = Array.from(selectedSeatIds);
-            };
+                // 시각적으로 표시할 좌석명 (선택된 div들에서 textContent 가져오기)
+                const selectedSeatNamesArray = Array.from(document.querySelectorAll('.seat.selected'))
+                    .map(el => el.textContent);
+
+                const selectedSeatNames = selectedSeatNamesArray.join(", ");
+                const number = selectedSeatNamesArray.length;
+                // movie-info 에 출력
+                document.getElementById('seat_name').innerText = selectedSeatNames || "-";
+                document.getElementById('per').innerText = number;
+                document.getElementById('price').innerText = (number* 12000);// 나중에 price 바꾸겠음
+
+                const payMethodSelect = document.getElementById('payMethod');
+                payMethodSelect.addEventListener('change', () => {
+                      const payMethod = payMethodSelect.value;
+                      document.getElementById('pay_method').innerText = payMethod;
+                    });
+                };
 
             rowDiv.appendChild(div);
         });

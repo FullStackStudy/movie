@@ -4,6 +4,7 @@ import com.movie.constant.ReservationStatus;
 import com.movie.entity.BaseEntity;
 import com.movie.entity.BaseTimeEntity;
 import com.movie.entity.Member;
+import com.movie.entity.Schedule;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -30,9 +31,15 @@ public class Reservation {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id")
     private Member member;
-    private Long movie_id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "schedule_id")
+    private Schedule schedule;
+
 
     private String seat_id;
+
+    private Long per; //예약몇명인지
 
     @CreatedDate
     @Column(name = "reserved_at")

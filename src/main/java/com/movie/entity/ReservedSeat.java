@@ -32,5 +32,7 @@ public class ReservedSeat {
     @JoinColumn(name = "seat_id")
     private Seat seat;
 
-    private Long movie_id;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "schedule_id")
+    private Schedule schedule;
 }

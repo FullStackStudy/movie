@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://ultaq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/layout1}">
+<head>
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+</head>
+<!-- CONTENT -->
+<div layout:fragment="content">
+    <div class="container-fluid text-center">
+        <h1>영화 예매</h1>
+
+        <form action="/reservation/reserveSeat" method="GET" id="reserveSetting">
+            <!-- 영화 선택 -->
+            <input type="text" name="member_id" th:value="${member_id}">
+            <label for="movieSelect">영화 선택:</label>
+            <select id="movieSelect" name="movieTitle" required>
+                <option value="">영화 선택</option>
+                <option th:each="schedule : ${scheduleList}"
+                        th:value="${schedule.movieTitle}"
+                        th:text="${schedule.movieTitle}">
+                </option>
+            </select>
+
+            <br/>
+
+            <!-- 영화관 선택 -->
+            <label for="cinemaSelect">영화관 선택:</label>
+            <select id="cinemaSelect" name="cinemaName" required>
+                <option value="">영화관 선택</option>
+            </select>
+            <br/>
+
+            <!-- 시간 선택 -->
+            <label for="timeSelect">시간 선택:</label>
+            <select id="timeSelect" name="startTime" required>
+                <option value="">시간 선택</option>
+            </select>
+            <input type="text" id="roomId" name="roomId"> <!-- 실제 전송용 -->
+            <input type="text" id="screenRoomName" name="screenRoomName"> <!-- 실제 전송용 -->
+            <input type="text" id="scheduleId" name="scheduleId">
+            <br/>
+
+            <div th:insert="~{/reserve/reservationInfo :: info}">
+            </div>
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+        </form>
+
+        <!-- JS Script -->
+        <script th:inline="javascript">
+            /*<![CDATA[*/
+            const rawScheduleList = /*[[${scheduleList}]]*/ [];
+            const scheduleMap = {};
+            const scheduleTimeMap = {};
+
+            rawScheduleList.forEach(schedule => {
+                const movie = schedule.movieTitle;
+                const cinema = schedule.cinemaName;
+                const time = schedule.startTime;
+
+                const key = schedule.movieTitle + "|" + schedule.cinemaName + "|" + schedule.startTime;
+                scheduleTimeMap[key] = schedule;  // schedule 안에 screenRoomName 있음
+
+                if (!scheduleMap[movie]) scheduleMap[movie] = {};
+                if (!scheduleMap[movie][cinema]) scheduleMap[movie][cinema] = [];
+                if (!scheduleMap[movie][cinema].includes(time)) {
+                    scheduleMap[movie][cinema].push(time);
+                    }
+            });
+
+            const movieSelect = document.getElementById('movieSelect');
+            const cinemaSelect = document.getElementById('cinemaSelect');
+            const screenSelect = document.getElementById('screenRoomName');
+            const timeSelect = document.getElementById('timeSelect');
+
+            movieSelect.addEventListener('change', () => {
+                const selectedMovie = movieSelect.value;
+                cinemaSelect.innerHTML = '<option value="">영화관 선택</option>';
+                timeSelect.innerHTML = '<option value="">시간 선택</option>';
+
+                if (!selectedMovie || !scheduleMap[selectedMovie]) return;
+
+                Object.keys(scheduleMap[selectedMovie]).forEach(cinema => {
+                    const opt = document.createElement('option');
+                    opt.value = cinema;
+                    opt.textContent = cinema;
+                    cinemaSelect.appendChild(opt);
+                });
+
+                document.getElementById('movie_name').innerText = selectedMovie;
+            });
+
+            cinemaSelect.addEventListener('change', () => {
+                const selectedMovie = movieSelect.value;
+                const selectedCinema = cinemaSelect.value;
+
+                timeSelect.innerHTML = '<option value="">시간 선택</option>';
+                if (!selectedMovie || !selectedCinema) return;
+
+                scheduleMap[selectedMovie][selectedCinema].forEach(time => {
+                    const opt = document.createElement('option');
+                    opt.value = time;
+                    opt.textContent = time;
+                    timeSelect.appendChild(opt);
+                });
+
+                document.getElementById('cinema_name').innerText = selectedCinema;
+            });
+
+            timeSelect.addEventListener('change', () => {
+                    const selectedMovie = movieSelect.value;
+                    const selectedCinema = cinemaSelect.value;
+                    const selectedTime = timeSelect.value;
+
+                    document.getElementById('movie_time').innerText = selectedTime;
+
+                    const key = selectedMovie + "|" + selectedCinema + "|" + selectedTime;
+                    const schedule = scheduleTimeMap[key];
+
+                    if (schedule) {
+
+                        document.getElementById('screen_name').innerText = schedule.screenRoomName;
+                        document.getElementById('roomId').value = schedule.roomId;
+                        document.getElementById('screenRoomName').value = schedule.screenRoomName;
+                        document.getElementById('scheduleId').value = schedule.scheduleId;
+
+                    }
+                });
+
+
+            /*]]>*/
+
+            document.getElementById("next_button").addEventListener("click", function () {
+            document.querySelector("#reserveSetting").submit();
+        });
+        </script>
+    </div>
+</div>

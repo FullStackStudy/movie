@@ -54,6 +54,7 @@ public class SecurityConfig {
                         .requestMatchers("/", "/main", "/members/**", "/item/**", "/images/**", "/cinema/**").permitAll()
                         .requestMatchers("/mypage/**").authenticated()
                         .requestMatchers("/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/reservation/**").authenticated()
                         .anyRequest().permitAll()
                 );
 

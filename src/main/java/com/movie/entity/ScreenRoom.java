@@ -12,7 +12,7 @@ import java.util.List;
 @Table(name = "screen_room")
 public class ScreenRoom {
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "room_id")
     private Long id;
 
@@ -21,12 +21,12 @@ public class ScreenRoom {
     private Cinema cinema;
 
 
-    @OneToMany(mappedBy = "screenRoom")
+    /*@OneToMany(mappedBy = "screenRoom")
     private List<Schedule> schedules;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "movie_id")
-    private Movie movie;
+    private Movie movie;*/
 
     private String roomNm; //상영관 이름
 

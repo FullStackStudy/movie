@@ -12,6 +12,6 @@ import java.util.List;
 @Data
 @AllArgsConstructor
 public class ReservationRedisResultDto {
-    List<String> successList;
-    List<String> failList;
+    List<Long> successList;
+    List<Long> failList;
 }
