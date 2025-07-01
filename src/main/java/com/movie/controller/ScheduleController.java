@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Map;
 
 @Controller
 @RequiredArgsConstructor
@@ -30,16 +31,17 @@ public class ScheduleController {
             String decodedCinemaName = URLDecoder.decode(cinemaName, StandardCharsets.UTF_8);
             log.info("영화관 이름 (원본): {}, (디코딩): {}", cinemaName, decodedCinemaName);
 
-            List<ScheduleDto> schedules = scheduleService.getSchedulesByCinemaName(decodedCinemaName);
-            log.info("영화관: {}, 스케줄 수: {}", decodedCinemaName, schedules.size());
+            // Map<String, List<ScheduleDto>> 형태로 반환한다고 가정
+            Map<String, List<ScheduleDto>> schedulesMap = scheduleService.getGroupedSchedulesByCinemaName(decodedCinemaName);
+            log.info("영화관: {}, 영화 종류 수: {}", decodedCinemaName, schedulesMap.size());
 
-            model.addAttribute("schedules", schedules);
+            model.addAttribute("schedulesMap", schedulesMap);
             model.addAttribute("cinemaName", decodedCinemaName);
             return "schedule/scheduleList";
         } catch (Exception e) {
             log.error("상영시간표 조회 중 오류 발생: {}", e.getMessage(), e);
             model.addAttribute("error", "상영시간표를 불러오는 중 오류가 발생했습니다.");
-            model.addAttribute("schedules", List.of());
+            model.addAttribute("schedulesMap", null);
             model.addAttribute("cinemaName", cinemaName);
             return "schedule/scheduleList";
         }
