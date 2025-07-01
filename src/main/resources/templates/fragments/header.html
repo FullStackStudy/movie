@@ -113,13 +113,15 @@
             border-radius: 8px !important;
             padding: 0.7rem 1.2rem !important;
             margin: 0 0.2rem !important;
-            transition: background 0.2s, color 0.2s !important;
+            transition: background 0.2s, color 0.2s, box-shadow 0.2s !important;
             cursor: pointer !important;
+            position: relative !important;
         }
 
         .navbar.modern-header .logout-btn:hover {
             background: linear-gradient(90deg, rgba(67, 233, 123, 0.13) 0%, rgba(67, 233, 123, 0.08) 100%) !important;
             color: #43e97b !important;
+            box-shadow: 0 2px 8px rgba(67, 233, 123, 0.10) !important;
         }
 
         @media (max-width: 991.98px) {
@@ -191,13 +193,13 @@
                     </li>
                     <li class="nav-item" sec:authorize="isAuthenticated()">
                         <form th:action="@{/logout}" method="post" style="display: inline;">
-                            <button type="submit" class="logout-btn">로그아웃</button>
+                            <button type="submit" class="nav-link logout-btn">로그아웃</button>
                         </form>
                     </li>
                 </ul>
-                <form class="search-form" th:action="@{/}" method="get">
-                    <input name="searchQuery" class="search-input" type="search" placeholder="영화를 검색해보세요..."
-                           aria-label="Search">
+                <form class="search-form" th:action="@{/movie}" method="get">
+                    <input name="search" class="search-input" type="search" placeholder="영화를 검색해보세요..." aria-label="Search"
+                           th:value="${param.search}">
                     <button class="search-btn" type="submit">🔍</button>
                 </form>
             </div>

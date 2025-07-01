@@ -10,8 +10,12 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.openqa.selenium.*;
+import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.chrome.ChromeOptions;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import io.github.bonigarcia.wdm.WebDriverManager;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -29,24 +33,118 @@ public class MovieCrawlingService {
     public void crawlAndSaveMovies() {
         try {
             String url = "http://www.cgv.co.kr/movies/?lt=1&ft=0";
-            Document doc = Jsoup.connect(url)
-                    // userAgent : 크롤링 할때 웹 서버의 요청을 보내기 위한 신분증
-                    .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36")
-                    .timeout(15000)
-                    .get();
+            List<Movie> allMovies = new ArrayList<>();
+            
+            // Jsoup 으로 시도
+            Document doc = null;
+            List<Movie> jsoupMovies = new ArrayList<>();
+            try {
+                doc = Jsoup.connect(url)
+                        .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36")
+                        .timeout(15000)
+                        .get();
+                
+                jsoupMovies = parseMovieChartWithJsoup(doc);
+                allMovies.addAll(jsoupMovies);
+                log.info("Jsoup 크롤링 완료: {}개 영화 수집", jsoupMovies.size());
+                
+            } catch (IOException e) {
+                log.warn("Jsoup 크롤링 실패: {}", e.getMessage());
+            }
+            
+            // Selenium 으로도 무조건 실행
+            try {
+                List<Movie> seleniumMovies = parseMovieChartWithSelenium(url);
+                allMovies.addAll(seleniumMovies);
+                log.info("Selenium 크롤링 완료: {}개 영화 수집", seleniumMovies.size());
+            } catch (Exception e) {
+                log.error("Selenium 크롤링 실패: {}", e.getMessage());
+            }
+            
+            // 중복 제거 (제목 기준)
+            List<Movie> uniqueMovies = removeDuplicates(allMovies);
+            
+            saveMovies(uniqueMovies);
+            log.info("영화 크롤링 완료: 총 {}개 영화 저장됨 (Jsoup: {}, Selenium: {}, 중복제거 후: {})", 
+                    uniqueMovies.size(), jsoupMovies.size(), 
+                    allMovies.size() - jsoupMovies.size(), uniqueMovies.size());
 
-            List<Movie> movies = parseMovieChart(doc);
-            saveMovies(movies);
-
-            log.info("영화 크롤링 완료: {}개 영화 저장됨", movies.size());
-
-        } catch (IOException e) {
+        } catch (Exception e) {
             log.error("영화 크롤링 중 오류 발생: {}", e.getMessage(), e);
             throw new RuntimeException("영화 정보 크롤링에 실패했습니다.", e);
         }
     }
 
-    private List<Movie> parseMovieChart(Document doc) {
+    private List<Movie> parseMovieChartWithSelenium(String url) {
+        List<Movie> movies = new ArrayList<>();
+        WebDriverManager.chromedriver().setup();
+        ChromeOptions options = new ChromeOptions();
+        options.addArguments("--headless=new");
+        WebDriver driver = new ChromeDriver(options);
+
+        try {
+            driver.get(url);
+            Thread.sleep(2000);
+
+            // 더보기 버튼 반복 클릭
+            while (true) {
+                try {
+                    WebElement moreBtn = driver.findElement(By.cssSelector(".btn-more-fontbold"));
+                    if (moreBtn.isDisplayed()) {
+                        moreBtn.click();
+                        Thread.sleep(1500);
+                    } else {
+                        break;
+                    }
+                } catch (NoSuchElementException e) {
+                    break;
+                }
+            }
+
+            // 영화 데이터 추출
+            List<WebElement> movieCards = driver.findElements(By.cssSelector(".sect-movie-chart ol li"));
+            for (WebElement card : movieCards) {
+                try {
+                    String title = card.findElement(By.cssSelector(".box-contents strong.title")).getText();
+                    String percent = card.findElement(By.cssSelector(".score strong.percent")).getText();
+                    String openDate = card.findElement(By.cssSelector(".txt-info")).getText();
+                    String posterUrl = card.findElement(By.cssSelector(".thumb-image img")).getAttribute("src");
+                    double rating = 0.0;
+                    try {
+                        rating = Double.parseDouble(percent.replace("%", "").trim());
+                    } catch (Exception ignore) {}
+
+                    // 이미 DB에 있는 영화는 건너뜀
+                    if (movieRepository.existsByMovieTitle(title)) continue;
+
+                    Movie movie = new Movie();
+                    movie.setMovieTitle(title);
+                    movie.setMoviePoster(posterUrl);
+                    movie.setMovieRating(rating);
+                    movie.setOpenDate(openDate);
+                    movie.setGenre("장르 정보 없음");
+                    movie.setDetailInfo("상세정보 없음");
+                    movie.setMovieCast("출연진 정보 없음");
+                    movie.setMovieContent("줄거리 정보 없음");
+                    movie.setMoviePrice(12000);
+                    movie.setRegDate(LocalDateTime.now());
+
+                    movies.add(movie);
+                    log.info("영화 파싱 완료: {}", title);
+                } catch (Exception e) {
+                    log.warn("영화 파싱 중 오류: {}", e.getMessage());
+                }
+            }
+        } catch (Exception e) {
+            log.error("Selenium 크롤링 실패: {}", e.getMessage());
+        } finally {
+            driver.quit();
+        }
+        
+        return movies;
+    }
+
+    private List<Movie> parseMovieChartWithJsoup(Document doc) {
         List<Movie> movies = new ArrayList<>();
         
         Elements movieElements = doc.select("div.sect-movie-chart ol li");
@@ -60,7 +158,7 @@ public class MovieCrawlingService {
             movieElements = doc.select("div.box-contents");
         }
         
-        log.info("발견된 영화 요소 수: {}", movieElements.size());
+        log.info("Jsoup으로 발견된 영화 요소 수: {}", movieElements.size());
         
         for (Element movieElement : movieElements) {
             try {
@@ -217,44 +315,6 @@ public class MovieCrawlingService {
         return 0.0;
     }
 
-    // 예매율
-    private String extractReserveInfo(Element movieElement) {
-        Element reserveElement = movieElement.select("span.rank").first();
-        if (reserveElement == null) {
-            reserveElement = movieElement.select("span.txt-info").first();
-        }
-        if (reserveElement == null) {
-            reserveElement = movieElement.select("span.reserve").first();
-        }
-        
-        if (reserveElement != null) {
-            String reserveInfo = reserveElement.text().trim();
-            log.debug("예매율 정보: {}", reserveInfo);
-            return reserveInfo;
-        }
-        
-        return "";
-    }
-
-    // 개봉일
-    private String extractReleaseDate(Element movieElement) {
-        Element dateElement = movieElement.select("span.txt-info").first();
-        if (dateElement == null) {
-            dateElement = movieElement.select("span.txt-date").first();
-        }
-        if (dateElement == null) {
-            dateElement = movieElement.select("span.date").first();
-        }
-        
-        if (dateElement != null) {
-            String releaseDate = dateElement.text().trim();
-            log.debug("개봉일: {}", releaseDate);
-            return releaseDate;
-        }
-        
-        return "";
-    }
-
     // 상세 페이지 URL 추출
     private String extractDetailUrl(Element movieElement) {
         Element linkElement = movieElement.select("a").first();
@@ -338,12 +398,6 @@ public class MovieCrawlingService {
                 detailInfo.setContent("줄거리 정보가 없습니다.");
             }
 
-/*            // 추출값 로그
-            log.info("장르: {}", genre);
-            log.info("배우: {}", cast);
-            log.info("기본정보: {}", detail);
-            log.info("개봉일: {}", openDate);*/
-
             return detailInfo;
 
         } catch (IOException e) {
@@ -364,6 +418,22 @@ public class MovieCrawlingService {
         }
     }
 
+    // 중복 제거 메서드
+    private List<Movie> removeDuplicates(List<Movie> movies) {
+        List<Movie> uniqueMovies = new ArrayList<>();
+        List<String> titles = new ArrayList<>();
+        
+        for (Movie movie : movies) {
+            if (movie.getMovieTitle() != null && !titles.contains(movie.getMovieTitle())) {
+                titles.add(movie.getMovieTitle());
+                uniqueMovies.add(movie);
+            }
+        }
+        
+        log.info("중복 제거: {}개 → {}개", movies.size(), uniqueMovies.size());
+        return uniqueMovies;
+    }
+
     // 영화 상세 정보를 담는 내부 클래스
     @Setter
     @Getter
@@ -373,6 +443,5 @@ public class MovieCrawlingService {
         private String openDate;
         private String cast;
         private String content;
-
     }
 }

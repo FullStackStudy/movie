@@ -27,7 +27,8 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf
                         .ignoringRequestMatchers("/api/**", "/members/new", "/members/login", "/members/logout","/admin/schedule")
                         .csrfTokenRepository(new HttpSessionCsrfTokenRepository())
-                ) // API 엔드포인트와 특정 페이지에서 CSRF 검증 제외
+                        .disable()
+                ) 
                 .formLogin(form -> form
                         .loginPage("/members/login") // 사용할 로그인 페이지 URL
                         .successHandler(new SavedRequestAwareAuthenticationSuccessHandler())

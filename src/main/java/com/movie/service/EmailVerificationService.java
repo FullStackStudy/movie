@@ -48,6 +48,10 @@ public class EmailVerificationService {
 
     @Transactional
     public boolean verifyCode(String email, String code) {
+        // 임시로 모든 이메일 인증을 성공으로 처리
+        // return true;
+        
+        // 원래 코드 (주석 처리)
         Optional<EmailVerificationToken> tokenOpt = tokenRepository.findByEmailAndUsedFalse(email);
         
         if (tokenOpt.isEmpty()) {
