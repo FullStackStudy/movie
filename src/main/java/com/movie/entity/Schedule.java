@@ -12,7 +12,7 @@ import java.time.LocalTime;
 @Getter
 @Setter
 @ToString
-@AllArgsConstructor // ✅ 이거 추가!
+@AllArgsConstructor
 @Builder
 public class Schedule {
 

@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 @Service
 @Transactional
@@ -41,16 +42,17 @@ public class ScheduleService {
         scheduleRepository.save(schedule);
     }
 
-    /**
-     * 특정 영화관의 전체 스케줄을 조회
+    /*
+        특정 영화관의 전체 스케줄을 조회 전략 - 영화별 그룹화 Map<String, List<ScheduleDto>>
      */
     @Transactional(readOnly = true)
-    public List<ScheduleDto> getSchedulesByCinemaName(String cinemaName) {
+    public Map<String, List<ScheduleDto>> getGroupedSchedulesByCinemaName(String cinemaName) {
         List<Schedule> schedules = scheduleRepository.findByCinema_Name(cinemaName); // 👈 더 직관적인 방식
 
         return schedules.stream()
                 .map(schedule -> {
                     ScheduleDto dto = new ScheduleDto();
+                    dto.setId(schedule.getId());
                     dto.setMovieTitle(schedule.getMovie().getMovieTitle());
                     dto.setScreenRoomName(schedule.getScreenRoom().getRoomNm());
                     dto.setCinemaNm(schedule.getCinema().getName()); // 👈 dto에 영화관 이름도 담기
@@ -60,6 +62,14 @@ public class ScheduleService {
                     dto.setDescription(schedule.getDescription());
                     return dto;
                 })
-                .collect(Collectors.toList());
+                .collect(Collectors.groupingBy(
+                        ScheduleDto::getMovieTitle, // 영화 제목으로 그룹화
+                        Collectors.collectingAndThen(
+                                Collectors.toList(),
+                                list -> list.stream()
+                                        .sorted((a, b) -> a.getStartTime().compareTo(b.getStartTime())) // 시작 시간 순 정렬
+                                        .collect(Collectors.toList())
+                        )
+                ));
     }
 }
