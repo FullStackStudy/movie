@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-      layout:decorate="~{layouts/layout1}">
+    layout:decorate="~{layouts/layout1}">
 
 <head>
     <style>
@@ -74,16 +74,18 @@
             margin-bottom: 25px;
         }
 
-       .detail-item {
-    display: flex;          /* 내부 아이콘-텍스트 정렬을 위해 */
-    align-items: center;    /* 수직 가운데 정렬 */
-    gap: 8px;
-    font-size: 1rem;
-    color: #555;
-    padding: 8px 12px;
-    background: #f1f3f5;
-    border-radius: 8px;
-}
+        .detail-item {
+            display: flex;
+            /* 내부 아이콘-텍스트 정렬을 위해 */
+            align-items: center;
+            /* 수직 가운데 정렬 */
+            gap: 8px;
+            font-size: 1rem;
+            color: #555;
+            padding: 8px 12px;
+            background: #f1f3f5;
+            border-radius: 8px;
+        }
 
 
         .detail-item.screen {
@@ -96,29 +98,31 @@
         }
 
         .time-button {
-            background: linear-gradient(45deg, #3498db, #2980b9);
-            color: white;
+            background: linear-gradient(45deg, #11998e, #38ef7d);
+            color: #fff;
             border: none;
             padding: 16px 28px;
             border-radius: 12px;
             font-size: 1.1rem;
-            font-weight: 600;
+            font-weight: 700;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.3s cubic-bezier(.4, 2, .3, 1);
             width: 100%;
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 10px;
             text-decoration: none;
+            box-shadow: 0 2px 8px rgba(17, 153, 142, 0.10);
+            letter-spacing: 1px;
         }
 
         .time-button:hover {
-            background: linear-gradient(45deg, #2980b9, #3498db);
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(52, 152, 219, 0.3);
+            background: linear-gradient(45deg, #38ef7d, #11998e);
+            transform: translateY(-2px) scale(1.03);
+            box-shadow: 0 8px 24px rgba(17, 153, 142, 0.18);
+            color: #fff;
             text-decoration: none;
-            color: white;
         }
 
         .time-button::before {
@@ -182,60 +186,75 @@
 </head>
 
 <body>
-<div layout:fragment="content">
-    <div class="schedule-container">
-        <div class="schedule-header">
-            <h2 th:text="${cinemaName}">영화관</h2>
-            <p>🎬 시작 시간을 클릭하면 예매 페이지로 이동합니다</p>
-        </div>
+    <div layout:fragment="content">
+        <div class="schedule-container">
+            <div class="schedule-header">
+                <h2 th:text="${cinemaName}">영화관</h2>
+                <p>🎬 시작 시간을 클릭하면 예매 페이지로 이동합니다</p>
+            </div>
 
-        <div class="schedule-grid" th:if="${!#lists.isEmpty(schedules)}">
-            <div class="schedule-card" th:each="schedule : ${schedules}">
-                <div class="movie-title" th:text="${schedule.movieTitle}">영화 제목</div>
-
-                <div class="schedule-details">
-                    <p class="detail-item screen" th:text="${schedule.showDate}">상영날짜</p>
-                    <p class="detail-item screen" th:text="${schedule.screenRoomName}">상영관</p>
-                    <p class="detail-item screen" th:text="${schedule.description}">설명</p>
+            <div class="schedule-grid" th:if="${schedulesMap != null and !schedulesMap.isEmpty()}">
+                <!-- 1. map entry로 받아서 key, value 직접 접근 -->
+                <div class="schedule-card" th:each="entry : ${schedulesMap}">
+                    <div class="movie-title" th:text="${entry.key}">영화 제목</div>
+                    <table style="width:100%; border-collapse:collapse; margin-bottom:10px;">
+                        <thead>
+                            <tr style="background:#f1f3f5;">
+                                <th style="padding:8px;">상영날짜</th>
+                                <th style="padding:8px;">상영관</th>
+                                <th style="padding:8px;">설명</th>
+                                <th style="padding:8px;">시작시간</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="schedule : ${entry.value}">
+                                <td th:text="${schedule.showDate}" style="padding:8px;"></td>
+                                <td th:text="${schedule.screenRoomName}" style="padding:8px;"></td>
+                                <td th:text="${schedule.description}" style="padding:8px;"></td>
+                                <td style="padding:8px;">
+                                    <a href="#" class="time-button"
+                                        th:text="${#temporals.format(schedule.startTime, 'HH:mm')} + ' 시작'"
+                                        th:onclick="|reserveMovie('${schedule.id}')|">
+                                        10:00 시작
+                                    </a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
 
-                <a href="#" class="time-button" th:text="${#temporals.format(schedule.startTime, 'HH:mm')} + ' 시작'"
-                   th:onclick="'reserveMovie(\'' + ${schedule.id} + '\')'">
-                    10:00 시작
-                </a>
+            </div>
+
+            <div class="empty-state" th:if="${schedulesMap == null or schedulesMap.isEmpty()}">
+                현재 상영 스케줄이 없습니다.<br>
+                잠시 후 다시 확인해주세요!
             </div>
         </div>
 
-        <div class="empty-state" th:if="${#lists.isEmpty(schedules)}">
-            현재 상영 스케줄이 없습니다.<br>
-            잠시 후 다시 확인해주세요!
-        </div>
-    </div>
+        <script>
+            function reserveMovie(scheduleId) {
+                //좌석 선택 페이지로
+                console.log('좌석 선택 페이지로 이동:', scheduleId);
+                // 실제 구현시에는 해당 스케줄 ID로 좌석 선택 페이지로 이동
+                 window.location.href = '/reserve?scheduleId=' + scheduleId;
+            }
 
-    <script>
-        function reserveMovie(scheduleId) {
-            // 예매 페이지로 이동하는 로직
-            console.log('예매 페이지로 이동:', scheduleId);
-            // 실제 구현시에는 해당 스케줄 ID로 예매 페이지로 이동
-            // window.location.href = '/reserve?scheduleId=' + scheduleId;
-        }
+            // 페이지 로드시 부드러운 애니메이션
+            document.addEventListener('DOMContentLoaded', function () {
+                const cards = document.querySelectorAll('.schedule-card');
+                cards.forEach((card, index) => {
+                    card.style.opacity = '0';
+                    card.style.transform = 'translateY(30px)';
 
-        // 페이지 로드시 부드러운 애니메이션
-        document.addEventListener('DOMContentLoaded', function () {
-            const cards = document.querySelectorAll('.schedule-card');
-            cards.forEach((card, index) => {
-                card.style.opacity = '0';
-                card.style.transform = 'translateY(30px)';
-
-                setTimeout(() => {
-                    card.style.transition = 'all 0.6s ease';
-                    card.style.opacity = '1';
-                    card.style.transform = 'translateY(0)';
-                }, index * 100);
+                    setTimeout(() => {
+                        card.style.transition = 'all 0.6s ease';
+                        card.style.opacity = '1';
+                        card.style.transform = 'translateY(0)';
+                    }, index * 100);
+                });
             });
-        });
-    </script>
-</div>
+        </script>
+    </div>
 </body>
 
 </html>
