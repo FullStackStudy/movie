@@ -2,12 +2,15 @@ package com.movie.service;
 
 import com.movie.dto.SeatDto;
 import com.movie.entity.ScreenRoom;
+import com.movie.entity.Seat;
 import com.movie.repository.ScreenRoomRepository;
+import com.movie.repository.SeatRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -15,20 +18,41 @@ import java.util.stream.Collectors;
 public class SeatService {
 
     private final ScreenRoomRepository screenRoomRepository;
-    //private final ReservationRepository reservationRepository;
+    private final SeatRepository seatRepository;
 
     @Transactional
-    public List<SeatDto> getAvailableSeats() {
-        List<ScreenRoom> screenRooms = screenRoomRepository.findAll();
+    public List<SeatDto> getSeatsByRoomId(Long roomId) {
+        Optional<ScreenRoom> room = screenRoomRepository.findById(roomId);
 
-        return screenRooms.stream().map(room -> {
-            //int reserved = reservationRepository.countByScreenRoom(room); // 예약된 좌석 수
-            //int available = room.getTotalSeats() - reserved;
+        if (room.isEmpty()) {
+            throw new IllegalArgumentException("해당 상영관이 존재하지 않습니다: " + roomId);
+        }
 
+        return room.get().getSeats().stream().map(seat -> {
             SeatDto dto = new SeatDto();
-            dto.setRoomNm(room.getRoomNm());
-            //dto.setAvailableSeats(available);
+            dto.setSeatRow(seat.getSeatRow());
+            dto.setSeatColumn(seat.getSeatColumn());
+            dto.setPrice(seat.getPrice());
             return dto;
         }).collect(Collectors.toList());
     }
+
+    @Transactional
+    public void saveSeat(SeatDto seatDto) {
+        Seat seat = new Seat();
+        seat.setSeatRow(seatDto.getSeatRow());
+        seat.setSeatColumn(seatDto.getSeatColumn());
+        seat.setPrice(seatDto.getPrice());
+
+        // 상영관 정보 연결 (필수)
+        ScreenRoom room = screenRoomRepository.findById(seatDto.getScreenRoomId())
+                .orElseThrow(() -> new IllegalArgumentException("상영관이 존재하지 않음"));
+
+        seat.setScreenRoom(room);
+
+        seatRepository.save(seat);
+    }
+
+
+
 }

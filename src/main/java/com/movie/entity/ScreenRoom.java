@@ -24,6 +24,9 @@ public class ScreenRoom {
     @OneToMany(mappedBy = "screenRoom")
     private List<Schedule> schedules;
 
+    @OneToMany(mappedBy = "screenRoom")
+    private List<Seat> seats;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "movie_id")
     private Movie movie;
