@@ -8,6 +8,8 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.csrf.HttpSessionCsrfTokenRepository;
+import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
 
 @Configuration
 @EnableWebSecurity
@@ -23,17 +25,19 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf
-                        .ignoringRequestMatchers("/members/new", "/members/login","/admin/schedule")
-                ) // csrf 검증 제외
+                        .ignoringRequestMatchers("/api/**", "/members/new", "/members/login", "/members/logout","/admin/schedule")
+                        .csrfTokenRepository(new HttpSessionCsrfTokenRepository())
+                        .disable()
+                ) 
                 .formLogin(form -> form
                         .loginPage("/members/login") // 사용할 로그인 페이지 URL
-                        .defaultSuccessUrl("/main") // 로그인 성공시 이동 페이지
+                        .successHandler(new SavedRequestAwareAuthenticationSuccessHandler())
                         .usernameParameter("memberId") // 사용자명
                         .failureUrl("/members/login/error")
                 )
                 .oauth2Login(oauth2 -> oauth2
                         .loginPage("/members/login")
-                        .defaultSuccessUrl("/main")
+                        .defaultSuccessUrl("/")
                         .failureUrl("/members/login/error")
                         .userInfoEndpoint(userInfo -> userInfo
                                 .userService(customOAuth2UserService)
@@ -44,14 +48,15 @@ public class SecurityConfig {
                 )
                 .logout(logout -> logout
                         .logoutUrl("/logout")
-                        .logoutSuccessUrl("/main")
+                        .logoutSuccessUrl("/")
                         .invalidateHttpSession(true)
                         .deleteCookies("JSESSIONID")
                         .permitAll()
                 )
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers("/css/**", "/js/**", "/img/**", "/uploads/**").permitAll()
-                        .requestMatchers("/", "/main", "/members/**", "/item/**", "/images/**", "/cinema/**").permitAll()
+                        .requestMatchers("/", "/main", "/members/**", "/item/**", "/images/**","/cinema/**").permitAll()
+                        .requestMatchers("/api/email/**").permitAll() // 이메일 인증 API 허용
                         .requestMatchers("/mypage/**").authenticated()
                         .requestMatchers("/admin/**").permitAll()
                         .anyRequest().permitAll()

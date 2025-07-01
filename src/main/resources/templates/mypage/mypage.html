@@ -1,127 +1,110 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <title>마이페이지</title>
-    <link rel="stylesheet" th:href="@{/css/style.css}">
-    <style>
-        .profile-section {
-            text-align: center;
-            margin-bottom: 30px;
-            padding: 20px;
-            background-color: #f8f9fa;
-            border-radius: 8px;
-        }
-        .profile-image {
-            width: 120px;
-            height: 120px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 3px solid #007bff;
-            margin-bottom: 15px;
-        }
-        .profile-name {
-            font-size: 1.5em;
-            font-weight: bold;
-            color: #333;
-            margin-bottom: 5px;
-        }
-        .profile-nickname {
-            color: #666;
-            font-size: 1.1em;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="mypage-box">
-            <h2>마이페이지</h2>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/layout1}">
+
+<div layout:fragment="content">
+    <div class="container my-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-8 col-md-10">
+                <h2 class="mb-4 text-center">마이페이지</h2>
             
-            <div th:if="${message}" class="alert alert-success">
+                <div th:if="${message}" class="alert alert-success" role="alert">
                 <p th:text="${message}"></p>
             </div>
             
-            <div th:if="${errorMessage}" class="alert alert-danger">
+                <div th:if="${errorMessage}" class="alert alert-danger" role="alert">
                 <p th:text="${errorMessage}"></p>
             </div>
             
-            <div th:if="${myPageDto}" class="member-info">
+                <div th:if="${myPageDto}" class="card">
+                    <div class="card-body">
                 <!-- 프로필 이미지 섹션 -->
-                <div class="profile-section">
+                        <div class="text-center mb-4">
                     <div th:if="${myPageDto.profile != null and myPageDto.profile != ''}">
-                        <img th:src="${myPageDto.profile}" alt="프로필 이미지" class="profile-image">
+                                <img th:src="${myPageDto.profile}" alt="프로필 이미지" class="rounded-circle" style="width: 120px; height: 120px; object-fit: cover; border: 3px solid #007bff;">
                     </div>
                     <div th:unless="${myPageDto.profile != null and myPageDto.profile != ''}">
-                        <img src="/images/default-profile.png" alt="기본 프로필" class="profile-image" 
+                                <img src="/images/default-profile.png" alt="기본 프로필" class="rounded-circle" style="width: 120px; height: 120px; object-fit: cover; border: 3px solid #007bff;" 
                              onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIwIiBoZWlnaHQ9IjEyMCIgdmlld0JveD0iMCAwIDEyMCAxMjAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxMjAiIGhlaWdodD0iMTIwIiBmaWxsPSIjRkZGRkZGIi8+CjxjaXJjbGUgY3g9IjYwIiBjeT0iNDgiIHI9IjE2IiBmaWxsPSIjQ0NDIi8+CjxyZWN0IHg9IjI0IiB5PSI3MiIgd2lkdGg9IjcyIiBoZWlnaHQ9IjMyIiBmaWxsPSIjQ0NDIi8+Cjwvc3ZnPgo='">
                     </div>
-                    <div class="profile-name" th:text="${myPageDto.name}"></div>
-                    <div class="profile-nickname" th:text="${'@' + myPageDto.nickname}"></div>
+                            <h4 class="mt-3" th:text="${myPageDto.name}"></h4>
+                            <p class="text-muted" th:text="${'@' + myPageDto.nickname}"></p>
                 </div>
                 
-                <div class="info-section">
-                    <h3>기본 정보</h3>
-                    <div class="info-row">
-                        <span class="label">아이디 (이메일):</span>
-                        <span class="value" th:text="${myPageDto.memberId}"></span>
+                        <!-- 기본 정보 -->
+                        <h5 class="card-title mb-3">기본 정보</h5>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">아이디 (이메일)</label>
+                                <input type="text" class="form-control" th:value="${myPageDto.memberId}" readonly>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">닉네임</label>
+                                <input type="text" class="form-control" th:value="${myPageDto.nickname}" readonly>
+                            </div>
                     </div>
-                    <div class="info-row">
-                        <span class="label">닉네임:</span>
-                        <span class="value" th:text="${myPageDto.nickname}"></span>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">이름</label>
+                                <input type="text" class="form-control" th:value="${myPageDto.name}" readonly>
                     </div>
-                    <div class="info-row">
-                        <span class="label">이름:</span>
-                        <span class="value" th:text="${myPageDto.name}"></span>
+                            <div class="col-md-6">
+                                <label class="form-label">생년월일</label>
+                                <input type="text" class="form-control" th:value="${#temporals.format(myPageDto.birth, 'yyyy-MM-dd')}" readonly>
                     </div>
-                    <div class="info-row">
-                        <span class="label">생년월일:</span>
-                        <span class="value" th:text="${#temporals.format(myPageDto.birth, 'yyyy-MM-dd')}"></span>
                     </div>
-                    <div class="info-row">
-                        <span class="label">휴대폰:</span>
-                        <span class="value" th:text="${myPageDto.phone}"></span>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">휴대폰</label>
+                                <input type="text" class="form-control" th:value="${myPageDto.phone}" readonly>
                     </div>
-                    <div class="info-row">
-                        <span class="label">주소:</span>
-                        <span class="value" th:text="${myPageDto.address}"></span>
-                    </div>
-                </div>
-                
-                <div class="info-section">
-                    <h3>회원 정보</h3>
-                    <div class="info-row">
-                        <span class="label">회원 등급:</span>
-                        <span class="value" th:text="${myPageDto.grade}"></span>
-                    </div>
-                    <div class="info-row">
-                        <span class="label">가입일:</span>
-                        <span class="value" th:text="${#temporals.format(myPageDto.regDate, 'yyyy-MM-dd')}"></span>
-                    </div>
-                    <div class="info-row">
-                        <span class="label">포인트:</span>
-                        <span class="value" th:text="${myPageDto.point != null ? myPageDto.point : '0'}"></span>
+                            <div class="col-md-6">
+                                <label class="form-label">주소</label>
+                                <input type="text" class="form-control" th:value="${myPageDto.address}" readonly>
                     </div>
                 </div>
                 
-                <div class="info-section">
-                    <h3>예약 정보</h3>
-                    <div class="info-row">
-                        <span class="label">예약 내역:</span>
-                        <span class="value" th:text="${myPageDto.reserve != null ? myPageDto.reserve : '없음'}"></span>
+                        <!-- 회원 정보 -->
+                        <h5 class="card-title mb-3 mt-4">회원 정보</h5>
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <label class="form-label">회원 등급</label>
+                                <input type="text" class="form-control" th:value="${myPageDto.grade}" readonly>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">가입일</label>
+                                <input type="text" class="form-control" th:value="${#temporals.format(myPageDto.regDate, 'yyyy-MM-dd')}" readonly>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">포인트</label>
+                                <input type="text" class="form-control" th:value="${myPageDto.point != null ? myPageDto.point : '0'}" readonly>
+                            </div>
                     </div>
-                    <div class="info-row">
-                        <span class="label">문의 내역:</span>
-                        <span class="value" th:text="${myPageDto.inquiry != null ? myPageDto.inquiry : '없음'}"></span>
+                        
+                        <!-- 예약 정보 -->
+                        <h5 class="card-title mb-3 mt-4">예약 정보</h5>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">예약 내역</label>
+                                <input type="text" class="form-control" th:value="${myPageDto.reserve != null ? myPageDto.reserve : '없음'}" readonly>
+                    </div>
+                            <div class="col-md-6">
+                                <label class="form-label">문의 내역</label>
+                                <input type="text" class="form-control" th:value="${myPageDto.inquiry != null ? myPageDto.inquiry : '없음'}" readonly>
                     </div>
                 </div>
-            </div>
-            
-            <div class="button-group">
-                <a href="/mypage/edit" class="btn btn-primary">회원정보 수정</a>
-                <a href="/mypage/change-password" class="btn btn-secondary">비밀번호 변경</a>
-                <a href="/" class="btn btn-outline">홈으로 돌아가기</a>
+                
+                        <!-- 버튼 그룹 -->
+                        <div class="d-grid gap-2 mt-4">
+                            <a href="/mypage/edit" class="btn btn-primary btn-lg">회원정보 수정</a>
+                            <a href="/mypage/change-password" class="btn btn-secondary btn-lg">비밀번호 변경</a>
+                            <a href="/" class="btn btn-outline-secondary btn-lg">홈으로 돌아가기</a>
+                    </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
-</body>
+</div>
 </html> 
