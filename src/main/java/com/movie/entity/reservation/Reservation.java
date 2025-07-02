@@ -43,12 +43,14 @@ public class Reservation {
 
     @CreatedDate
     @Column(name = "reserved_at")
-    private LocalDateTime reserved_at;
+    private LocalDateTime reservedAt;
 
     @Enumerated(EnumType.STRING)
     private ReservationStatus reservationStatus;
 
+    private LocalDateTime cancelAt; // 예약취소한 시간
+
     //결제 관한
     private Integer price;
-    private String pay_method;
+    private String payMethod;
 }

@@ -6,18 +6,19 @@ import com.movie.dto.SeatDto;
 import com.movie.dto.reservation.ReservationDto;
 import com.movie.dto.reservation.ReservationRedisResultDto;
 import com.movie.dto.reservation.ReservationResponseDto;
-import com.movie.entity.ReservedSeat;
-import com.movie.entity.ScreenRoom;
-import com.movie.entity.Seat;
+import com.movie.dto.reservation.SeatStatusMessageDto;
 import com.movie.repository.ReservedSeatRepository;
-import com.movie.repository.ScheduleRepository;
 import com.movie.repository.ScreenRoomRepository;
 import com.movie.repository.SeatRepository;
 import com.movie.service.reservation.ReservationService;
+import com.movie.service.reservation.SeatNotificationService;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
@@ -25,7 +26,13 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.nio.file.AccessDeniedException;
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 
 @Controller
@@ -36,6 +43,8 @@ public class ReservationController {
     private final SeatRepository seatRepository;
     private final ReservedSeatRepository reservedSeatRepository;
     private final ScreenRoomRepository screenRoomRepository;
+    private final SeatNotificationService seatNotificationService;
+    private final RedisTemplate redisTemplate;
 
     //예약페이지 in
     @GetMapping({"/",""})
@@ -44,12 +53,12 @@ public class ReservationController {
         List<ScheduleDto> scheduleDtoList = reservationService.getScheduleInfo();
         model.addAttribute("member_id",userDetails.getUsername());
         model.addAttribute("scheduleList", scheduleDtoList);
+        model.addAttribute("nextButtonType", "first");
         for(ScheduleDto schedule : scheduleDtoList) {
             System.out.println("영화제목" + schedule.getMovieTitle());
-            System.out.println("영화관" + schedule.getCinemaName());
-            System.out.println("영화스크린"+schedule.getScreenRoomName());
-            System.out.println("영화몇관인지"+schedule.getRoomId());
-            System.out.println("스케쥴 아이디"+schedule.getScheduleId());
+            System.out.println("영화관" + schedule.getCinemaNm());
+            System.out.println("영화스크린"+schedule.getRoomId());
+            System.out.println("스케쥴 아이디"+schedule.getId());
 
         }
         return "reserve/reserveSet";
@@ -68,7 +77,17 @@ public class ReservationController {
 
         System.out.println("roomId: "+ roomId);
         List<SeatDto> seatDtos= reservationService.getSeats(roomId); //룸아이디로 (pk) 저장된 자리 다가져옴
+        List<ReservedSeatDto> reservedSeatDtos = reservationService.getReservedSeats(scheduleId);
 
+        //redis에서 hold중인 좌석
+        List<Long> holdingSeatIds = reservationService.getHoldingSeats(scheduleId);
+
+        for(ReservedSeatDto reservedSeatDto: reservedSeatDtos){
+            System.out.println("----------------------------------------------");
+            System.out.println("예약된 좌석 id: "+ reservedSeatDto.getSeatId());
+            System.out.println("누가예약함:" + reservedSeatDto.getMemberId());
+            System.out.println("-=------------------------------------------");
+        }
         model.addAttribute("member_id", member_id);
         model.addAttribute("movieTitle",movieTitle);
         model.addAttribute("cinemaName",cinemaName);
@@ -77,8 +96,13 @@ public class ReservationController {
         model.addAttribute("roomId",roomId);
         model.addAttribute("scheduleId",scheduleId);
 
+        model.addAttribute("nextButtonType", "second");
 
-       model.addAttribute("seats", seatDtos);
+        model.addAttribute("seats", seatDtos);
+        model.addAttribute("reservedSeats", reservedSeatDtos);
+        model.addAttribute("reservedSeatList",reservedSeatDtos.stream().map(ReservedSeatDto::getSeatId).collect(Collectors.toList()));
+
+        model.addAttribute("holdingSeatList", holdingSeatIds);
         return "reserve/reservation"; // templates/reservation.html
     }
 
@@ -88,6 +112,21 @@ public class ReservationController {
 
         System.out.println("스케쥴 아이디"+reservationResponseDto.getScheduleId());
         System.out.println("d영화제목"+reservationResponseDto.getMovieName());
+        System.out.println("선택한 좌석id " + reservationResponseDto.getSeatId());
+        //그 전에 예약된 좌석들
+        List<ReservedSeatDto> alreadyReserved = reservationService.getReservedSeats(reservationResponseDto.getScheduleId());
+        Set<Long> alreadyReservedIds = alreadyReserved.stream()
+                .map(ReservedSeatDto::getSeatId)
+                .collect(Collectors.toSet());
+
+        List<Long> resereveSeatNow = reservationResponseDto.getSeatId();
+
+        //좌석 앞에서 못 선택하게 하긴했지만 한번 더 중복 체크한다.
+        for(Long seatNow : resereveSeatNow){
+            if(alreadyReservedIds.contains(seatNow)){
+                throw new IllegalArgumentException("이미 예약된 좌석이 포함되어 있습니다."+seatNow);
+            }
+        }
 
         ReservationRedisResultDto result = reservationService.reserveRedis(reservationResponseDto); //redis에 저장
 
@@ -110,6 +149,8 @@ public class ReservationController {
     public String payReservation(HttpSession session, Model model){//redis는 예약하기 누르부터 저장됨
         ReservationResponseDto reservationResponseDto = (ReservationResponseDto) session.getAttribute("reservedData");
         model.addAttribute("reservedData", reservationResponseDto);
+        //Long key = reservationService.getTtl(reservationService.makeKey(reservationResponseDto.getScheduleId(), reservationResponseDto.getSeatId().getFirst()));
+        //seatNotificationService.notifyPayHold(reservationResponseDto.getScheduleId(), reservationResponseDto.getSeatId(),"hold", key);
         return "/reserve/reservePay";
     }
 
@@ -128,7 +169,8 @@ public class ReservationController {
         } else { //결제 성공
             boolean success = reservationService.saveReservation(userDetails ,reserve);
             if (success) {
-                return "redirect:/reservation/checkReservation";
+                System.out.println("결제 성공!!!!!!!!!!!!!!!!!!!!!! 메인간다");
+                return "redirect:/";
             }else return "redirect:/reservation/pay";
         }
     }
@@ -138,7 +180,7 @@ public class ReservationController {
         return "/reserve/successReservation";
     }
 
-    @PostMapping("/cancel") //좌석 다시 선택 했을때 꺼 나중에해라ㅠ
+    @PostMapping("/back") //좌석 다시 선택 했을때 꺼 나중에해라ㅠ
     public @ResponseBody ResponseEntity<String> backSeat(HttpSession session,Model model, @RequestParam("type") String type){
         System.out.println("typoe="+ type);
         if(type.equals("back")){
@@ -158,6 +200,45 @@ public class ReservationController {
             return new ResponseEntity<String>("예약을 취소하고 메인으로 갑니다.", HttpStatus.OK);
         }
     }
+
+    //에약목록 가져오기 취소하기위해서 임의로 만든거
+    @GetMapping("/list")
+    public String reservationList(@AuthenticationPrincipal UserDetails userDetails, Model model){
+        //내꺼 예약목록 가져오기
+        List<ReservationResponseDto> reservationDtoList = reservationService.getAllReservation(userDetails.getUsername());
+        for(ReservationResponseDto responseDto : reservationDtoList){
+            LocalDateTime movieDateTime = LocalDateTime.of(responseDto.getShowDate(), responseDto.getStartTime());
+            responseDto.setMovieDateTime(movieDateTime);
+        }
+        model.addAttribute("myReservationList", reservationDtoList);
+        return "/reserve/reservationList";
+    }
+
+    //예약취소하기
+    @PostMapping("/cancel")
+    public ResponseEntity<String> cancelReservation(@RequestBody Map<String, Object> data, @AuthenticationPrincipal UserDetails userDetails) throws AccessDeniedException {
+        Long reservationId = Long.parseLong(data.get("reservationId").toString());
+        System.out.println("취소할 에약번호: "+ reservationId);
+        //예약한 유저아이디 가져옴 검사
+
+        boolean cancelReservation = reservationService.cancelReservation(reservationId, userDetails);
+        if(cancelReservation){
+            return new ResponseEntity<String>("예약을 취소했습니다.", HttpStatus.OK);
+        }
+        return new ResponseEntity<String>("유저가 다릅니다.",HttpStatus.FORBIDDEN);
+    }
+/////////////////////////////////////tlqj
+@PostMapping("/triggerHold")
+public ResponseEntity<String> triggerWebSocket(@RequestBody SeatStatusMessageDto dto) {
+    // 기존 notifyPayHold() 재사용
+    String key = reservationService.makeKey(dto.getScheduleId(), dto.getSeatId().get(0));
+    System.out.println("key: [" + key + "]");
+    Long ttl = redisTemplate.getExpire(key, TimeUnit.SECONDS);
+    System.out.println("ttl: " + ttl);
+    seatNotificationService.notifyPayHold(dto.getScheduleId(), dto.getSeatId(), "hold", ttl);
+    return ResponseEntity.ok("WebSocket 알림 전송 완료");
+}
+
 }
 
 

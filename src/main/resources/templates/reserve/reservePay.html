@@ -3,6 +3,8 @@
       xmlns:layout="http://ultaq.net.nz/thymeleaf/layout"
       layout:decorate="~{layouts/layout1}">
 <head>
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
     <meta name="_csrf" th:content="${_csrf.token}"/>
     <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
 </head>
@@ -130,14 +132,112 @@
 
         </form>
 </div>
+    <!--toast-->
+    <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 1080">
+        <div id="countdownToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-header">
+                <strong class="me-auto">⏰ 좌석 만료 알림</strong>
+                <small class="text-muted">곧 만료</small>
+                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="닫기"></button>
+            </div>
+            <div class="toast-body">
+                좌석 예약 만료까지 <span id="toastTimer">10</span>초 남았습니다.
+            </div>
+        </div>
+    </div>
+    <!--만료 toast-->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3">
+        <div id="expireToast" class="toast text-bg-danger" role="alert">
+            <div class="d-flex">
+                <div class="toast-body">
+                    😢 예약 시간이 만료되어 좌석이 해제되었습니다.
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 <div layout:fragment="script">
     <script th:inline="javascript">
         document.addEventListener("DOMContentLoaded", function () {
+            // 1. 예약된 scheduleId를 Thymeleaf에서 받아오기
+            const scheduleId = [[${reservedData.scheduleId}]]; // 숫자 타입 가정
+            const seatIds = [[${reservedData.seatId}]];
+            // 2. SockJS + StompClient 생성 및 연결
+            const socket = new SockJS('/ws-seat');
+            const stompClient = Stomp.over(socket);
+
+            // 좌석별 타이머 관리 객체
+            const seatCountdowns = {};
+
+            // 카운트다운 시작 함수
+            function startSeatCountdown(seatId, ttl) {
+                if (seatCountdowns[seatId]) {
+                    clearInterval(seatCountdowns[seatId]);
+                }
+
+                let timeLeft = parseInt(ttl, 10);
+
+                seatCountdowns[seatId] = setInterval(() => {
+                    console.log(`[⏱️] 좌석 ${seatId} 남은 시간: ${timeLeft}초`);
+                    timeLeft--;
+
+                    if (timeLeft === 10) {
+                       startToastCountdown(timeLeft);
+                    }
+
+                    if (timeLeft <= 0) {
+                        clearInterval(seatCountdowns[seatId]);
+                        delete seatCountdowns[seatId];
+                        showExpiredToast();
+                        console.log(`[✔] 좌석 ${seatId} 예약 만료됨`);
+                        setTimeout(() => {
+                            window.location.href = "/reservation/";
+                        }, 3000); // 3초 뒤 이동
+                    }
+                }, 1000);
+            }
+
+            stompClient.connect({}, function () {
+                console.log("WebSocket 연결됨, scheduleId:", scheduleId);
+
+                // WebSocket 구독: 예약된 좌석 TTL 알림 받기
+                stompClient.subscribe('/topic/pay/' + scheduleId, function (message) {
+                    const seatStatusMessage = JSON.parse(message.body);
+                    console.log("메시지 수신:", seatStatusMessage);
+
+                    if (seatStatusMessage.status === "hold" && seatStatusMessage.ttl) {
+                        startSeatCountdown(seatStatusMessage.seatId[0], seatStatusMessage.ttl);
+                    }
+                });
+
+                                        // 2. 구독 완료 후 서버에 fetch로 트리거 요청
+                fetch("/reservation/triggerHold", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        [document.querySelector("meta[name='_csrf_header']").content]:
+                        document.querySelector("meta[name='_csrf']").content
+                    },
+                    body: JSON.stringify({
+                        scheduleId: scheduleId,
+                        seatId: seatIds
+                    })
+                })
+                .then(response => {
+                    if (!response.ok) throw new Error("Trigger 실패");
+                    return response.text();
+                })
+                .then(msg => {
+                    console.log("🚀 Trigger 요청 성공:", msg);
+                })
+                .catch(err => {
+                    console.error("❌ Trigger 요청 실패:", err);
+                });
+
+            });
 
             // 1. 모달이 열릴 때 데이터 설정
-            $('#myModal').on('show.bs.modal', function(event){
-
+            $('#myModal').on('show.bs.modal', function (event) {
                 var memberId = $("#member_id").val();
                 var cinemaName = $("#hidden_cinema_name").val();
                 var screenName = $("#hidden_screen_name").val();
@@ -157,38 +257,60 @@
                 $("#modal_per").text(per);
                 $("#modal_pay_method").text(payText);
                 $("#modal_price").text(price);
-
-
             });
 
             // 2. cancelRedis 함수를 전역으로 정의 (button에서 호출 가능하도록)
-            window.cancelRedis = function(type){
+            window.cancelRedis = function (type) {
                 var token = $("meta[name='_csrf']").attr("content");
                 var header = $("meta[name='_csrf_header']").attr("content");
 
                 $.ajax({
                     type: "POST",
-                    url: "/reservation/cancel",
+                    url: "/reservation/back",
                     data: { type: type },
-                    beforeSend: function(xhr){
+                    beforeSend: function (xhr) {
                         xhr.setRequestHeader(header, token);
                     },
-                    success: function(result){
+                    success: function (result) {
                         alert(result);
-                        // 좌석 다시 선택으로 갈지, 메인으로 갈지 분기
-                        if(type === "back") {
+                        if (type === "back") {
                             location.href = "/reservation/reserveSeats";
                         } else {
                             location.href = "/";
                         }
                     },
-                    error: function(jqXHR){
+                    error: function (jqXHR) {
                         alert(jqXHR.responseText);
                     }
                 });
             };
-
         });
+
+        function startToastCountdown(initialTime) {
+            let toastEl = document.getElementById('countdownToast');
+            let toastTimerEl = document.getElementById('toastTimer');
+            let toast = new bootstrap.Toast(toastEl, { delay: 11000 }); // 11초 정도 표시
+
+            let current = initialTime;
+            toastTimerEl.textContent = current;
+            toast.show();
+
+            const toastInterval = setInterval(() => {
+                current--;
+                toastTimerEl.textContent = current;
+                if (current <= 0) {
+                    clearInterval(toastInterval);
+                    toast.hide(); // 자동으로 닫히게도 가능
+                }
+            }, 1000);
+        }
+
+        function showExpiredToast() {
+            const toastEl = document.getElementById('expireToast');
+            const toast = new bootstrap.Toast(toastEl, { delay: 3000 });
+            toast.show();
+        }
+
     </script>
 
 </div>

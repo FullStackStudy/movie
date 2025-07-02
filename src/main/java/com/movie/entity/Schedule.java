@@ -2,10 +2,9 @@ package com.movie.entity;
 
 import com.movie.dto.ScheduleDto;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
 
+import java.time.LocalDate;
 import java.time.LocalTime;
 
 @Entity
@@ -13,10 +12,12 @@ import java.time.LocalTime;
 @Getter
 @Setter
 @ToString
+@AllArgsConstructor // ✅ 이거 추가!
+@Builder
 public class Schedule {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "schedule_id")
     private Long Id;
 

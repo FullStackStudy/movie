@@ -5,8 +5,11 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
+
 
 @Getter
 @Setter
@@ -14,7 +17,6 @@ import java.util.List;
 public class ReservationResponseDto extends ReservationDto{
 
     private String movieName;
-
 
     private String cinemaName;
 
@@ -24,5 +26,13 @@ public class ReservationResponseDto extends ReservationDto{
 
     private List<String> seatName;
 
-    private LocalTime startTime;
+    private LocalDate showDate; //이건 스케쥴의 영화상영시간
+
+    private LocalTime startTime; //스케줄의 영화상영 날
+
+    private Boolean cancellable; //취소가능한지
+
+    private LocalDateTime movieDateTime;
+
+
 }

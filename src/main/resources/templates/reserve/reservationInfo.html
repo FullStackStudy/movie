@@ -3,166 +3,80 @@
       xmlns:layout="http://ultaq.net.nz/thymeleaf/layout"
       layout:decorate="~{layouts/layout1}">
 <head>
-  <meta name="_csrf" th:content="${_csrf.token}"/>
-  <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
-</head>
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+  </head>
 
 <div th:fragment="info">
   <style>
-    #info_tab {
-      width: 100%;
-      height: 150px;
-      background-color: rgb(53, 146, 102);
-      color: rgb(0, 0, 0);
-      margin-top: 10px;
-      padding: 10px;
-      box-sizing: border-box;
-      display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
-      gap: 10px;
+    #mainContainer {
+      padding-bottom:   300px;
+    }
+
+    .fixed-bottom {
+        bottom: 200px;
+        background-color: #e6f4ea; /* 민트 화이트 */
+        box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+        height: 90px;
+        z-index: 1050;
+        color: #2d4830;
+
+    .next_button{
+        box-shadow: 0 3px 8px rgba(76, 175, 80, 0.3); /* 녹색 음영 그림자 */
+        transition: box-shadow 0.3s ease;
       }
 
-      #info-movie{
-      flex: 0 0 240px;
-      padding: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      .next_button:hover {
+        box-shadow: 0 5px 14px rgba(76, 175, 80, 0.4);
       }
-
-      #before, #next {
-      flex: 0 0 90px;
-      padding: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      }
-      #info_tab .col {
-      flex: 1;
-      padding: 5px 10px;
-      box-sizing: border-box;
-      }
-
-      #info_tab table {
-      background-color: transparent;
-      background-color: rgb(53, 146, 102);
-      color: rgb(0, 0, 0);
-      font-size: 14px;
-      margin: 0;
-      }
-
-      #info_tab td {
-      padding: 2px 4px;
-      vertical-align: top;
-      }
-
-      #info-seat {
-      display: flex;
-      flex-direction: column;
-      justify-content: flex-start;
-      }
-
-      #seat_id {
-      display: inline-block;
-      margin-top: -2px;
-      font-size: 16px;
-      }
-
-      .container-fluid {
-      max-width: 100%;
-      }
-
-      select, button {
-      margin-bottom: 10px;
-      }
-      #info_tab tr,
-      #info_tab td {
-      background-color: rgb(53, 146, 102);
-      color: white;
-      }
+    }
   </style>
-  <div id="info_tab">
-    <div  id="before">
-      <table class="table table-borderless table-sm mb-0">
-        <tr>
-          <td>
-            <img src="/image/next.png" style="max-width: 90px; height: auto; margin-right: 10px;">
-          </td>
-        </tr>
-        <tr><td>바꿀꺼임</td></tr>
-      </table>
-    </div>
-    <div class="vr"></div>
-    <!-- 영화 정보 -->
-    <div class="col" id="info-movie">
-      <div style="display: flex; align-items: center;">
-        <img src="/image/28yearsLater.jpg" style="max-width: 90px; height: auto; margin-right: 10px;">
-        <table class="table table-borderless table-sm mb-0">
-          <tr>
-            <td><span id="movie_name" th:text="${movieTitle} ?: '-'">-</span></td>
-          </tr>
-        </table>
+  <div id="mainContainer">
+  <div class="fixed-bottom  border-top shadow-sm" style="z-index: 1050; height: 140px;">
+    <div class="container h-100">
+      <div class="row h-100 align-items-center">
+
+        <!-- 영화 포스터 -->
+        <div class="col-auto">
+          <img src="/image/28yearsLater.jpg" class="img-fluid rounded" style="max-height: 110px;" alt="포스터">
+        </div>
+
+        <!-- 영화 제목 + 극장 정보 -->
+        <div class="col d-flex flex-column justify-content-center align-items-center">
+          <div class="fw-bold fs-5" id="movie_name" th:text="${movieTitle} ?: '-'">-</div>
+          <small class="text-muted">
+            <span id="cinema_name" th:text="${cinema_name} ?: '-'">-</span> /
+            <span id="screen_name" th:text="${screen_name} ?: '-'">-</span> /
+            <span id="movie_time" th:text="${movie_time} ?: '-'">-</span>
+          </small>
+        </div>
+
+        <!-- 좌석 & 인원 -->
+        <div class="col-auto text-center justify-content-center">
+          <div class="fw-semibold">좌석</div>
+          <div id="seat_name" th:text="${seat_name} ?: '-'" class="fs-6">-</div>
+          <small class="text-muted" id="per" th:text="${per} ?: '-'">-명</small>
+        </div>
+
+        <!-- 결제 금액 및 수단 -->
+        <div class="col-auto text-center justify-content-center">
+          <div class="fw-semibold">결제금액</div>
+          <div id="price" class="fs-6 fw-bold" th:text="${price} ?: '-'">-</div>
+          <small id="pay_method" th:text="${pay_method} ?: '-'" class="text-muted">-</small>
+        </div>
+
+        <!-- 예매 버튼 -->
+        <div class="col-auto">
+          <button id="next_button"
+                  class="btn btn-success btn-lg px-4 py-2"
+                  th:attr="type=${next_button_type == 'first'} ? 'submit' : 'button'"
+                  th:text="${next_button_type == 'first'} ? '좌석선택' : '예매하기'">
+            예매하기
+          </button>
+        </div>
+
       </div>
     </div>
-    <div class="vr"></div>
-    <!-- 영화관 정보 -->
-    <div class="col" id="info-cinema">
-      <table class="table table-borderless table-sm mb-0">
-        <tr>
-          <td>극장</td>
-          <td><span id="cinema_name" th:text="${cinema_name} ?: '-'">-</span></td>
-        </tr>
-        <tr>
-          <td>상영관</td>
-          <td><span id="screen_name" th:text="${screen_name} ?: '-'">-</span></td>
-        </tr>
-        <tr>
-          <td>일시</td>
-          <td><span id="movie_time" th:text="${movie_time} ?: '-'">-</span></td>
-        </tr>
-
-      </table>
-    </div>
-    <div class="vr"></div>
-    <!-- 좌석 정보 -->
-    <div class="col" id="info-seat">
-      <table class="table table-borderless table-sm mb-0">
-        <tr>
-          <td>인원</td>
-          <td><span id="per" th:text="${per} ?: '-'">-</span></td>
-        </tr>
-        <tr>
-          <td>좌석</td>
-          <td><span id="seat_name" th:text="${seat_name} ?: '-'">-</span></td>
-        </tr>
-      </table>
-    </div>
-    <div class="vr"></div>
-    <!-- 결제 정보 -->
-    <div class="col" id="info-pay">
-      <table class="table table-borderless table-sm mb-0">
-        <tr>
-          <td>결제금액</td>
-          <td><span id="price" th:text="${price} ?: '-'">-</span></td>
-        </tr>
-        <tr>
-          <td>결제수단</td>
-          <td><span id="pay_method" th:text="${pay_method} ?: '-'">-</span></td>
-        </tr>
-      </table>
-    </div>
-    <div class="vr"></div>
-    <div id="next">
-      <table class="table table-borderless table-sm mb-0">
-        <tr>
-          <td>
-            <button type="button" id="next_button">
-              <img src="/image/next.png" alt="예매하기" style="max-width: 90px; height: auto; margin-right: 10px;">
-            </button>
-          </td>
-        </tr>
-      </table>
-    </div>
+  </div>
   </div>
 </div>

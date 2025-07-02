@@ -37,12 +37,14 @@
             <select id="timeSelect" name="startTime" required>
                 <option value="">시간 선택</option>
             </select>
-            <input type="text" id="roomId" name="roomId"> <!-- 실제 전송용 -->
+            <input type="text" id="roomId" name="roomId">
             <input type="text" id="screenRoomName" name="screenRoomName"> <!-- 실제 전송용 -->
             <input type="text" id="scheduleId" name="scheduleId">
             <br/>
 
-            <div th:insert="~{/reserve/reservationInfo :: info}">
+            <div th:insert="~{/reserve/reservationInfo :: info(
+              next_button_type=${nextButtonType}
+            )}">
             </div>
             <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
         </form>
@@ -56,10 +58,10 @@
 
             rawScheduleList.forEach(schedule => {
                 const movie = schedule.movieTitle;
-                const cinema = schedule.cinemaName;
+                const cinema = schedule.cinemaNm;
                 const time = schedule.startTime;
 
-                const key = schedule.movieTitle + "|" + schedule.cinemaName + "|" + schedule.startTime;
+                const key = schedule.movieTitle + "|" + schedule.cinemaNm + "|" + schedule.startTime;
                 scheduleTimeMap[key] = schedule;  // schedule 안에 screenRoomName 있음
 
                 if (!scheduleMap[movie]) scheduleMap[movie] = {};
@@ -123,7 +125,7 @@
                         document.getElementById('screen_name').innerText = schedule.screenRoomName;
                         document.getElementById('roomId').value = schedule.roomId;
                         document.getElementById('screenRoomName').value = schedule.screenRoomName;
-                        document.getElementById('scheduleId').value = schedule.scheduleId;
+                        document.getElementById('scheduleId').value = schedule.id;
 
                     }
                 });
