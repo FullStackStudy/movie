@@ -69,12 +69,12 @@
     </select>
     <br><br>
     <div th:replace="~{/reserve/reservationInfo :: info(
-      movieTitle=${movieTitle},
-      cinema_name=${cinemaName},
-      screen_name=${screenRoomName},
-      movie_time=${startTime},
-      next_button_type=${nextButtonType}
-    )}"></div>
+          movieTitle=${movieTitle},
+          cinema_name=${cinemaName},
+          screen_name=${screenRoomName},
+          movie_time=${startTime},
+          next_button_type=${nextButtonType}
+      )}"></div>
 
     <input type="text" name="scheduleId" id="scheduleId" th:value="${scheduleId}">
     <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
@@ -131,7 +131,7 @@
                     xhr.setRequestHeader(header, token);
                 },
                 success: function(result, status){
-                    alert(result);
+                    //alert(result);
                     location.href='/reservation/pay';
                 },
                 error: function(jqXHR, status, error){

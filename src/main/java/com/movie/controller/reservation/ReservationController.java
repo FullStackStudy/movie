@@ -160,7 +160,7 @@ public class ReservationController {
         ReservationDto reserve = (ReservationDto) session.getAttribute("reservedData");
 
         boolean failPay = true; //결제 아직 모르니까 성공으로 가게 해놓음
-        if (!failPay) { //결제 취소하면, 결제 화면 나가면 그냥 결제 화면 보여주는거잖아? //이건 아예 예약확정 전에 예약취소하는거지 -> 수정하기
+        if (!failPay) { //결제 취소하면, 결제 화면 나가면 그냥 결제 화면 보여주는거잖아? //이건 아예 예약확정 전에 예약취소하는거지 -> 합치고고민하기
             for (Long seatId : reserve.getSeatId()) { //좌석
                 reservationService.releaseSeat(reserve.getScheduleId(), seatId, reserve.getMemberId());
                 model.addAttribute("errorMessage", "결제 실패");
@@ -175,18 +175,12 @@ public class ReservationController {
         }
     }
 
-    @GetMapping("/checkReservation")
-    public String checkReservation(){
-        return "/reserve/successReservation";
-    }
-
-    @PostMapping("/back") //좌석 다시 선택 했을때 꺼 나중에해라ㅠ
+    @PostMapping("/back")
     public @ResponseBody ResponseEntity<String> backSeat(HttpSession session,Model model, @RequestParam("type") String type){
-        System.out.println("typoe="+ type);
-        if(type.equals("back")){
-            ReservationDto reservationDto = (ReservationDto) session.getAttribute("reservedData");
-            System.out.println("세션 정보"+ reservationDto.getScheduleId());
+        ReservationDto reservationDto = (ReservationDto) session.getAttribute("reservedData");
 
+        if(type.equals("back")){
+            System.out.println("세션 정보"+ reservationDto.getScheduleId());
 
             if(reservationDto !=null){ // 저장된 세션 정보가 있는것
                 System.out.println("여기 타겠지 있잔하");
@@ -197,6 +191,10 @@ public class ReservationController {
             return new ResponseEntity<String>("좌석 선택으로 갑니다.", HttpStatus.OK);
 
         }else{ // 취소
+            //메인으로 갈 때 아예 예약취소니까 redis 삭제해줌 (user는 releaseSeat에서 해줌)
+            for(Long seatId : reservationDto.getSeatId()) {
+                reservationService.releaseSeat(reservationDto.getScheduleId(), seatId, reservationDto.getMemberId());
+            }
             return new ResponseEntity<String>("예약을 취소하고 메인으로 갑니다.", HttpStatus.OK);
         }
     }
