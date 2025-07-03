@@ -1,7 +1,7 @@
 package com.movie.controller;
 import com.movie.constant.ResponseType;
 import com.movie.dto.ChatbotResponseDto;
-import com.movie.service.ChatbotService;
+import com.movie.service.OpenAiService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,11 +14,31 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class ChatbotController {
 
-    private final ChatbotService chatbotService;
+    /*private final ChatbotService chatbotService;
 
     @GetMapping
     public ResponseEntity<ChatbotResponseDto> getResponse(@RequestParam String message) {
         return ResponseEntity.ok(chatbotService.generateResponse(message));
+    }*/
+
+    /*private final OpenAiService openAiService;
+
+    @GetMapping
+    public ChatbotResponseDto chatbot(@RequestParam String message) {
+        //GPT API 호출
+        String gptResponse = openAiService.ask(message);
+
+        return ChatbotResponseDto.builder()
+                .response(gptResponse)
+                .type(ResponseType.TEXT)
+                .build();
+    }*/
+
+    private final OpenAiService openAiService;
+
+    @GetMapping
+    public ChatbotResponseDto chatbot(@RequestParam String message) {
+        return openAiService.generateResponse(message);
     }
 
 }

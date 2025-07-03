@@ -17,6 +17,8 @@ public class ChatbotResponse {
     @Column(name = "bot_id")
     private Long id;
 
+    // 나중에 user와 매핑 예정
+
     private String response;     // 실제 응답
 
     @Enumerated(EnumType.STRING)
