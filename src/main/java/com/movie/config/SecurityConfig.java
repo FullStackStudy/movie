@@ -58,7 +58,7 @@ public class SecurityConfig {
                         .requestMatchers("/", "/main", "/members/**", "/item/**", "/images/**","/cinema/**").permitAll()
                         .requestMatchers("/api/email/**").permitAll() // 이메일 인증 API 허용
                         .requestMatchers("/mypage/**").authenticated()
-                        .requestMatchers("/admin/**").permitAll()
+                        .requestMatchers("/admin/**").hasRole("ADMIN")
                         .anyRequest().permitAll()
                 );
 

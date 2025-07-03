@@ -4,8 +4,6 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="_csrf" th:content="${_csrf.token}" />
-    <meta name="_csrf_header" th:content="${_csrf.headerName}">
     <title>좌석 선택</title>
     <style>
         body {
@@ -237,7 +235,7 @@
         }
     </style>
 </head>
-
+<body>
 <div layout:fragment="content">
     <div class="seat-container">
         <!-- 에러 메시지 표시 -->
@@ -346,13 +344,10 @@
                         body: JSON.stringify(seatDto)
                     });
                 }
-
-                alert("예매 페이지로 넘어갑니다!");
-                <!-- window.location.href = '/';-->
             });
         });
     </script>
 </div>
-
+</body>
 
 </html>

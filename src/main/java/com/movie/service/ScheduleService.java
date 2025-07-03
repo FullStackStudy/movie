@@ -59,7 +59,7 @@ public class ScheduleService {
                     dto.setStartTime(schedule.getStartTime());
                     dto.setShowDate(schedule.getShowDate());
                     dto.setStatus(schedule.getStatus());
-                    dto.setDescription(schedule.getDescription());
+                    dto.setAvailableSeat(schedule.getAvailableSeat());
                     return dto;
                 })
                 .collect(Collectors.groupingBy(
@@ -67,7 +67,7 @@ public class ScheduleService {
                         Collectors.collectingAndThen(
                                 Collectors.toList(),
                                 list -> list.stream()
-                                        .sorted((a, b) -> a.getStartTime().compareTo(b.getStartTime())) // 시작 시간 순 정렬
+                                        .sorted((a, b) -> a.getShowDate().compareTo(b.getShowDate())) // 시작 시간 순 정렬
                                         .collect(Collectors.toList())
                         )
                 ));

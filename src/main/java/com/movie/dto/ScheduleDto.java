@@ -18,5 +18,6 @@ public class ScheduleDto {
     private LocalDate showDate;
     private LocalTime startTime;
     private String status;           //상태
-    private String description;      //설명
+    private int availableSeat;      //잔여좌석
+    private String description;
 }
