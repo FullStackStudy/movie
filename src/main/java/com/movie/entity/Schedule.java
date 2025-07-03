@@ -39,8 +39,9 @@ public class Schedule {
 
     private String status; //상태
 
-    @Column(length = 1000)
-    private String description; //설명
+    private int availableSeat; //잔여석
+
+    private String description; //주의사항
 
     protected Schedule() {
     }//JPA용 기본 생성자
@@ -53,7 +54,9 @@ public class Schedule {
                 .showDate(dto.getShowDate())
                 .startTime(dto.getStartTime())
                 .status(dto.getStatus())
+                .availableSeat(room.getTotalSeats())
                 .description(dto.getDescription())
                 .build();
     }
+
 }

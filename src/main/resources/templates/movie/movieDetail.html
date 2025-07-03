@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layouts/layout1}">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="'🎥'+${movie.movieTitle} + ' - 상세정보'"></title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link th:href="@{/css/style.css}" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+    <script>
+        // DOM이 로드된 후 실행
+        document.addEventListener('DOMContentLoaded', function() {
+            // 리뷰 작성
+            const reviewForm = document.getElementById('reviewForm');
+            if (reviewForm) {
+                reviewForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+
+                    const formData = new FormData(this);
+                    const movieId = formData.get('movieId');
+                    const rating = formData.get('rating');
+                    const content = formData.get('content');
+
+                    if (!rating) {
+                        alert('평점을 선택해주세요.');
+                        return;
+                    }
+
+                    if (!content.trim()) {
+                        alert('리뷰 내용을 입력해주세요.');
+                        return;
+                    }
+
+                    fetch('/review/write', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                        body: `movieId=${movieId}&rating=${rating}&content=${encodeURIComponent(content)}`
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (data.success) {
+                            alert('리뷰가 성공적으로 작성되었습니다.');
+                            // 첫 페이지로 이동 (새로 작성된 리뷰가 맨 위에 표시됨)
+                            window.location.href = window.location.pathname;
+                        } else {
+                            alert('리뷰 작성에 실패했습니다: ' + data.message);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('리뷰 작성 중 오류가 발생했습니다.');
+                    });
+                });
+            }
+        });
+
+        // 리뷰 삭제
+        function deleteReview(reviewId) {
+            const isAdmin = /*[[${isAdmin}]]*/ false;
+            const confirmMessage = isAdmin ?
+                '관리자 권한으로 이 리뷰를 삭제하시겠습니까?' :
+                '정말로 이 리뷰를 삭제하시겠습니까?';
+
+            if (!confirm(confirmMessage)) {
+                return;
+            }
+
+            fetch(`/review/${reviewId}`, {
+                method: 'DELETE'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('리뷰가 삭제되었습니다.');
+                    window.location.href = window.location.pathname;
+                } else {
+                    alert('리뷰 삭제에 실패했습니다: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('리뷰 삭제 중 오류가 발생했습니다.');
+            });
+        }
+
+        // 리뷰 수정 (간단한 구현)
+        function editReview(reviewId) {
+            const isAdmin = /*[[${isAdmin}]]*/ false;
+            const promptMessage = isAdmin ?
+                '관리자 권한으로 리뷰 내용을 수정해주세요:' :
+                '리뷰 내용을 수정해주세요:';
+
+            const newContent = prompt(promptMessage);
+            if (newContent === null || newContent.trim() === '') {
+                return;
+            }
+
+            const newRating = prompt('평점을 다시 선택해주세요 (1-5):');
+            if (newRating === null || !/^[1-5]$/.test(newRating)) {
+                alert('평점은 1-5 사이의 숫자로 입력해주세요.');
+                return;
+            }
+
+            fetch(`/review/${reviewId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `rating=${newRating}&content=${encodeURIComponent(newContent)}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('리뷰가 수정되었습니다.');
+                    window.location.href = window.location.pathname;
+                } else {
+                    alert('리뷰 수정에 실패했습니다: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('리뷰 수정 중 오류가 발생했습니다.');
+            });
+        }
+    </script>
+    <style>
+        .movie-detail-poster {
+            width: 100%;
+            max-width: 350px;
+            border-radius: 12px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+        }
+        .movie-info-title {
+            font-size: 2rem;
+            font-weight: bold;
+        }
+        .movie-info-label {
+            color: #888;
+            font-weight: 500;
+            min-width: 80px;
+            display: inline-block;
+        }
+        .movie-content {
+            white-space: pre-line;
+        }
+        .review-section {
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 2px solid #eee;
+        }
+        .review-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+        .review-stats {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        .rating-badge {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: bold;
+        }
+        .review-form {
+            background: #f8f9fa;
+            padding: 2rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+        }
+        .star-rating {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        .star-rating input {
+            display: none;
+        }
+        .star-rating label {
+            font-size: 2rem;
+            cursor: pointer;
+            color: #ddd;
+        }
+        .star-rating input:checked ~ label {
+            color: #ffd700;
+        }
+        .star-rating label:hover,
+        .star-rating label:hover ~ label {
+            color: #ffd700;
+        }
+        .review-item {
+            border: 1px solid #eee;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            background: white;
+        }
+        .review-header-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        .review-author {
+            font-weight: bold;
+            color: #333;
+        }
+        .review-date {
+            color: #888;
+            font-size: 0.9rem;
+        }
+        .review-rating {
+            color: #ffd700;
+            font-size: 1.2rem;
+        }
+        .review-content {
+            line-height: 1.6;
+            color: #555;
+        }
+        .review-actions {
+            margin-top: 1rem;
+            display: flex;
+            gap: 0.5rem;
+        }
+        .btn-sm {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.875rem;
+        }
+        .no-reviews {
+            text-align: center;
+            padding: 3rem;
+            color: #888;
+        }
+        .review-alert {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+        .pagination {
+            margin-bottom: 0;
+        }
+        .page-link {
+            color: #ff6b6b;
+            border-color: #ff6b6b;
+        }
+        .page-link:hover {
+            color: #fff;
+            background-color: #ff6b6b;
+            border-color: #ff6b6b;
+        }
+        .page-item.active .page-link {
+            background-color: #ff6b6b;
+            border-color: #ff6b6b;
+        }
+        .page-item.disabled .page-link {
+            color: #6c757d;
+            border-color: #dee2e6;
+        }
+    </style>
+</head>
+<body>
+<div layout:fragment="content">
+    <main class="container my-5">
+        <div class="row g-5">
+            <div class="col-md-4 text-center">
+                <img th:src="@{${movie.moviePoster}}" th:alt="${movie.movieTitle}" class="movie-detail-poster mb-3"
+                     onerror="this.src='/images/default-poster.jpg'; this.onerror=null;">
+            </div>
+            <div class="col-md-8">
+                <div class="movie-info-title mb-3" th:text="${movie.movieTitle}">영화 제목</div>
+                <div class="mb-2">
+                    <span class="movie-info-label">장르</span>
+                    <span th:text="'🎥 '+${movie.genre}">장르</span>
+                </div>
+                <div class="mb-2">
+                    <span class="movie-info-label">평점</span>
+                    <span th:text="'🍿 '+${movie.movieRating}">0.0</span>
+                </div>
+                <div class="mb-2">
+                    <span class="movie-info-label">출연</span>
+                    <span th:text="${movie.movieCast}">출연진</span>
+                </div>
+                <div class="mb-2">
+                    <span class="movie-info-label">상세정보</span>
+                    <span th:text="${movie.detailInfo}">상세정보</span>
+                </div>
+                <div class="mb-2">
+                    <span class="movie-info-label">개봉일</span>
+                    <span th:text="${movie.openDate}">개봉일</span>
+                </div>
+                <div class="mb-2">
+                    <span class="movie-info-label">가격</span>
+                    <span th:text="${movie.moviePrice} + '원'">12000원</span>
+                </div>
+                <div class="mb-4">
+                    <span class="movie-info-label">줄거리</span>
+                    <div class="movie-content" th:text="${movie.movieContent}">줄거리</div>
+                </div>
+                <a th:href="@{'/reserve/' + ${movie.movieId}}" class="btn btn-primary btn-lg"
+                   sec:authorize="isAuthenticated()">예매하기</a>
+                <a th:href="@{/members/login}" class="btn btn-primary btn-lg" sec:authorize="!isAuthenticated()">로그인 후
+                    예매하기</a>
+            </div>
+        </div>
+        <div class="review-section">
+            <div class="review-header">
+                <h3>🎬 리뷰 & 평점</h3>
+                <div class="review-stats">
+                    <span class="rating-badge" th:text="'평균 평점: ' + ${#numbers.formatDecimal(averageRating, 1, 1)}">평균 평점: 0.0</span>
+                    <span class="text-muted" th:text="'총 ' + ${reviewCount} + '개의 리뷰'">총 0개의 리뷰</span>
+                </div>
+            </div>
+
+            <div class="review-form" sec:authorize="isAuthenticated()" th:if="${canReview}">
+                <h5>리뷰 작성하기</h5>
+                <div th:if="${isAdmin}" class="alert alert-info mb-3">
+                    <strong>관리자 권한:</strong> 예매 내역과 관계없이 리뷰를 작성할 수 있습니다.
+                </div>
+                <form id="reviewForm">
+                    <input type="hidden" th:value="${movie.movieId}" name="movieId">
+                    <div class="star-rating">
+                        <input type="radio" name="rating" value="5" id="star5">
+                        <label for="star5">★</label>
+                        <input type="radio" name="rating" value="4" id="star4">
+                        <label for="star4">★</label>
+                        <input type="radio" name="rating" value="3" id="star3">
+                        <label for="star3">★</label>
+                        <input type="radio" name="rating" value="2" id="star2">
+                        <label for="star2">★</label>
+                        <input type="radio" name="rating" value="1" id="star1">
+                        <label for="star1">★</label>
+                    </div>
+                    <div class="mb-3">
+                        <textarea class="form-control" name="content" rows="4" placeholder="영화에 대한 솔직한 리뷰를 작성해주세요..." required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">리뷰 작성</button>
+                </form>
+            </div>
+
+            <!-- 리뷰 작성 불가 안내 -->
+            <div class="review-alert" sec:authorize="isAuthenticated()" th:if="${!canReview}">
+                <strong>리뷰 작성 안내:</strong> 이 영화를 예매하신 후에만 리뷰를 작성할 수 있습니다.
+            </div>
+
+            <!-- 로그인 안내 -->
+            <div class="review-alert" sec:authorize="!isAuthenticated()">
+                <strong>로그인 안내:</strong> 리뷰를 작성하려면 <a th:href="@{/members/login}">로그인</a>이 필요합니다.
+            </div>
+
+            <!-- 리뷰 목록 -->
+            <div id="reviewList">
+                <div th:if="${#lists.isEmpty(reviews)}" class="no-reviews">
+                    <h5>아직 리뷰가 없습니다</h5>
+                    <p>첫 번째 리뷰를 작성해보세요!</p>
+                </div>
+                
+                <div th:each="review : ${reviews}" class="review-item">
+                    <div class="review-header-item">
+                        <div>
+                            <span class="review-author" th:text="${review.memberNickname}">작성자</span>
+                            <span class="review-date" th:text="${#temporals.format(review.regDate, 'yyyy-MM-dd HH:mm')}">작성일</span>
+                        </div>
+                        <div class="review-rating">
+                            <span th:each="i : ${#numbers.sequence(1, 5)}">
+                                <span th:if="${i <= review.rating}">★</span>
+                                <span th:if="${i > review.rating}" style="color: #ddd;">★</span>
+                            </span>
+                            <span th:text="'(' + ${review.rating} + '점)'" style="color: #666; font-size: 0.9rem;"></span>
+                        </div>
+                    </div>
+                    <div class="review-content" th:text="${review.content}">리뷰 내용</div>
+                    <div class="review-actions" sec:authorize="isAuthenticated()" 
+                         th:if="${#authentication.name == review.memberId || isAdmin}">
+                        <button class="btn btn-outline-primary btn-sm" th:onclick="'editReview(' + ${review.reviewId} + ')'">
+                            <span th:if="${isAdmin && #authentication.name != review.memberId}">관리자 수정</span>
+                            <span th:unless="${isAdmin && #authentication.name != review.memberId}">수정</span>
+                        </button>
+                        <button class="btn btn-outline-danger btn-sm" th:onclick="'deleteReview(' + ${review.reviewId} + ')'">
+                            <span th:if="${isAdmin && #authentication.name != review.memberId}">관리자 삭제</span>
+                            <span th:unless="${isAdmin && #authentication.name != review.memberId}">삭제</span>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- 페이지네이션 -->
+                <div th:if="${reviewPage.totalPages > 1}" class="d-flex justify-content-center mt-4">
+                    <nav aria-label="리뷰 페이지네이션">
+                        <ul class="pagination">
+                            <!-- 이전 페이지 -->
+                            <li class="page-item" th:classappend="${!reviewPage.hasPrevious()} ? 'disabled'">
+                                <a class="page-link" th:href="@{/movie/{movieId}(movieId=${movie.movieId}, page=${currentPage - 1})}" 
+                                   th:if="${reviewPage.hasPrevious()}">이전</a>
+                                <span class="page-link" th:unless="${reviewPage.hasPrevious()}">이전</span>
+                            </li>
+                            
+                            <!-- 페이지 번호 -->
+                            <li class="page-item" th:each="pageNum : ${#numbers.sequence(0, reviewPage.totalPages - 1)}"
+                                th:classappend="${pageNum == currentPage} ? 'active'">
+                                <a class="page-link" th:href="@{/movie/{movieId}(movieId=${movie.movieId}, page=${pageNum})}"
+                                   th:text="${pageNum + 1}">1</a>
+                            </li>
+                            
+                            <!-- 다음 페이지 -->
+                            <li class="page-item" th:classappend="${!reviewPage.hasNext()} ? 'disabled'">
+                                <a class="page-link" th:href="@{/movie/{movieId}(movieId=${movie.movieId}, page=${currentPage + 1})}" 
+                                   th:if="${reviewPage.hasNext()}">다음</a>
+                                <span class="page-link" th:unless="${reviewPage.hasNext()}">다음</span>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+</body>
+</html>

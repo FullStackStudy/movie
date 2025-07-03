@@ -122,7 +122,6 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
             member.setMemberId(email);
             member.setName(name != null ? name : "사용자");
             member.setNickname(name != null ? name : "사용자");
-            member.setEmail(email);
             member.setProfile(picture);
             member.setRole(com.movie.constant.Role.USER);
             member.setRegDate(LocalDate.now());

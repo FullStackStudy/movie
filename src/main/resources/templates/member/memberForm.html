@@ -7,11 +7,178 @@
 <th:block layout:fragment="script">
     <script th:inline="javascript">
         $(document).ready(function(){
-            var errorMessage = [[${errorMessage}]];
+            var errorMessage = /*[[${errorMessage}]]*/ '';
             if(errorMessage != null && errorMessage != ""){
                 alert(errorMessage);
             }
         });
+
+        // 이메일 인증 관련 변수
+        let isEmailVerified = false;
+        let verificationTimer = null;
+
+        // 이메일 인증 코드 전송
+        function sendVerificationCode() {
+            const email = document.getElementById('memberId').value;
+            
+            if (!email) {
+                alert('이메일을 먼저 입력해주세요.');
+                return;
+            }
+
+            if (!isValidEmail(email)) {
+                alert('올바른 이메일 형식을 입력해주세요.');
+                return;
+            }
+
+            // 중복 가입 확인
+            fetch('/api/email/check-duplicate', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ email: email })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.exists) {
+                    alert('이미 가입된 이메일입니다.');
+                    return;
+                }
+                
+                // 인증 코드 전송
+                return fetch('/api/email/send-code', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ email: email })
+                });
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.message) {
+                    alert('인증 코드가 이메일로 전송되었습니다.');
+                    startVerificationTimer();
+                    document.getElementById('verificationSection').style.display = 'block';
+                } else if (data.error) {
+                    alert(data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('인증 코드 전송에 실패했습니다. 잠시 후 다시 시도해주세요.');
+            });
+        }
+
+        // 이메일 인증 코드 확인
+        function verifyCode() {
+            const email = document.getElementById('memberId').value;
+            const code = document.getElementById('verificationCode').value;
+
+            if (!code) {
+                alert('인증 코드를 입력해주세요.');
+                return;
+            }
+
+            fetch('/api/email/verify-code', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ 
+                    email: email,
+                    code: code 
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.message) {
+                    alert('이메일 인증이 완료되었습니다.');
+                    isEmailVerified = true;
+                    
+                    // 인증 완료 상태 표시
+                    document.getElementById('verificationStatus').textContent = '인증 완료';
+                    document.getElementById('verificationStatus').className = 'verification-status text-success';
+                    
+                    // 버튼들 비활성화
+                    document.getElementById('sendCodeBtn').disabled = true;
+                    document.getElementById('verifyCodeBtn').disabled = true;
+                    document.getElementById('verificationCode').disabled = true;
+                    
+                    // 타이머 정지 및 숨기기
+                    if (verificationTimer) {
+                        clearInterval(verificationTimer);
+                        verificationTimer = null;
+                    }
+                    
+                    // 타이머 영역 숨기기
+                    const timerElement = document.getElementById('timer');
+                    const timerLabel = timerElement.previousElementSibling;
+                    if (timerLabel && timerLabel.tagName === 'SMALL') {
+                        timerLabel.style.display = 'none';
+                    }
+                    timerElement.style.display = 'none';
+                    
+                } else if (data.error) {
+                    alert(data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('인증 확인에 실패했습니다. 잠시 후 다시 시도해주세요.');
+            });
+        }
+
+        // 이메일 형식 검증
+        function isValidEmail(email) {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return emailRegex.test(email);
+        }
+
+        // 인증 타이머 시작
+        function startVerificationTimer() {
+            let timeLeft = 300; // 5분 (300초)
+            const timerDisplay = document.getElementById('timer');
+            
+            verificationTimer = setInterval(() => {
+                const minutes = Math.floor(timeLeft / 60);
+                const seconds = timeLeft % 60;
+                timerDisplay.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+                
+                if (timeLeft <= 0) {
+                    clearInterval(verificationTimer);
+                    verificationTimer = null;
+                    alert('인증 시간이 만료되었습니다. 다시 인증해주세요.');
+                    
+                    // 인증 섹션 초기화
+                    document.getElementById('verificationSection').style.display = 'none';
+                    document.getElementById('verificationCode').value = '';
+                    document.getElementById('verificationStatus').textContent = '인증 대기중';
+                    document.getElementById('verificationStatus').className = 'verification-status text-muted';
+                    document.getElementById('sendCodeBtn').disabled = false;
+                    isEmailVerified = false;
+                    
+                    // 타이머 영역 숨기기
+                    const timerElement = document.getElementById('timer');
+                    const timerLabel = timerElement.previousElementSibling;
+                    if (timerLabel && timerLabel.tagName === 'SMALL') {
+                        timerLabel.style.display = 'none';
+                    }
+                    timerElement.style.display = 'none';
+                }
+                timeLeft--;
+            }, 1000);
+        }
+
+        // 폼 제출 시 이메일 인증 확인
+        function validateForm() {
+             if (!isEmailVerified) {
+                 alert('이메일 인증을 완료해주세요.');
+                 return false;
+             }
+            return true;
+        }
     </script>
 </th:block>
 
@@ -21,6 +188,21 @@
         .fieldError {
             color: #bd2130;
         }
+        .verification-section {
+            display: none;
+            margin-top: 10px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            border: 1px solid #dee2e6;
+        }
+        .timer {
+            font-weight: bold;
+            color: #dc3545;
+        }
+        .verification-status {
+            font-weight: bold;
+        }
     </style>
 </th:block>
 
@@ -29,12 +211,32 @@
         <div class="row justify-content-center">
             <div class="col-lg-8 col-md-10">
                 <h2 class="mb-4 text-center">회원가입</h2>
-                <form action="/members/new" role="form" method="post" th:object="${memberFormDto}">
+                <form action="/members/new" role="form" method="post" th:object="${memberFormDto}" onsubmit="return validateForm()">
+                    <!-- CSRF 토큰 제거 - API 호출에서 사용하지 않음 -->
 
                     <div class="form-group mb-3">
-                        <label th:for="memberId" class="form-label">아이디</label>
-                        <input type="text" th:field="*{memberId}" class="form-control" placeholder="아이디를 입력해주세요">
+                        <label th:for="memberId" class="form-label">아이디 (이메일)</label>
+                        <div class="input-group">
+                            <input type="text" th:field="*{memberId}" class="form-control" placeholder="아이디를 입력해주세요">
+                            <button type="button" class="btn btn-outline-primary" id="sendCodeBtn" onclick="sendVerificationCode()">인증코드 전송</button>
+                        </div>
                         <p th:if="${#fields.hasErrors('memberId')}" th:errors="*{memberId}" class="fieldError">Incorrect data</p>
+                        
+                        <!-- 이메일 인증 섹션 -->
+                        <div id="verificationSection" class="verification-section">
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <input type="text" id="verificationCode" class="form-control" placeholder="인증 코드 6자리를 입력하세요" maxlength="6">
+                                </div>
+                                <div class="col-md-4">
+                                    <button type="button" class="btn btn-primary" id="verifyCodeBtn" onclick="verifyCode()">인증 확인</button>
+                                </div>
+                            </div>
+                            <div class="mt-2">
+                                <small class="text-muted">남은 시간: <span id="timer" class="timer">5:00</span></small>
+                                <span id="verificationStatus" class="verification-status text-muted ms-3">인증 대기중</span>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="form-group mb-3">
@@ -72,7 +274,6 @@
                         <input type="text" th:field="*{address}" class="form-control" placeholder="주소를 입력해주세요">
                         <p th:if="${#fields.hasErrors('address')}" th:errors="*{address}" class="fieldError">Incorrect data</p>
                     </div>
-
 
                     <div class="d-grid">
                         <button type="submit" class="btn btn-primary btn-lg">가입하기</button>

@@ -70,6 +70,19 @@ public class MyPageController {
         try {
             // 프로필 이미지 업로드 처리
             if (profileImage != null && !profileImage.isEmpty()) {
+                // 파일 크기 검증 (20MB 제한)
+                if (profileImage.getSize() > 20 * 1024 * 1024) {
+                    model.addAttribute("errorMessage", "파일 크기는 20MB 이하여야 합니다.");
+                    return "mypage/editMyPage";
+                }
+                
+                // 파일 타입 검증
+                String contentType = profileImage.getContentType();
+                if (contentType == null || !contentType.startsWith("image/")) {
+                    model.addAttribute("errorMessage", "이미지 파일만 업로드 가능합니다.");
+                    return "mypage/editMyPage";
+                }
+                
                 // 기존 프로필 이미지 삭제
                 MyPageDto currentInfo = memberService.getMyPageInfo(memberId);
                 if (currentInfo.getProfile() != null) {
@@ -84,7 +97,7 @@ public class MyPageController {
             memberService.updateMemberInfo(memberId, myPageDto);
             model.addAttribute("message", "회원정보가 성공적으로 수정되었습니다.");
         } catch (Exception e) {
-            model.addAttribute("errorMessage", e.getMessage());
+            model.addAttribute("errorMessage", "회원정보 수정 중 오류가 발생했습니다: " + e.getMessage());
             return "mypage/editMyPage";
         }
         

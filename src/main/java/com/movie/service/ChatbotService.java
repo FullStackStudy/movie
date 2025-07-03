@@ -25,7 +25,7 @@ public class ChatbotService {
         if (lower.contains("시간표")) {
             for (String keyword : cinemas) {
                 if (lower.contains(keyword)) {
-                    String cinemaName = "MovieFlex" + keyword;
+                    String cinemaName = "MovieFlex " + keyword;
                     String encodedName = URLEncoder.encode(cinemaName, StandardCharsets.UTF_8)
                             .replaceAll("\\+", "%20");
 
@@ -76,6 +76,27 @@ public class ChatbotService {
                     .type(ResponseType.LINK)
                     .build();
         }
+
+        /* 스토어 관련 Question */
+        if (lower.contains("팝콘")) {
+            return ChatbotResponseDto.builder()
+                    .response("팝콘 등 음식을 구매하고 싶으시다면 아래 버튼을 눌러주세요.")
+                    .buttonText("스토어 가기")
+                    .buttonUrl("/store")
+                    .type(ResponseType.LINK)
+                    .build();
+        }
+
+        /* 영화 관련 Question */
+        if (lower.contains("영화")) {
+            return ChatbotResponseDto.builder()
+                    .response("상영중인 영화를 찾고 싶으시다면 아래 버튼을 눌러주세요.")
+                    .buttonText("영화 찾기")
+                    .buttonUrl("/movie")
+                    .type(ResponseType.LINK)
+                    .build();
+        }
+
 
         /* 키워드에 해당하는 Question이 없는 경우 */
         return ChatbotResponseDto.builder()

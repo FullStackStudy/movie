@@ -1,18 +1,16 @@
 package com.movie.entity;
 
-import com.movie.entity.reservation.Reservation;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
+import lombok.ToString;
 
-import java.util.Optional;
-
+/* 실제 예약 좌석 */
 @Entity
 @Table(name = "reserved_seat")
 @Getter
 @Setter
-@EnableJpaAuditing
+@ToString
 public class ReservedSeat {
 
     @Id

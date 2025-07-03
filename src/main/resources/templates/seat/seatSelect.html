@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+    layout:decorate="~{layouts/layout1}">
+
+<head>
+    <meta charset="UTF-8">
+    <title>좌석 선택</title>
+    <style>
+        body {
+            background: #f8f9fa;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        .seat-container {
+            max-width: 900px;
+            margin: 40px auto;
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+            padding: 2.5rem;
+            position: relative;
+        }
+
+        .movie-info {
+            background: linear-gradient(135deg, #11998e, #38ef7d);
+            color: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .movie-info h2 {
+            margin: 0 0 0.5rem 0;
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .movie-info p {
+            margin: 0.3rem 0;
+            opacity: 0.9;
+            font-size: 1rem;
+        }
+
+        .screen {
+            background: linear-gradient(135deg, #2c3e50, #34495e);
+            color: white;
+            text-align: center;
+            padding: 1rem 0;
+            border-radius: 10px;
+            margin-bottom: 2rem;
+            font-weight: 600;
+            letter-spacing: 2px;
+            font-size: 1.1rem;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .seats-container {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-bottom: 2rem;
+            align-items: center;
+        }
+
+        .row {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+
+        .row-label {
+            width: 30px;
+            text-align: center;
+            font-weight: 600;
+            color: #555;
+            font-size: 0.9rem;
+        }
+
+        .column-labels {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 10px;
+            justify-content: center;
+        }
+
+        .column-label {
+            width: 35px;
+            text-align: center;
+            font-weight: 600;
+            color: #555;
+            font-size: 0.8rem;
+        }
+
+        .seat {
+            width: 35px;
+            height: 35px;
+            background: #e8f5e8;
+            border: 2px solid #4CAF50;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #2e7d32;
+            outline: none;
+        }
+
+        .seat:hover:not(.occupied) {
+            background: #4CAF50;
+            color: white;
+            transform: scale(1.05);
+            box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
+        }
+
+        .seat.selected {
+            background: linear-gradient(135deg, #11998e, #38ef7d);
+            color: white;
+            border-color: #11998e;
+            box-shadow: 0 2px 10px rgba(17, 153, 142, 0.3);
+        }
+
+        .seat.occupied {
+            background: #f5f5f5;
+            border-color: #ddd;
+            color: #999;
+            cursor: not-allowed;
+        }
+
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin: 2rem 0;
+            flex-wrap: wrap;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            font-size: 0.95rem;
+            color: #555;
+            font-weight: 500;
+        }
+
+        .legend-box {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+            display: inline-block;
+            border: 2px solid transparent;
+        }
+
+        .legend-available {
+            background: #e8f5e8;
+            border-color: #4CAF50;
+        }
+
+        .legend-selected {
+            background: linear-gradient(135deg, #11998e, #38ef7d);
+        }
+
+        .legend-occupied {
+            background: #f5f5f5;
+            border-color: #ddd;
+        }
+
+        .error-message {
+            background: #ffebee;
+            color: #c62828;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            border-left: 4px solid #f44336;
+            font-weight: 500;
+        }
+
+        .reservation-bar {
+            background: #ffffff;
+            border: 2px solid #11998e;
+            color: #2c3e50;
+            padding: 1.2rem;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(17, 153, 142, 0.1);
+            margin-top: 2rem;
+            display: none;
+        }
+
+        .reserve-btn {
+            background: linear-gradient(135deg, #11998e, #38ef7d);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 0.8rem 1.5rem;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-left: 1rem;
+        }
+
+        .reserve-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(17, 153, 142, 0.3);
+        }
+
+        .selected-seats {
+            font-weight: 600;
+            font-size: 1rem;
+            color: #11998e;
+        }
+
+        @media (max-width: 768px) {
+            .seat-container {
+                margin: 20px;
+                padding: 1.5rem;
+            }
+
+            .seat {
+                width: 30px;
+                height: 30px;
+                font-size: 0.7rem;
+            }
+
+            .legend {
+                gap: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+<div layout:fragment="content">
+    <div class="seat-container">
+        <!-- 에러 메시지 표시 -->
+        <div th:if="${error}" class="error-message" th:text="${error}"></div>
+
+        <!-- 영화 정보 표시 -->
+        <div th:if="${schedule}" class="movie-info">
+            <h2 th:text="${schedule.movie.movieTitle}">영화 제목</h2>
+            <p
+                th:text="${schedule.screenRoom.roomNm} + ' | ' + ${#temporals.format(schedule.showDate, 'yyyy-MM-dd')} + ' | ' + ${#temporals.format(schedule.startTime, 'HH:mm')}">
+                상영 정보</p>
+        </div>
+
+        <div class="screen">🎬 SCREEN 🎬</div>
+
+        <div class="seats-container">
+            <!-- 열 번호 표시 -->
+            <div class="column-labels">
+                <div class="column-label"></div>
+                <div class="column-label" th:each="col : ${#numbers.sequence(0, 9)}" th:text="${col}"></div>
+            </div>
+
+            <!-- 좌석 행 표시 -->
+            <div th:each="row : ${seatRows}" class="row">
+                <div class="row-label" th:text="${row}"></div>
+                <button th:each="col : ${#numbers.sequence(0, 9)}" class="seat" type="button"
+                    th:data-seat="${row + col}" th:text="${col}"
+                    th:classappend="${reservedKeys.contains(row + col)} ? ' occupied' : ''">
+                </button>
+            </div>
+
+        </div>
+
+        <div class="legend">
+            <div class="legend-item">
+                <span class="legend-box legend-available"></span>
+                선택 가능
+            </div>
+            <div class="legend-item">
+                <span class="legend-box legend-selected"></span>
+                선택됨
+            </div>
+            <div class="legend-item">
+                <span class="legend-box legend-occupied"></span>
+                예약됨
+            </div>
+        </div>
+
+        <div id="reservation-bar" class="reservation-bar">
+            <span id="selected-seats" class="selected-seats"></span>
+            <button id="reserve-btn" class="reserve-btn">예매하기</button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const seatButtons = document.querySelectorAll('.seat');
+            const reservationBar = document.getElementById('reservation-bar');
+            const selectedSeatsSpan = document.getElementById('selected-seats');
+            const reserveBtn = document.getElementById('reserve-btn');
+
+            function updateReservationBar() {
+                const selected = Array.from(seatButtons)
+                    .filter(seat => seat.classList.contains('selected'))
+                    .map(seat => seat.dataset.seat);
+                if (selected.length > 0) {
+                    reservationBar.style.display = 'block';
+                    selectedSeatsSpan.textContent = '선택된 좌석: ' + selected.join(', ');
+                } else {
+                    reservationBar.style.display = 'none';
+                    selectedSeatsSpan.textContent = '';
+                }
+            }
+
+            seatButtons.forEach(seat => {
+                seat.addEventListener('click', function () {
+                    if (!this.classList.contains('occupied')) {
+                        this.classList.toggle('selected');
+                        updateReservationBar();
+                    }
+                });
+            });
+
+            reserveBtn.addEventListener('click', async function () {
+                const selected = Array.from(seatButtons)
+                    .filter(seat => seat.classList.contains('selected'))
+                    .map(seat => seat.dataset.seat);
+
+                const seatDtos = selected.map(seat => {
+                    const row = seat.charAt(0);
+                    const column = parseInt(seat.substring(1));
+                    return {
+                        seatRow: row,
+                        seatColumn: column,
+                        price: 15000,
+                        screenRoomId: 1
+                    };
+                });
+
+                for (let seatDto of seatDtos) {
+                    await fetch("/seats", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify(seatDto)
+                    });
+                }
+            });
+        });
+    </script>
+</div>
+</body>
+
+</html>
