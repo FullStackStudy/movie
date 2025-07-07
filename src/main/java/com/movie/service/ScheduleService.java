@@ -72,4 +72,10 @@ public class ScheduleService {
                         )
                 ));
     }
+
+    //포스터가져오기 이다은
+    public Movie getPosterUrl(Long scheduleId) {
+        Schedule schedule = scheduleRepository.findById(scheduleId).orElseThrow(()-> new NullPointerException());
+        return schedule.getMovie();
+    }
 }

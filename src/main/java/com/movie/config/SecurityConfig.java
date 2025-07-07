@@ -25,7 +25,7 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf
-                        .ignoringRequestMatchers("/api/**", "/members/new", "/members/login", "/members/logout","/admin/schedule")
+                        .ignoringRequestMatchers("/api/**", "/members/new", "/members/login", "/members/logout","/admin/schedule", "/cinema/")
                         .csrfTokenRepository(new HttpSessionCsrfTokenRepository())
                         //.disable()
                 )

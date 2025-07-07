@@ -301,8 +301,4 @@ public class ReservationService {
 
         return seatRepository.findAllById(seatId);
     }
-
-
-
-
 }

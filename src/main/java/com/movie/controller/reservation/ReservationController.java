@@ -11,6 +11,7 @@ import com.movie.entity.Seat;
 import com.movie.repository.ReservedSeatRepository;
 import com.movie.repository.ScreenRoomRepository;
 import com.movie.repository.SeatRepository;
+import com.movie.service.ScheduleService;
 import com.movie.service.SeatService;
 import com.movie.service.reservation.ReservationService;
 import com.movie.service.reservation.SeatNotificationService;
@@ -49,7 +50,7 @@ public class ReservationController {
     private final SeatNotificationService seatNotificationService;
     private final RedisTemplate redisTemplate;
     private final SeatService seatService;
-
+    private final ScheduleService scheduleService;
     //예약페이지 in
     @GetMapping({"/",""})
     public String reserveSet(@AuthenticationPrincipal UserDetails userDetails, Model model){
@@ -165,6 +166,8 @@ public class ReservationController {
         ReservationResponseDto reservationResponseDto = (ReservationResponseDto) session.getAttribute("reservedData");
         List<Long> seatId = (List<Long>)session.getAttribute("seatId");
         Long scheduleId = (Long)session.getAttribute("scheduleId");
+        String moviePoster = scheduleService.getPosterUrl(scheduleId).getMoviePoster();
+        model .addAttribute("moviePoster", moviePoster);
         model.addAttribute("seatId",seatId);
         model.addAttribute("scheduleId",scheduleId);
         model.addAttribute("reservedData", reservationResponseDto);
@@ -184,6 +187,7 @@ public class ReservationController {
         System.out.println("뭐야" + reserve.toString());
         reserve.setSeatId(seatId);
         reserve.setScheduleId(scheduleId);
+
         boolean failPay = true; //결제 아직 모르니까 성공으로 가게 해놓음
         if (!failPay) { //결제 취소하면, 결제 화면 나가면 그냥 결제 화면 보여주는거잖아? //이건 아예 예약확정 전에 예약취소하는거지 -> 합치고고민하기
             for (Long seatIds : reserve.getSeatId()) { //좌석
