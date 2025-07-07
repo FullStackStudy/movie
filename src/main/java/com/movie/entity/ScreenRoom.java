@@ -21,7 +21,7 @@ public class ScreenRoom {
     private Cinema cinema;
 
 
-    /*@OneToMany(mappedBy = "screenRoom")
+    @OneToMany(mappedBy = "screenRoom")
     private List<Schedule> schedules;
 
     @OneToMany(mappedBy = "screenRoom")
@@ -29,7 +29,7 @@ public class ScreenRoom {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "movie_id")
-    private Movie movie;*/
+    private Movie movie;
 
     private String roomNm; //상영관 이름
 

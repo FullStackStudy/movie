@@ -27,7 +27,7 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf
                         .ignoringRequestMatchers("/api/**", "/members/new", "/members/login", "/members/logout","/admin/schedule")
                         .csrfTokenRepository(new HttpSessionCsrfTokenRepository())
-                        .disable()
+                        //.disable()
                 )
                 .formLogin(form -> form
                         .loginPage("/members/login") // 사용할 로그인 페이지 URL

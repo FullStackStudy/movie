@@ -33,7 +33,7 @@
     <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
 </div>
     <div class="modal fade" id="myModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
-        <form method="POST" th:action="@{/reservation/pay}">
+        <form method="POST" th:action="@{/reservation/pay}" >
             <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable" >
                 <div class="modal-content">
                     <div class="modal-header">
@@ -121,14 +121,12 @@
                     </div>
                 </div>
             </div>
-
-            <input type="text" th:field="${reservedData.payMethod}" id="pay_method">
-
-            <input type="text" th:field="${reservedData.per}" id="per">
-            <input type="text" th:field="${reservedData.price}" id="price">
-            <input type="text" th:field="${reservedData.seatId}" id="seat_id">
-            <input type="text" th:field="${reservedData.scheduleId}" id="schedule_id">
-
+            <input type="hidden" th:value="${reservedData.per}" id="per">
+            <input type="hidden" th:value="${reservedData.price}" id="price">
+            <th:block th:each="sid : ${seatId}">
+                <input type="hidden" name="seat_id" th:value="${sid}" />
+            </th:block>
+            <input type="hidden" th:value="${scheduleId}" id="schedule_id" name="schedule_id">
 
         </form>
 </div>
@@ -181,14 +179,14 @@
                         showExpiredToast();
                         console.log(`[✔] 좌석 ${seatId} 예약 만료됨`);
                         setTimeout(() => {
-                            window.location.href = "/reservation/";
+                            window.location.href = "/";
                         }, 3000); // 3초 뒤 이동
                     }
                 }, 1000);
             }
             //웹소켓 연결
-            const scheduleId = [[${reservedData.scheduleId}]];
-            const seatIds = [[${reservedData.seatId}]];
+            const scheduleId = [[${scheduleId}]];
+            const seatIds = [[${seatId}]];
             // 2. SockJS + StompClient 생성 및 연결
             const socket = new SockJS('/ws-seat');
             const stompClient = Stomp.over(socket);

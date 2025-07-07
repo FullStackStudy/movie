@@ -9,14 +9,12 @@ import com.movie.repository.ReservedSeatRepository;
 import com.movie.repository.ScheduleRepository;
 import com.movie.repository.SeatRepository;
 import com.movie.service.SeatService;
+import com.movie.service.reservation.ReservationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -24,13 +22,14 @@ import java.util.List;
 
 @Controller
 @RequiredArgsConstructor
-
+@RequestMapping("/reservation")
 public class SeatController {
 
     private final SeatService seatService;
     private final ScheduleRepository scheduleRepository;
     private final SeatRepository seatRepository;
     private final ReservedSeatRepository reservedSeatRepository;
+    private final ReservationService reservationService;
 
     @PostMapping("/seats")
     public ResponseEntity<String> createSeat(@RequestBody SeatDto seatDto) {
@@ -61,6 +60,17 @@ public class SeatController {
                     .map(rs -> rs.getSeat().getSeatRow() + rs.getSeat().getSeatColumn())
                     .toList();
 
+            /// //////////////이다은 추가 //////////////////
+            //redis에서 hold중인 좌석
+            List<Seat> holdingSeat = reservationService.getHoldingSeats(scheduleId);
+
+            List<String> holdingSeatName = new ArrayList<>();
+            for(Seat seat : holdingSeat){
+                String seatName = seat.getSeatRow()+seat.getSeatColumn();
+                holdingSeatName.add(seatName);
+            }
+            model.addAttribute("holdingSeatList", holdingSeatName);
+            /// ////////////////////////////////////////////
             model.addAttribute("seatRows", seatRows);
             model.addAttribute("seats", seats);
             model.addAttribute("reservedKeys", reservedKeys);

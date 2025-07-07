@@ -1,6 +1,8 @@
 package com.movie.config;
 
 import com.movie.dto.reservation.SeatStatusMessageDto;
+import com.movie.entity.Seat;
+import com.movie.repository.SeatRepository;
 import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -12,9 +14,11 @@ import java.util.List;
 public class RedisKeyExpirationListener implements MessageListener {
 
     private final SimpMessagingTemplate messagingTemplate;
+    private final SeatRepository seatRepository;
 
-    public RedisKeyExpirationListener(SimpMessagingTemplate messagingTemplate) {
+    public RedisKeyExpirationListener(SimpMessagingTemplate messagingTemplate, SeatRepository seatRepository) {
         this.messagingTemplate = messagingTemplate;
+        this.seatRepository = seatRepository;
     }
 
     @Override
@@ -44,7 +48,11 @@ public class RedisKeyExpirationListener implements MessageListener {
     }
 
     private void sendReleaseMessage(Long scheduleId, Long seatId) {
-        SeatStatusMessageDto seatStatusMessage = new SeatStatusMessageDto(scheduleId, List.of(seatId),"released");
+        Seat seat = seatRepository.findById(seatId).orElseThrow(()->new IllegalArgumentException());
+        String seatName = seat.getSeatRow() + seat.getSeatColumn();
+
+
+        SeatStatusMessageDto seatStatusMessage = new SeatStatusMessageDto(scheduleId, List.of(seatId), List.of(seatName),"released");
 
         messagingTemplate.convertAndSend("/topic/seats/" + scheduleId, seatStatusMessage);
     }

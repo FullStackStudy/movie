@@ -1,6 +1,8 @@
 package com.movie.dto.reservation;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.movie.dto.SeatDto;
+import com.movie.entity.Schedule;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -14,7 +16,7 @@ import java.util.List;
 @Getter
 @Setter
 @ToString
-public class ReservationResponseDto extends ReservationDto{
+public class ReservationResponseDto extends ReservationDto {
 
     private String movieName;
 
@@ -33,6 +35,5 @@ public class ReservationResponseDto extends ReservationDto{
     private Boolean cancellable; //취소가능한지
 
     private LocalDateTime movieDateTime;
-
 
 }

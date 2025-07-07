@@ -1,24 +1,37 @@
 package com.movie.service.reservation;
 
 import com.movie.dto.reservation.SeatStatusMessageDto;
+import com.movie.entity.Seat;
+import com.movie.repository.SeatRepository;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class SeatNotificationService {
 
     private final SimpMessagingTemplate messagingTemplate;
+    private final SeatRepository seatRepository;
 
     //생성자 주입
-    public SeatNotificationService(SimpMessagingTemplate messagingTemplate){
+    public SeatNotificationService(SimpMessagingTemplate messagingTemplate, SeatRepository seatRepository){
         this.messagingTemplate = messagingTemplate;
+        this.seatRepository = seatRepository;
     }
 
     //특정 스케줄과 좌석목록에대해 예약중상태를 알림 메세지로 전송
     public void notifySeatHold(Long scheduleId, List<Long> seatId, String status){
-        SeatStatusMessageDto message = new SeatStatusMessageDto(scheduleId, seatId, status);
+
+        //id-> name 변경
+        List<String> seatNames = seatId.stream()
+                .map(id -> seatRepository.findById(id)
+                        .map(seat -> seat.getSeatRow() + seat.getSeatColumn())
+                        .orElse("unknown"))
+                .collect(Collectors.toList());
+
+        SeatStatusMessageDto message = new SeatStatusMessageDto(scheduleId, seatId, seatNames, status);
         //메세지전송
         //구독경로: /topic/seats/{scheduleId}
         messagingTemplate.convertAndSend("/topic/seats/"+scheduleId, message);

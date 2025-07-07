@@ -23,5 +23,5 @@ public class ScheduleDto {
     //이다은 추가 roodId로 seat 구성해야되서 추가함
     private Long roomId;
     private int availableSeat;      //잔여좌석
-    private String description;
+
 }

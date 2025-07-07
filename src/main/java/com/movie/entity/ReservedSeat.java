@@ -1,5 +1,6 @@
 package com.movie.entity;
 
+import com.movie.entity.reservation.Reservation;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;

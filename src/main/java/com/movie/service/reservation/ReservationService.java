@@ -170,6 +170,31 @@ public class ReservationService {
         return dto;
     }
 
+    //reservaionResponseDto 만들어줌
+    public ReservationResponseDto getReservationResponseDto(Long scheduleId, List<SeatDto> seatDtos, String memberId){
+        Schedule schedule = scheduleRepository.findById(scheduleId).orElseThrow(()->new IllegalArgumentException("스케줄없음"));
+
+        ReservationResponseDto dto = new ReservationResponseDto();
+        List<String> seatNames = new ArrayList<>();
+        int price = 0;
+        for(SeatDto seatName : seatDtos){
+            String name = seatName.getSeatRow() + seatName.getSeatColumn();
+            seatNames.add(name);
+            price += seatName.getPrice();
+        }
+        dto.setCinemaName(schedule.getCinema().getName());
+        dto.setMovieName(schedule.getMovie().getMovieTitle());
+        dto.setScreenName(schedule.getScreenRoom().getRoomNm());
+        dto.setShowDate(schedule.getShowDate());
+        dto.setStartTime(schedule.getStartTime());
+        dto.setPer((long)seatDtos.size());
+        dto.setMemberId(memberId);
+        dto.setPrice(price);
+        dto.setSeatName(seatNames);
+
+        return dto;
+    }
+
     //지금 시간이 영화시간보다 10분 안으로남으면 취소불가
     public void cancelTimeCheck(ReservationResponseDto dto) {
         LocalDateTime movieDateTime = LocalDateTime.of(dto.getShowDate(), dto.getStartTime());
@@ -202,14 +227,14 @@ public class ReservationService {
         return "seat:" + scheduleId + ":" + seatId;
     }
 
-    public ReservationRedisResultDto reserveRedis(ReservationDto reservationDto){
+    public ReservationRedisResultDto reserveRedis(List<Long> seatIds, String memberId, Long scheduleId){
         boolean reserved;
         List<Long> failList = new ArrayList<>();
         List<Long> successList = new ArrayList<>();
 
         //좌석이 2개 이상일 때 하나씩 레디스 넣어준다.
-        for(Long seatId : reservationDto.getSeatId()){
-            reserved = tryReserveSeat(reservationDto.getScheduleId(), seatId, reservationDto.getMemberId());
+        for(Long seatId : seatIds){
+            reserved = tryReserveSeat(scheduleId, seatId, memberId);
             if(!reserved){
                 failList.add(seatId);
             }else {
@@ -231,6 +256,7 @@ public class ReservationService {
         System.out.println("Redis 저장 시도: key=" + key + ", 결과=" + success);
 
         if(Boolean.TRUE.equals(success)){ //저장 성공하면 websoket 알림전송 hold다!!
+
             seatNotificationService.notifySeatHold(scheduleId, List.of(seatId), "hold");
         }
         if(Boolean.FALSE.equals(success)){ //실패(저장이되어있음)이지만 실제로 키가있나 다시확인 -> redis 풀리고 새로고침하면 400떠서 한번더 확인
@@ -261,7 +287,7 @@ public class ReservationService {
     }
 
     //hold redis list만들기
-    public List<Long> getHoldingSeats(Long scheduleId){
+    public List<Seat> getHoldingSeats(Long scheduleId){
         String keyBySchedule = "seat:"+scheduleId+":*";
 
         Set<String> keys = redisTemplate.keys(keyBySchedule);
@@ -273,8 +299,9 @@ public class ReservationService {
                     return Long.parseLong(parts[2]);
                 }).collect(Collectors.toList());
 
-        return seatId;
+        return seatRepository.findAllById(seatId);
     }
+
 
 
 

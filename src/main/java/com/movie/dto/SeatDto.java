@@ -1,9 +1,12 @@
 package com.movie.dto;
 
+import com.movie.entity.Seat;
 import lombok.Getter;
 import lombok.Setter;
+import org.modelmapper.ModelMapper;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Getter
 @Setter
@@ -13,7 +16,7 @@ public class SeatDto {
     private boolean availableSeats;
     private Long roomId;
     private Integer price;
-    private char seatRow;
+    private String seatRow;
     private int seatColumn;
     private List<ScreenRoomDto> screenRooms;  // 상영관 정보 리스트
 

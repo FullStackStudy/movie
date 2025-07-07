@@ -55,7 +55,7 @@
     <p>선택 좌석 (임의 선택):</p>
 
     <div id="seatContainer">
-        <!-- 좌석은 JS로 동적으로 렌더링 -->
+        <div th:replace="seat/seatSelect :: selectSeatFragment"></div>
         <input type="text" name="selectedSeats" id="selectedSeats">
     </div>
 
@@ -147,72 +147,7 @@
         });
     });
 
-    //////////////////////////임의 좌석
-    const seats = [[${seats}]];
-    console.log("좌석 확인:", seats);
-    const seatMap = {};
 
-    // seatMap을 row 기준으로 분류
-    seats.forEach(seat => {
-        if (!seatMap[seat.seatRow]) {
-            seatMap[seat.seatRow] = [];
-        }
-        seatMap[seat.seatRow].push(seat);
-    });
-
-    const reservedSeatId = [[${reservedSeatList}]];
-    const seatContainer = document.getElementById("seatContainer");
-    const selectedSeatIds = new Set();
-
-    // 좌석 행별로 좌석 렌더링
-    Object.keys(seatMap).sort().forEach(row => {
-        const rowDiv = document.createElement("div");
-        rowDiv.classList.add("seat-row");
-
-        const label = document.createElement("span");
-        label.classList.add("seat-row-label");
-        label.textContent = row;
-        rowDiv.appendChild(label);
-
-        seatMap[row].sort((a, b) => a.seatColumn - b.seatColumn).forEach(seat => {
-            const div = document.createElement("div");
-            const seatList = document.getElementById("seat_id");
-            div.classList.add("seat");
-            div.dataset.id = seat.id;
-            div.textContent = row + seat.seatColumn;
-
-            const isReserved = reservedSeatId.includes(seat.id);
-
-            if(isReserved){
-                div.classList.add("reserved");
-                div.style.background="#aaa";
-                div.style.cursor="not-allowed";
-            }else{
-                div.onclick = function () {
-                    const id = div.dataset.id;
-                    if (selectedSeatIds.has(id)) {
-                        selectedSeatIds.delete(id);
-                        div.classList.remove("selected");
-                    } else {
-                        selectedSeatIds.add(id);
-                        div.classList.add("selected");
-                    }
-
-                    // 시각적으로 표시할 좌석명 (선택된 div들에서 textContent 가져오기)
-
-                    updateSeatInfo();
-
-                    const payMethodSelect = document.getElementById('payMethod');
-                    payMethodSelect.addEventListener('change', () => {
-                          const payMethod = payMethodSelect.value;
-                          document.getElementById('pay_method').innerText = payMethod;
-                        });
-                    };
-                }
-                rowDiv.appendChild(div);
-            });
-        seatContainer.appendChild(rowDiv);
-    });
 
 
 
