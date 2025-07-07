@@ -311,7 +311,8 @@
                     <span class="movie-info-label">줄거리</span>
                     <div class="movie-content" th:text="${movie.movieContent}">줄거리</div>
                 </div>
-                <a th:href="@{'/reserve/' + ${movie.movieId}}" class="btn btn-primary btn-lg"
+                <!--이다은 0703<a th:href="@{'/reserve/' + ${movie.movieId}}" class="btn btn-primary btn-lg"-->
+                <a th:href="@{'/cinema/map'}" class="btn btn-primary btn-lg"
                    sec:authorize="isAuthenticated()">예매하기</a>
                 <a th:href="@{/members/login}" class="btn btn-primary btn-lg" sec:authorize="!isAuthenticated()">로그인 후
                     예매하기</a>

@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://ultaq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/layout1}">
+<head>
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+</head>
+<div layout:fragment="css">
+    <style>
+        .table1 {
+            width:100%;
+        }
+        .detail{
+            font-size:12px;
+        }
+    </style>
+</div>
+<div layout:fragment="content">
+<div>
+    <input id="member_id1" type="text" th:field="${reservedData.memberId}"  readonly/>
+    <input id="movie_name" type="text" th:field="${reservedData.movieName}" readonly/>
+
+    <p>선택 좌석 (임의 선택):, 결제 정보창임</p>
+    <label><input type="text" th:field="${reservedData.seatName}" id="seat_name"> </label>
+    <br><br>
+
+    <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#myModal">결제하기</button>
+    <!--<button type="button" class="btn btn-warning" id="back" onclick="cancelRedis('back')">좌석 다시 선택하기</button>-->
+    <button type="button" class="btn btn-danger" id="cancel" onclick="cancelRedis('cancel')">취소하기</button>
+    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+</div>
+    <div class="modal fade" id="myModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+        <form method="POST" th:action="@{/reservation/pay}" >
+            <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable" >
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h1 class="modal-title fs-5" id="staticBackdropLabel">예약 정보 확인</h1>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <table class="table1 table-striped-columns">
+                            <thead>
+                            <tr>
+                                <th class="col-6">예약 정보</th>
+                                <th class="col-6">결제 정보</th>
+                            </tr>
+                            </thead>
+                            <tbody class="table-group-divider">
+                                <tr>
+                                    <td>
+                                        <div class="row">
+                                            <div class="col-auto">
+                                                <img th:src="${moviePoster}" style="max-width: 100px; height: auto;">
+                                            </div>
+                                        <div class="col">
+                                            <table class="table table-borderless table-sm">
+                                                <tr>
+                                                    <td>영화명</td>
+                                                    <td><span id="modal_movie_name" th:text="${reservedData.movieName}"></span></td>
+                                                </tr>
+                                                <tr>
+                                                    <td>극장</td>
+                                                    <td><span  id="modal_cinema_name" th:text="${reservedData.cinemaName}"></span></td>
+                                                </tr>
+                                                <tr>
+                                                    <td>상영관</td>
+                                                    <td><span  id="modal_screen_name" th:text="${reservedData.screenName}"></span></td>
+                                                </tr>
+                                                <tr>
+                                                    <td>일시</td>
+                                                    <td><span  id="modal_start_time" th:text="${reservedData.startTime}"></span></td>
+                                                </tr>
+                                                <tr>
+                                                    <td>인원</td>
+                                                    <td><span  id="modal_per" th:text="${reservedData.per}"></span></td>
+                                                </tr>
+                                                <tr>
+                                                    <td>유저이름</td>
+                                                    <td><span id="modal_member_id" th:text="${reservedData.memberId}"></span></td>
+                                                </tr>
+                                                <tr>
+                                                    <td>좌석</td>
+                                                    <td><span id="modal_seat_name" th:text="${reservedData.seatName}"></span></td>
+                                                </tr>
+                                            </table>
+
+                                        </div>
+                                    </div>
+
+                                    </td>
+                                    <td style="vertical-align: top;">
+                                        <table class="table table-borderless table-sm" style="margin-top:2px">
+                                            <tr>
+                                                <td>결제금액</td>
+                                                <td><span id="modal_price" th:text="${reservedData.price}"></span></td>
+                                            </tr>
+                                            <tr>
+                                                <td>결제수단</td>
+                                                <td><span id="modal_pay_method" th:text="${reservedData.payMethod}"></span></td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <div>
+                            <ul class="detail">
+                                <li>인터넷 예매는 온라인상으로 영화상영 시간 20분 전 까지 취소 가능하며 20분 이후에는 현장에서 취소를 하셔야 합니다.</li>
+                                <li>현장 취소를 하는 경우 상영시간 이전까지만 가능하며 영화 상영 시작 시간 이후 취소/환불/결제수단 변경은 불가합니다.</li>
+                                <li>입장 지연에 따른 관람 불편을 최소화하기 위해 본 영화는 10분 후 상영이 시작됩니다.</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-primary">결제하기</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">닫기</button>
+                    </div>
+                </div>
+            </div>
+            <input type="hidden" th:value="${reservedData.per}" id="per">
+            <input type="hidden" th:value="${reservedData.price}" id="price">
+            <th:block th:each="sid : ${seatId}">
+                <input type="hidden" name="seat_id" th:value="${sid}" />
+            </th:block>
+            <input type="hidden" th:value="${scheduleId}" id="schedule_id" name="schedule_id">
+
+        </form>
+</div>
+    <!--toast-->
+    <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 1080">
+        <div id="countdownToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-header">
+                <strong class="me-auto">⏰ 좌석 만료 알림</strong>
+                <small class="text-muted">곧 만료</small>
+                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="닫기"></button>
+            </div>
+            <div class="toast-body">
+                좌석 예약 만료까지 <span id="toastTimer">10</span>초 남았습니다.
+            </div>
+        </div>
+    </div>
+    <!--만료 toast-->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3">
+        <div id="expireToast" class="toast text-bg-danger" role="alert">
+            <div class="d-flex">
+                <div class="toast-body">
+                    😢 예약 시간이 만료되어 좌석이 해제되었습니다.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div layout:fragment="script">
+    <script th:inline="javascript">
+        document.addEventListener("DOMContentLoaded", function () {
+            // 카운트다운 시작 함수
+            function startSeatCountdown(seatId, ttl) {
+                if (seatCountdowns[seatId]) {
+                    clearInterval(seatCountdowns[seatId]);
+                }
+
+                let timeLeft = parseInt(ttl, 10);
+
+                seatCountdowns[seatId] = setInterval(() => {
+                    console.log(`[⏱️] 좌석 ${seatId} 남은 시간: ${timeLeft}초`);
+                    timeLeft--;
+
+                    if (timeLeft === 10) {
+                       startToastCountdown(timeLeft);
+                    }
+
+                    if (timeLeft <= 0) {
+                        clearInterval(seatCountdowns[seatId]);
+                        delete seatCountdowns[seatId];
+                        showExpiredToast();
+                        console.log(`[✔] 좌석 ${seatId} 예약 만료됨`);
+                        setTimeout(() => {
+                            window.location.href = "/";
+                        }, 3000); // 3초 뒤 이동
+                    }
+                }, 1000);
+            }
+            //웹소켓 연결
+            const scheduleId = [[${scheduleId}]];
+            const seatIds = [[${seatId}]];
+            // 2. SockJS + StompClient 생성 및 연결
+            const socket = new SockJS('/ws-seat');
+            const stompClient = Stomp.over(socket);
+
+            // 좌석별 타이머 관리 객체
+            const seatCountdowns = {};
+
+            stompClient.connect({}, function () {
+                console.log("WebSocket 연결됨, scheduleId:", scheduleId);
+
+                // WebSocket 구독: 예약된 좌석 TTL 알림 받기
+                stompClient.subscribe('/topic/pay/' + scheduleId, function (message) {
+                    const seatStatusMessage = JSON.parse(message.body);
+                    console.log("메시지 수신:", seatStatusMessage);
+
+                    //좌석이 hold고 ttl 있으면 websocket이 카운트다운함
+                    if (seatStatusMessage.status === "hold" && seatStatusMessage.ttl) {
+                        startSeatCountdown(seatStatusMessage.seatId[0], seatStatusMessage.ttl);
+                    }
+                });
+
+                //구독 완료 후 서버에 fetch로 트리거 요청 -> 구독 전에 메세지 먼저 받는 이슈로 hold 함수만듦
+                fetch("/reservation/triggerHold", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        [document.querySelector("meta[name='_csrf_header']").content]:
+                        document.querySelector("meta[name='_csrf']").content
+                    },
+                    body: JSON.stringify({
+                        scheduleId: scheduleId,
+                        seatId: seatIds
+                    })
+                })
+                .then(response => {
+                    if (!response.ok) throw new Error("Trigger 실패");
+                    return response.text();
+                })
+                .then(msg => {
+                    console.log("Trigger 요청 성공:", msg);
+                })
+                .catch(err => {
+                    console.error("Trigger 요청 실패:", err);
+                });
+
+            });
+
+            // 1. 모달이 열릴 때 데이터 설정
+            $('#myModal').on('show.bs.modal', function (event) {
+                var memberId = $("#member_id").val();
+                var cinemaName = $("#hidden_cinema_name").val();
+                var screenName = $("#hidden_screen_name").val();
+                var movieName = $("#hidden_movie_name").val();
+                var seatName = $("#seat_name").val();
+                var startTime = $("#hidden_start_time").val();
+                var per = $("#hidden_per").val();
+                var payText = $("#hidden_pay_method").val();
+                var price = $("#hidden_price").val();
+
+                $("#modal_member_id").text(memberId);
+                $("#modal_cinema_name").text(cinemaName);
+                $("#modal_screen_name").text(screenName);
+                $("#modal_movie_name").text(movieName);
+                $("#modal_seat_name").text(seatName);
+                $("#modal_start_time").text(startTime);
+                $("#modal_per").text(per);
+                $("#modal_pay_method").text(payText);
+                $("#modal_price").text(price);
+            });
+
+            // 2. cancelRedis
+            window.cancelRedis = function (type) {
+                var token = $("meta[name='_csrf']").attr("content");
+                var header = $("meta[name='_csrf_header']").attr("content");
+
+                $.ajax({
+                    type: "POST",
+                    url: "/reservation/back",
+                    data: { type: type },
+                    beforeSend: function (xhr) {
+                        xhr.setRequestHeader(header, token);
+                    },
+                    success: function (result) {
+                        alert(result);
+                        if (type === "back") {
+                            location.href = "/reservation/reserveSeats";
+                        } else {
+                            location.href = "/";
+                        }
+                    },
+                    error: function (jqXHR) {
+                        alert(jqXHR.responseText);
+                    }
+                });
+            };
+        });
+
+        //toast로 시간 초 10초 세는거 보여줌
+        function startToastCountdown(initialTime) {
+            let toastEl = document.getElementById('countdownToast');
+            let toastTimerEl = document.getElementById('toastTimer');
+            let toast = new bootstrap.Toast(toastEl, { delay: 11000 }); // 11초 정도 표시
+
+            let current = initialTime;
+            toastTimerEl.textContent = current;
+            toast.show();
+
+            const toastInterval = setInterval(() => {
+                current--;
+                toastTimerEl.textContent = current;
+                if (current <= 0) {
+                    clearInterval(toastInterval);
+                    toast.hide(); // 자동으로 닫히게도 가능
+                }
+            }, 1000);
+        }
+
+        //시간 만료 toast
+        function showExpiredToast() {
+            const toastEl = document.getElementById('expireToast');
+            const toast = new bootstrap.Toast(toastEl, { delay: 3000 });
+            toast.show();
+        }
+
+    </script>
+
+</div>

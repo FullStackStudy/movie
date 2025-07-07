@@ -25,10 +25,10 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf
-                        .ignoringRequestMatchers("/api/**", "/members/new", "/members/login", "/members/logout","/admin/schedule")
+                        .ignoringRequestMatchers("/api/**", "/members/new", "/members/login", "/members/logout","/admin/schedule", "/cinema/")
                         .csrfTokenRepository(new HttpSessionCsrfTokenRepository())
-                        .disable()
-                ) 
+                        //.disable()
+                )
                 .formLogin(form -> form
                         .loginPage("/members/login") // 사용할 로그인 페이지 URL
                         .successHandler(new SavedRequestAwareAuthenticationSuccessHandler())
@@ -59,6 +59,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/email/**").permitAll() // 이메일 인증 API 허용
                         .requestMatchers("/mypage/**").authenticated()
                         .requestMatchers("/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/reservation/**").authenticated()
                         .anyRequest().permitAll()
                 );
 

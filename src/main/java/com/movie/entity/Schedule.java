@@ -12,12 +12,12 @@ import java.time.LocalTime;
 @Getter
 @Setter
 @ToString
-@AllArgsConstructor
+@AllArgsConstructor // ✅ 이거 추가!
 @Builder
 public class Schedule {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "schedule_id")
     private Long Id;
 
@@ -58,4 +58,5 @@ public class Schedule {
                 .description(dto.getDescription())
                 .build();
     }
+
 }

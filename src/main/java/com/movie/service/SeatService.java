@@ -1,6 +1,8 @@
 package com.movie.service;
 
 import com.movie.dto.SeatDto;
+import com.movie.dto.reservation.ReservationResponseDto;
+import com.movie.entity.Schedule;
 import com.movie.entity.ScreenRoom;
 import com.movie.entity.Seat;
 import com.movie.repository.ScreenRoomRepository;
@@ -51,6 +53,11 @@ public class SeatService {
         seat.setScreenRoom(room);
 
         seatRepository.save(seat);
+    }
+
+    //예약하려는 좌석 A1, B1 .. -> id로 바꿔줌
+    public Long getSeatId(String row, int col, Long roomId){
+        return seatRepository.findSeatIdByColRowRoomId(row, col, roomId);
     }
 
 
