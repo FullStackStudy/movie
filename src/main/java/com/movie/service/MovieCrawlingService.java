@@ -106,31 +106,66 @@ public class MovieCrawlingService {
             for (WebElement card : movieCards) {
                 try {
                     String title = card.findElement(By.cssSelector(".box-contents strong.title")).getText();
-                    String percent = card.findElement(By.cssSelector(".score strong.percent")).getText();
                     String openDate = card.findElement(By.cssSelector(".txt-info")).getText();
                     String posterUrl = card.findElement(By.cssSelector(".thumb-image img")).getAttribute("src");
+                    // 평점은 상세페이지에서 가져올 예정이므로 임시로 0.0 설정
                     double rating = 0.0;
-                    try {
-                        rating = Double.parseDouble(percent.replace("%", "").trim());
-                    } catch (Exception ignore) {}
 
                     // 이미 DB에 있는 영화는 건너뜀
                     if (movieRepository.existsByMovieTitle(title)) continue;
 
+                    // 상세 페이지 URL 추출
+                    String detailUrl = null;
+                    try {
+                        WebElement linkElement = card.findElement(By.cssSelector("a"));
+                        String href = linkElement.getAttribute("href");
+                        if (href.startsWith("/")) {
+                            detailUrl = "http://www.cgv.co.kr" + href;
+                        } else if (href.startsWith("http")) {
+                            detailUrl = href;
+                        }
+                    } catch (Exception e) {
+                        log.warn("상세 페이지 URL 추출 실패: {} - {}", title, e.getMessage());
+                    }
+
+                    // 상세 정보 크롤링
+                    MovieDetailInfo detailInfo = null;
+                    if (detailUrl != null && !detailUrl.isEmpty()) {
+                        try {
+                            detailInfo = crawlMovieDetail(detailUrl, title);
+                            log.debug("Selenium 상세 정보 크롤링 완료: {}", title);
+                        } catch (Exception e) {
+                            log.warn("Selenium 상세 정보 크롤링 실패: {} - {}", title, e.getMessage());
+                        }
+                    }
+
                     Movie movie = new Movie();
                     movie.setMovieTitle(title);
+                    
+                    // 상세 정보가 있으면 사용, 없으면 기본값
+                    if (detailInfo != null) {
+                        movie.setGenre(detailInfo.getGenre());
+                        movie.setDetailInfo(detailInfo.getDetailInfo());
+                        movie.setOpenDate(detailInfo.getOpenDate());
+                        movie.setMovieCast(detailInfo.getCast());
+                        movie.setMovieContent(detailInfo.getContent());
+                        // 상세페이지에서 가져온 평점 사용
+                        movie.setMovieRating(detailInfo.getRating());
+                    } else {
+                        movie.setGenre("장르 정보 없음");
+                        movie.setDetailInfo("상세정보 없음");
+                        movie.setOpenDate(openDate);
+                        movie.setMovieCast("출연진 정보 없음");
+                        movie.setMovieContent("줄거리 정보 없음");
+                        // 기본 평점 사용
+                        movie.setMovieRating(rating);
+                    }
                     movie.setMoviePoster(posterUrl);
-                    movie.setMovieRating(rating);
-                    movie.setOpenDate(openDate);
-                    movie.setGenre("장르 정보 없음");
-                    movie.setDetailInfo("상세정보 없음");
-                    movie.setMovieCast("출연진 정보 없음");
-                    movie.setMovieContent("줄거리 정보 없음");
                     movie.setMoviePrice(12000);
                     movie.setRegDate(LocalDateTime.now());
 
                     movies.add(movie);
-                    log.info("영화 파싱 완료: {}", title);
+                    log.info("Selenium 영화 파싱 완료: {}", title);
                 } catch (Exception e) {
                     log.warn("영화 파싱 중 오류: {}", e.getMessage());
                 }
@@ -158,7 +193,7 @@ public class MovieCrawlingService {
             movieElements = doc.select("div.box-contents");
         }
         
-        log.info("Jsoup으로 발견된 영화 요소 수: {}", movieElements.size());
+        log.info("Jsoup 으로 발견된 영화 요소 수: {}", movieElements.size());
         
         for (Element movieElement : movieElements) {
             try {
@@ -193,8 +228,8 @@ public class MovieCrawlingService {
             // 포스터 이미지 URL 추출
             String posterUrl = extractPosterUrl(movieElement);
             
-            // 평점 추출
-            double rating = extractRating(movieElement);
+            // 평점 추출 (상세페이지에서 가져올 예정이므로 임시로 0.0 설정)
+            double rating = 0.0;
 
             // 영화 상세 페이지 URL 추출
             String detailUrl = extractDetailUrl(movieElement);
@@ -221,15 +256,20 @@ public class MovieCrawlingService {
                 movie.setOpenDate(detailInfo.getOpenDate());
                 movie.setMovieCast(detailInfo.getCast());
                 movie.setMovieContent(detailInfo.getContent());
+                // 상세페이지에서 가져온 평점 사용
+                movie.setMovieRating(detailInfo.getRating());
             } else {
-                movie.setGenre("장르 정보가 없습니다.");
+                movie.setGenre(" ");
                 movie.setDetailInfo("기본정보가 없습니다.");
                 movie.setOpenDate("개봉일 정보가 없습니다.");
                 movie.setMovieCast("정보 없음");
                 movie.setMovieContent("줄거리 정보가 없습니다.");
+                // 기본 평점 사용
+                movie.setMovieRating(rating);
             }
-            
-            movie.setMovieRating(rating);
+            if(movie.getGenre().equals(" ")){
+                movie.setGenre("기타");
+            }
             movie.setMoviePoster(posterUrl);
             movie.setMoviePrice(12000);
             movie.setRegDate(LocalDateTime.now());
@@ -339,6 +379,10 @@ public class MovieCrawlingService {
 
             MovieDetailInfo detailInfo = new MovieDetailInfo();
 
+            // 평점 추출 (상세페이지에서)
+            double rating = extractRatingFromDetail(doc);
+            detailInfo.setRating(rating);
+
             // spec 영역에서 장르, 출연진, 기본정보, 개봉일 추출 (dl의 자식 순회)
             Element spec = doc.selectFirst("div.spec > dl");
             String genre = "";
@@ -374,7 +418,7 @@ public class MovieCrawlingService {
                     }
                 }
             }
-            detailInfo.setGenre(genre.isEmpty() ? "장르 정보가 없습니다." : genre);
+            detailInfo.setGenre(genre.isEmpty() ? " " : genre);
             // 출연진 정보가 없는 공연 일 경우 제목 첫 단어만 출연진에 등재
             detailInfo.setCast(cast.isEmpty() ? (movieTitle != null && !movieTitle.isEmpty() ? movieTitle.split("\\s+")[0] : "출연진 정보가 없습니다.") : cast);
             detailInfo.setDetailInfo(detail.isEmpty() ? "기본정보가 없습니다." : detail);
@@ -404,6 +448,25 @@ public class MovieCrawlingService {
             log.error("상세 정보 크롤링 중 오류: {}", e.getMessage());
             return null;
         }
+    }
+
+    // 상세페이지에서 평점 추출
+    private double extractRatingFromDetail(Document doc) {
+        // egg-gage small 클래스의 percent 만 추출
+        Element ratingElement = doc.selectFirst("div.egg-gage.small span.percent");
+        if (ratingElement != null) {
+            String ratingText = ratingElement.text().replace("%", "").trim();
+            try {
+                double rating = Double.parseDouble(ratingText);
+                log.debug("egg-gage 평점: {}", rating);
+                return rating;
+            } catch (NumberFormatException e) {
+                log.warn("egg-gage 평점 파싱 실패: {}", ratingText);
+                return 0.0;
+            }
+        }
+        log.warn("egg-gage 에서 평점을 찾을 수 없음");
+        return 0.0;
     }
 
     // DB에 저장
@@ -443,5 +506,6 @@ public class MovieCrawlingService {
         private String openDate;
         private String cast;
         private String content;
+        private double rating;
     }
 }

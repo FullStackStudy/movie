@@ -62,7 +62,7 @@ public class ChatbotService {
             return ChatbotResponseDto.builder()
                     .response("회원가입을 하시려면 다음 버튼을 눌러주세요.")
                     .buttonText("회원가입 하러가기")
-                    .buttonUrl("/members/new")
+                    .buttonUrl("/members/auth")
                     .type(ResponseType.LINK)
                     .build();
         }
@@ -72,7 +72,7 @@ public class ChatbotService {
             return ChatbotResponseDto.builder()
                     .response("로그인을 하시면 티켓과 F&B를 구매하실 수 있습니다.")
                     .buttonText("로그인 하러가기")
-                    .buttonUrl("/members/login")
+                    .buttonUrl("/members/auth")
                     .type(ResponseType.LINK)
                     .build();
         }

@@ -2,7 +2,9 @@
 <html xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{layouts/layout1}">
-
+<head>
+<title>🎥MovieFlex</title>
+</head>
 <div layout:fragment="content">
     <div class="container my-5">
         <div class="row justify-content-center">
@@ -94,6 +96,12 @@
                                 <input type="text" class="form-control" th:value="${myPageDto.inquiry != null ? myPageDto.inquiry : '없음'}" readonly>
                     </div>
                 </div>
+                
+                        <!-- 결제 내역 -->
+                        <h3>결제 내역</h3>
+                        <ul>
+                            <li th:each="history : ${reserveList}" th:text="${history}"></li>
+                        </ul>
                 
                         <!-- 버튼 그룹 -->
                         <div class="d-grid gap-2 mt-4">

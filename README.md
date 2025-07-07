@@ -31,6 +31,8 @@ Spring Boot 기반 영화 예매 웹 애플리케이션입니다.
 - movieList 페이지 infinite scroll 기능 적용
 - 데이터 캐싱
 - 리뷰 게시판
+- 결제화면 제작 (/payment/test)
+- 카카오페이/신용카드 결제 구현 (임시카드번호 4532015112830366)
 
 ### test 계정
 - test@test.com / 1234

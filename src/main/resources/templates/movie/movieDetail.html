@@ -32,10 +32,14 @@
                         return;
                     }
 
+                    // CSRF 토큰 가져오기
+                    const csrfToken = document.querySelector('meta[name="_csrf"]').getAttribute('content');
+                    
                     fetch('/review/write', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/x-www-form-urlencoded',
+                            'X-CSRF-TOKEN': csrfToken
                         },
                         body: `movieId=${movieId}&rating=${rating}&content=${encodeURIComponent(content)}`
                     })
@@ -47,16 +51,18 @@
                     })
                     .then(data => {
                         if (data.success) {
-                            alert('리뷰가 성공적으로 작성되었습니다.');
+                            showNotification('리뷰가 성공적으로 작성되었습니다.', 'success');
                             // 첫 페이지로 이동 (새로 작성된 리뷰가 맨 위에 표시됨)
-                            window.location.href = window.location.pathname;
+                            setTimeout(() => {
+                                window.location.href = window.location.pathname;
+                            }, 1500);
                         } else {
-                            alert('리뷰 작성에 실패했습니다: ' + data.message);
+                            showNotification('리뷰 작성에 실패했습니다: ' + data.message, 'error');
                         }
                     })
                     .catch(error => {
                         console.error('Error:', error);
-                        alert('리뷰 작성 중 오류가 발생했습니다.');
+                        showNotification('리뷰 작성 중 오류가 발생했습니다.', 'error');
                     });
                 });
             }
@@ -73,39 +79,76 @@
                 return;
             }
 
+            // CSRF 토큰 가져오기
+            const csrfToken = document.querySelector('meta[name="_csrf"]').getAttribute('content');
+            
             fetch(`/review/${reviewId}`, {
-                method: 'DELETE'
+                method: 'DELETE',
+                headers: {
+                    'X-CSRF-TOKEN': csrfToken
+                }
             })
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    alert('리뷰가 삭제되었습니다.');
-                    window.location.href = window.location.pathname;
+                    showNotification('리뷰가 성공적으로 삭제되었습니다.', 'success');
+                    setTimeout(() => {
+                        window.location.href = window.location.pathname;
+                    }, 1500);
                 } else {
-                    alert('리뷰 삭제에 실패했습니다: ' + data.message);
+                    showNotification('리뷰 삭제에 실패했습니다: ' + data.message, 'error');
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
-                alert('리뷰 삭제 중 오류가 발생했습니다.');
+                showNotification('리뷰 삭제 중 오류가 발생했습니다.', 'error');
             });
         }
 
-        // 리뷰 수정 (간단한 구현)
+        // 리뷰 수정 (인라인 편집)
         function editReview(reviewId) {
-            const isAdmin = /*[[${isAdmin}]]*/ false;
-            const promptMessage = isAdmin ?
-                '관리자 권한으로 리뷰 내용을 수정해주세요:' :
-                '리뷰 내용을 수정해주세요:';
+            const reviewItem = document.querySelector(`[data-review-id="${reviewId}"]`);
+            const contentDiv = reviewItem.querySelector('.review-content');
+            const actionsDiv = reviewItem.querySelector('.review-actions');
+            const currentContent = contentDiv.textContent.trim();
+            const currentRating = reviewItem.querySelector('.review-rating').getAttribute('data-rating');
+            
+            // 편집 모드로 전환
+            contentDiv.innerHTML = `
+                <div class="edit-form">
+                    <div class="star-rating mb-3">
+                        <input type="radio" name="edit-rating-${reviewId}" value="5" id="edit-star5-${reviewId}" ${currentRating == 5 ? 'checked' : ''}>
+                        <label for="edit-star5-${reviewId}">★</label>
+                        <input type="radio" name="edit-rating-${reviewId}" value="4" id="edit-star4-${reviewId}" ${currentRating == 4 ? 'checked' : ''}>
+                        <label for="edit-star4-${reviewId}">★</label>
+                        <input type="radio" name="edit-rating-${reviewId}" value="3" id="edit-star3-${reviewId}" ${currentRating == 3 ? 'checked' : ''}>
+                        <label for="edit-star3-${reviewId}">★</label>
+                        <input type="radio" name="edit-rating-${reviewId}" value="2" id="edit-star2-${reviewId}" ${currentRating == 2 ? 'checked' : ''}>
+                        <label for="edit-star2-${reviewId}">★</label>
+                        <input type="radio" name="edit-rating-${reviewId}" value="1" id="edit-star1-${reviewId}" ${currentRating == 1 ? 'checked' : ''}>
+                        <label for="edit-star1-${reviewId}">★</label>
+                    </div>
+                    <textarea class="form-control mb-3" rows="4" placeholder="리뷰 내용을 입력하세요...">${currentContent}</textarea>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-primary btn-sm" onclick="saveReview(${reviewId})">저장</button>
+                        <button class="btn btn-secondary btn-sm" onclick="cancelEdit(${reviewId})">취소</button>
+                    </div>
+                </div>
+            `;
+            
+            // 버튼 숨기기
+            actionsDiv.style.display = 'none';
+        }
 
-            const newContent = prompt(promptMessage);
-            if (newContent === null || newContent.trim() === '') {
-                return;
-            }
-
-            const newRating = prompt('평점을 다시 선택해주세요 (1-5):');
-            if (newRating === null || !/^[1-5]$/.test(newRating)) {
-                alert('평점은 1-5 사이의 숫자로 입력해주세요.');
+        // 리뷰 저장
+        function saveReview(reviewId) {
+            const reviewItem = document.querySelector(`[data-review-id="${reviewId}"]`);
+            const editForm = reviewItem.querySelector('.edit-form');
+            const rating = editForm.querySelector(`input[name="edit-rating-${reviewId}"]:checked`).value;
+            const content = editForm.querySelector('textarea').value.trim();
+            
+            if (!content) {
+                showNotification('리뷰 내용을 입력해주세요.', 'error');
                 return;
             }
 
@@ -113,22 +156,81 @@
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRF-TOKEN': csrfToken
                 },
-                body: `rating=${newRating}&content=${encodeURIComponent(newContent)}`
+                body: `rating=${rating}&content=${encodeURIComponent(content)}`
             })
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    alert('리뷰가 수정되었습니다.');
-                    window.location.href = window.location.pathname;
+                    // 리뷰 내용 업데이트
+                    const contentDiv = reviewItem.querySelector('.review-content');
+                    const actionsDiv = reviewItem.querySelector('.review-actions');
+                    const ratingDiv = reviewItem.querySelector('.review-rating');
+                    
+                    contentDiv.textContent = content;
+                    ratingDiv.setAttribute('data-rating', rating);
+                    ratingDiv.innerHTML = generateStarRating(rating);
+                    
+                    // 편집 모드 종료
+                    actionsDiv.style.display = 'flex';
+                    
+                    showNotification('리뷰가 성공적으로 수정되었습니다.', 'success');
                 } else {
-                    alert('리뷰 수정에 실패했습니다: ' + data.message);
+                    showNotification('리뷰 수정에 실패했습니다: ' + data.message, 'error');
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
-                alert('리뷰 수정 중 오류가 발생했습니다.');
+                showNotification('리뷰 수정 중 오류가 발생했습니다.', 'error');
             });
+        }
+
+        // 편집 취소
+        function cancelEdit(reviewId) {
+            const reviewItem = document.querySelector(`[data-review-id="${reviewId}"]`);
+            const contentDiv = reviewItem.querySelector('.review-content');
+            const actionsDiv = reviewItem.querySelector('.review-actions');
+            const originalContent = contentDiv.getAttribute('data-original-content');
+            
+            contentDiv.textContent = originalContent;
+            actionsDiv.style.display = 'flex';
+        }
+
+        // 별점 HTML 생성
+        function generateStarRating(rating) {
+            let stars = '';
+            for (let i = 1; i <= 5; i++) {
+                if (i <= rating) {
+                    stars += '<span style="color: #ffd700;">★</span>';
+                } else {
+                    stars += '<span style="color: #ddd;">★</span>';
+                }
+            }
+            stars += `<span style="color: #666; font-size: 0.9rem;">(${rating}점)</span>`;
+            return stars;
+        }
+
+        // 알림 메시지 표시
+        function showNotification(message, type) {
+            const notification = document.createElement('div');
+            notification.className = `notification notification-${type}`;
+            notification.textContent = message;
+            
+            document.body.appendChild(notification);
+            
+            // 애니메이션 효과
+            setTimeout(() => {
+                notification.classList.add('show');
+            }, 100);
+            
+            // 3초 후 자동 제거
+            setTimeout(() => {
+                notification.classList.remove('show');
+                setTimeout(() => {
+                    document.body.removeChild(notification);
+                }, 300);
+            }, 3000);
         }
     </script>
     <style>
@@ -271,6 +373,98 @@
             color: #6c757d;
             border-color: #dee2e6;
         }
+
+        /* 알림 메시지 스타일 */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 500;
+            z-index: 9999;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            max-width: 400px;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification-success {
+            background: linear-gradient(135deg, #28a745, #20c997);
+        }
+
+        .notification-error {
+            background: linear-gradient(135deg, #dc3545, #e74c3c);
+        }
+
+        .notification-info {
+            background: linear-gradient(135deg, #17a2b8, #20c997);
+        }
+
+        /* 리뷰 작성 폼과 동일한 스타일 적용 */
+        .edit-form {
+            background: #f8f9fa;
+            padding: 2rem;
+            border-radius: 12px;
+            border: 1px solid #dee2e6;
+            max-width: 100%;
+            width: 100%;
+            margin: 0 auto;
+            box-sizing: border-box;
+        }
+
+        .edit-form textarea {
+            width: 100%;
+            min-height: 120px;
+            resize: vertical;
+            font-size: 1rem;
+            border-radius: 8px;
+            border: 1px solid #ced4da;
+            padding: 1rem;
+            box-sizing: border-box;
+        }
+
+        .edit-form .star-rating {
+            justify-content: flex-start;
+            margin-bottom: 1rem;
+        }
+
+        .edit-form .d-flex {
+            justify-content: flex-end;
+            gap: 0.5rem;
+        }
+
+        .edit-form .btn {
+            min-width: 100px;
+            font-size: 1rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        /* 리뷰 아이템 호버 효과 */
+        .review-item {
+            transition: all 0.3s ease;
+        }
+
+        .review-item:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+        }
+
+        /* 버튼 호버 효과 */
+        .review-actions .btn {
+            transition: all 0.3s ease;
+        }
+
+        .review-actions .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        }
     </style>
 </head>
 <body>
@@ -313,7 +507,7 @@
                 </div>
                 <a th:href="@{'/reserve/' + ${movie.movieId}}" class="btn btn-primary btn-lg"
                    sec:authorize="isAuthenticated()">예매하기</a>
-                <a th:href="@{/members/login}" class="btn btn-primary btn-lg" sec:authorize="!isAuthenticated()">로그인 후
+                                        <a th:href="@{/members/auth}" class="btn btn-primary btn-lg" sec:authorize="!isAuthenticated()">로그인 후
                     예매하기</a>
             </div>
         </div>
@@ -332,6 +526,8 @@
                     <strong>관리자 권한:</strong> 예매 내역과 관계없이 리뷰를 작성할 수 있습니다.
                 </div>
                 <form id="reviewForm">
+                    <!-- CSRF 토큰 추가 -->
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
                     <input type="hidden" th:value="${movie.movieId}" name="movieId">
                     <div class="star-rating">
                         <input type="radio" name="rating" value="5" id="star5">
@@ -359,7 +555,7 @@
 
             <!-- 로그인 안내 -->
             <div class="review-alert" sec:authorize="!isAuthenticated()">
-                <strong>로그인 안내:</strong> 리뷰를 작성하려면 <a th:href="@{/members/login}">로그인</a>이 필요합니다.
+                                        <strong>로그인 안내:</strong> 리뷰를 작성하려면 <a th:href="@{/members/auth}">로그인</a>이 필요합니다.
             </div>
 
             <!-- 리뷰 목록 -->
@@ -369,21 +565,21 @@
                     <p>첫 번째 리뷰를 작성해보세요!</p>
                 </div>
                 
-                <div th:each="review : ${reviews}" class="review-item">
+                <div th:each="review : ${reviews}" class="review-item" th:attr="data-review-id=${review.reviewId}">
                     <div class="review-header-item">
                         <div>
                             <span class="review-author" th:text="${review.memberNickname}">작성자</span>
                             <span class="review-date" th:text="${#temporals.format(review.regDate, 'yyyy-MM-dd HH:mm')}">작성일</span>
                         </div>
-                        <div class="review-rating">
+                        <div class="review-rating" th:attr="data-rating=${review.rating}">
                             <span th:each="i : ${#numbers.sequence(1, 5)}">
-                                <span th:if="${i <= review.rating}">★</span>
+                                <span th:if="${i <= review.rating}" style="color: #ffd700;">★</span>
                                 <span th:if="${i > review.rating}" style="color: #ddd;">★</span>
                             </span>
                             <span th:text="'(' + ${review.rating} + '점)'" style="color: #666; font-size: 0.9rem;"></span>
                         </div>
                     </div>
-                    <div class="review-content" th:text="${review.content}">리뷰 내용</div>
+                    <div class="review-content" th:text="${review.content}" th:attr="data-original-content=${review.content}">리뷰 내용</div>
                     <div class="review-actions" sec:authorize="isAuthenticated()" 
                          th:if="${#authentication.name == review.memberId || isAdmin}">
                         <button class="btn btn-outline-primary btn-sm" th:onclick="'editReview(' + ${review.reviewId} + ')'">

@@ -98,9 +98,16 @@ public class MemberService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String memberId) throws UsernameNotFoundException {
+        System.out.println("🔍 로그인 시도: " + memberId);
+        
         Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new UsernameNotFoundException("해당 사용자를 찾을 수 없습니다. : " + memberId));
+                .orElseThrow(() -> {
+                    System.out.println("❌ 사용자를 찾을 수 없음: " + memberId);
+                    return new UsernameNotFoundException("해당 사용자를 찾을 수 없습니다. : " + memberId);
+                });
 
+        System.out.println("✅ 사용자 찾음: " + member.getMemberId() + ", 역할: " + member.getRole());
+        
         return User.builder()
                 .username(member.getMemberId())
                 .password(member.getPassword())

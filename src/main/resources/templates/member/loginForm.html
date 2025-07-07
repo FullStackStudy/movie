@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/layout1}">
+<head>
+<title>🎥MovieFlex</title>
+</head>
+<th:block layout:fragment="css">
+    <link th:href="@{/css/login.css}" rel="stylesheet"/>
+</th:block>
+
+<div layout:fragment="content">
+<div id="container" class="container">
+    <!-- FORM SECTION -->
+    <div class="row">
+        <!-- SIGN UP -->
+        <div class="col align-items-center flex-col sign-up">
+            <div class="form-wrapper align-items-center">
+                <div class="form sign-up">
+                        <form action="/members/auth" role="form" method="post" th:object="${memberFormDto}"
+                              id="signupForm" th:if="${memberFormDto != null}">
+                            <!-- CSRF 토큰 추가 -->
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                            
+                            <!-- 오류 메시지 표시 -->
+                            <div th:if="${errorMessage}" class="alert alert-danger" role="alert">
+                                <p th:text="${errorMessage}"></p>
+                            </div>
+                            
+                    <div class="input-group">
+                        <i class='bx bxs-user'></i>
+                                <input type="text" th:field="*{name}" placeholder="이름" required>
+                                <span th:if="${#fields.hasErrors('name')}" th:errors="*{name}" class="text-danger small"></span>
+                    </div>
+                            <div class="input-group">
+                        <i class='bx bx-mail-send'></i>
+                                <input type="email" th:field="*{memberId}" id="emailInput" placeholder="이메일" required>
+                                <span th:if="${#fields.hasErrors('memberId')}" th:errors="*{memberId}" class="text-danger small"></span>
+                            </div>
+                            <div class="input-group">
+                                <i class='bx bx-envelope'></i>
+                                <input type="text" id="verificationCode" name="verificationCode" placeholder="인증 코드 6자리" maxlength="6" style="width: 50%;">
+                                <button type="button" id="sendCodeBtn" onclick="sendVerificationCode()" style="width: 45%; margin-left: 2%; padding: 0.6rem 0; background-color: var(--primary-color); color: white; border: none; border-radius: 0.5rem; cursor: pointer;">
+                                    인증코드 발송
+                                </button>
+                                <button type="button" id="verifyCodeBtn" onclick="verifyCode()" style="width: 45%; margin-left: 2%; padding: 0.6rem 0; background-color: #28a745; color: white; border: none; border-radius: 0.5rem; cursor: pointer; display: none;">
+                                    인증확인
+                                </button>
+                                <span id="verificationError" class="text-danger small" style="display: none;"></span>
+                                <span id="verificationSuccess" class="text-success small" style="display: none;">✅ 인증 완료</span>
+                    </div>
+                    <div class="input-group">
+                        <i class='bx bxs-lock-alt'></i>
+                                <input type="password" th:field="*{password}" id="passwordInput" placeholder="비밀번호" required>
+                                <span th:if="${#fields.hasErrors('password')}" th:errors="*{password}" class="text-danger small"></span>
+                    </div>
+                    <div class="input-group">
+                        <i class='bx bxs-lock-alt'></i>
+                                <input type="password" id="passwordConfirm" name="passwordConfirm" placeholder="비밀번호 확인" required>
+                                <span id="passwordConfirmError" class="text-danger small" style="display: none;"></span>
+                    </div>
+
+                            <button type="submit">
+                                회원가입
+                    </button>
+                        </form>
+                    <p>
+              <span>
+                이미 계정이 있으신가요?
+              </span>
+                        <b onclick="toggle()" class="pointer">
+                                로그인하기
+                        </b>
+                    </p>
+                </div>
+            </div>
+
+        </div>
+        <!-- END SIGN UP -->
+        <!-- SIGN IN -->
+        <div class="col align-items-center flex-col sign-in">
+            <div class="form-wrapper align-items-center">
+                <div class="form sign-in">
+                        <form role="form" method="post" action="/login">
+                            <!-- CSRF 토큰 추가 -->
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                    <div class="input-group">
+                        <i class='bx bxs-user'></i>
+                                <input type="text" name="memberId" placeholder="아이디">
+                    </div>
+                    <div class="input-group">
+                        <i class='bx bxs-lock-alt'></i>
+                                <input type="password" name="password" placeholder="비밀번호">
+                            </div>
+                            <div th:if="${loginErrorMsg}" class="alert alert-danger" role="alert">
+                                <p th:text="${loginErrorMsg}"></p>
+                    </div>
+                            <button type="submit">
+                                로그인
+                    </button>
+                        </form>
+                    <p>
+              <span>
+                    계정이 없으신가요?
+              </span>
+                        <b onclick="toggle()" class="pointer">
+                                회원가입하기
+                        </b>
+                    </p>
+                </div>
+            </div>
+            <div class="form-wrapper">
+
+            </div>
+        </div>
+        <!-- END SIGN IN -->
+    </div>
+    <!-- END FORM SECTION -->
+    <!-- CONTENT SECTION -->
+    <div class="row content-row">
+        <!-- SIGN IN CONTENT -->
+        <div class="col align-items-center flex-col">
+            <div class="text sign-in">
+                <h2>
+                    Welcome
+                </h2>
+                    <p>
+                        🎬Movie Flex
+                    </p>
+            </div>
+            <div class="img sign-in">
+
+            </div>
+        </div>
+        <!-- END SIGN IN CONTENT -->
+        <!-- SIGN UP CONTENT -->
+        <div class="col align-items-center flex-col">
+            <div class="img sign-up">
+
+            </div>
+            <div class="text sign-up">
+                <h2>
+                        Join Us
+                </h2>
+                    <p>
+                        🎬Movie Flex
+                    </p>
+                </div>
+            </div>
+            <!-- END SIGN UP CONTENT -->
+        </div>
+        <!-- END CONTENT SECTION -->
+
+    </div>
+</div>
+
+<!-- JavaScript 추가 -->
+<th:block layout:fragment="script">
+    <script>
+        function toggle() {
+            const container = document.querySelector('.container');
+            container.classList.toggle('sign-in');
+            container.classList.toggle('sign-up');
+        }
+
+        // 페이지 로드 시 탭 상태 설정
+        document.addEventListener('DOMContentLoaded', function() {
+            const container = document.querySelector('.container');
+            
+            // 서버에서 회원가입 탭을 보여달라고 요청한 경우
+            const showSignUp = /*[[${showSignUp}]]*/ false;
+            console.log('🔍 탭 상태 설정:', showSignUp);
+            
+            // 기존 클래스 제거
+            container.classList.remove('sign-in', 'sign-up');
+            
+            if (showSignUp) {
+                container.classList.add('sign-up');
+                console.log('✅ 회원가입 탭으로 설정');
+            } else {
+                container.classList.add('sign-in');
+                console.log('✅ 로그인 탭으로 설정');
+            }
+            
+            // 회원가입 폼 제출 이벤트 리스너
+            const signupForm = document.getElementById('signupForm');
+            if (signupForm) {
+                signupForm.addEventListener('submit', function(e) {
+                    if (!validateForm()) {
+                        e.preventDefault(); // 폼 제출 중단
+                        return false;
+                    }
+                    
+                    // 디버깅 로그
+                    console.log('📤 폼 제출 데이터:');
+                    console.log('  - 이름:', document.querySelector('input[th\\:field="*{name}"]').value);
+                    console.log('  - 이메일:', document.getElementById('emailInput').value);
+                    console.log('  - 비밀번호:', document.getElementById('passwordInput').value);
+                    console.log('  - 비밀번호 확인:', document.getElementById('passwordConfirm').value);
+                    console.log('  - 인증 코드:', document.getElementById('verificationCode').value);
+                    console.log('  - 인증 성공 상태:', verificationSuccess.style.display);
+                    
+                    // 폼 데이터 확인
+                    const formData = new FormData(this);
+                    console.log('📋 FormData 내용:');
+                    for (let [key, value] of formData.entries()) {
+                        console.log(`  - ${key}: ${value}`);
+                    }
+                    
+                    // 회원가입 탭 고정
+                    const container = document.querySelector('.container');
+                    container.classList.remove('sign-in');
+                    container.classList.add('sign-up');
+                    
+                    // 로딩 상태 표시
+                    const submitBtn = this.querySelector('button[type="submit"]');
+                    const originalText = submitBtn.textContent;
+                    submitBtn.disabled = true;
+                    submitBtn.textContent = '회원가입 중...';
+                    
+                    // 폼 제출 후 버튼 상태 복원
+                    setTimeout(() => {
+                        submitBtn.disabled = false;
+                        submitBtn.textContent = originalText;
+                    }, 3000);
+                });
+            }
+            
+            // 실시간 비밀번호 확인 기능
+            const passwordInput = document.getElementById('passwordInput');
+            const passwordConfirmInput = document.getElementById('passwordConfirm');
+            
+            // 서버에서 오류 메시지가 있는 경우 실시간 검증 상태 복원
+            const errorMessage = document.querySelector('.alert-danger p');
+            if (errorMessage) {
+                console.log('⚠️ 오류 메시지 발견:', errorMessage.textContent);
+                
+                // 비밀번호 관련 오류인 경우 회원가입 탭 강제 설정
+                if (errorMessage.textContent.includes('비밀번호가 일치하지 않습니다') || 
+                    errorMessage.textContent.includes('이미 가입된 아이디입니다') ||
+                    errorMessage.textContent.includes('유효성 검사')) {
+                    
+                    console.log('🔄 회원가입 탭으로 강제 전환');
+                    container.classList.remove('sign-in');
+                    container.classList.add('sign-up');
+                    
+                    if (passwordConfirmInput) {
+                        passwordConfirmInput.style.borderColor = '#dc3545';
+                        passwordConfirmInput.style.boxShadow = '0 0 5px rgba(220, 53, 69, 0.3)';
+                        const errorSpan = document.getElementById('passwordConfirmError');
+                        if (errorSpan) {
+                            errorSpan.textContent = '비밀번호가 일치하지 않습니다.';
+                            errorSpan.style.display = 'block';
+                        }
+                    }
+                }
+            }
+            
+            // 인증 코드 입력 이벤트 리스너 (자동 확인 제거)
+            const verificationCodeInput = document.getElementById('verificationCode');
+            if (verificationCodeInput) {
+                verificationCodeInput.addEventListener('input', function() {
+                    // 입력 시 오류 메시지 숨기기
+                    const verificationError = document.getElementById('verificationError');
+                    if (verificationError) {
+                        verificationError.style.display = 'none';
+                    }
+                });
+            }
+            
+            // 이메일 입력 필드 변경 시 버튼 상태 초기화
+            const emailInput = document.getElementById('emailInput');
+            if (emailInput) {
+                emailInput.addEventListener('input', function() {
+                    const sendCodeBtn = document.getElementById('sendCodeBtn');
+                    const verifyCodeBtn = document.getElementById('verifyCodeBtn');
+                    const verificationSuccess = document.getElementById('verificationSuccess');
+                    
+                    // 이메일이 변경되면 인증 상태 초기화
+                    if (verificationSuccess) {
+                        verificationSuccess.style.display = 'none';
+                    }
+                    
+                    // 버튼 상태 초기화
+                    if (sendCodeBtn && verifyCodeBtn) {
+                        sendCodeBtn.style.display = 'inline-block';
+                        sendCodeBtn.disabled = false;
+                        sendCodeBtn.textContent = '인증코드 발송';
+                        
+                        verifyCodeBtn.style.display = 'none';
+                        verifyCodeBtn.disabled = false;
+                        verifyCodeBtn.textContent = '인증확인';
+                        verifyCodeBtn.style.backgroundColor = '#28a745';
+                    }
+                    
+                    // 인증코드 입력 필드 초기화
+                    if (verificationCodeInput) {
+                        verificationCodeInput.value = '';
+                    }
+                });
+            }
+            
+            if (passwordInput && passwordConfirmInput) {
+                passwordConfirmInput.addEventListener('input', function() {
+                    const password = passwordInput.value;
+                    const passwordConfirm = this.value;
+                    const errorSpan = document.getElementById('passwordConfirmError');
+                    
+                    if (passwordConfirm.length > 0) {
+                        if (password === passwordConfirm) {
+                            this.style.borderColor = '#4EA685';
+                            this.style.boxShadow = '0 0 5px rgba(78, 166, 133, 0.3)';
+                            errorSpan.style.display = 'none';
+                        } else {
+                            this.style.borderColor = '#dc3545';
+                            this.style.boxShadow = '0 0 5px rgba(220, 53, 69, 0.3)';
+                            errorSpan.textContent = '비밀번호가 일치하지 않습니다.';
+                            errorSpan.style.display = 'block';
+                        }
+                    } else {
+                        this.style.borderColor = '';
+                        this.style.boxShadow = '';
+                        errorSpan.style.display = 'none';
+                    }
+                });
+                
+                passwordInput.addEventListener('input', function() {
+                    const password = this.value;
+                    const passwordConfirm = passwordConfirmInput.value;
+                    
+                    if (passwordConfirm.length > 0) {
+                        if (password === passwordConfirm) {
+                            passwordConfirmInput.style.borderColor = '#4EA685';
+                            passwordConfirmInput.style.boxShadow = '0 0 5px rgba(78, 166, 133, 0.3)';
+                        } else {
+                            passwordConfirmInput.style.borderColor = '#dc3545';
+                            passwordConfirmInput.style.boxShadow = '0 0 5px rgba(220, 53, 69, 0.3)';
+                        }
+                    }
+                });
+            }
+        });
+
+        // 이메일 인증 코드 발송
+        function sendVerificationCode() {
+            const email = document.getElementById('emailInput').value;
+            const sendCodeBtn = document.getElementById('sendCodeBtn');
+            const verifyCodeBtn = document.getElementById('verifyCodeBtn');
+            const verificationError = document.getElementById('verificationError');
+            const verificationSuccess = document.getElementById('verificationSuccess');
+            
+            // 이메일 유효성 검사
+            if (!email || !email.includes('@')) {
+                verificationError.textContent = '올바른 이메일을 입력해주세요.';
+                verificationError.style.display = 'block';
+                verificationSuccess.style.display = 'none';
+                return;
+            }
+            
+            // 개발용: test@test.com인 경우 자동으로 인증 코드 설정
+            if (email === 'test@test.com') {
+                document.getElementById('verificationCode').value = '123456';
+                showNotification('개발용 인증 코드가 자동으로 설정되었습니다: 123456', 'info');
+            }
+            
+            // 버튼 비활성화
+            sendCodeBtn.disabled = true;
+            sendCodeBtn.textContent = '발송 중...';
+            
+            // CSRF 토큰 가져오기 (메타 태그에서)
+            const csrfToken = document.querySelector('meta[name="_csrf"]').getAttribute('content');
+            
+            // API 호출
+            fetch('/api/email/send-code', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken
+                },
+                body: JSON.stringify({ email: email })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.message) {
+                    verificationError.style.display = 'none';
+                    showNotification('인증 코드가 이메일로 전송되었습니다.', 'success');
+                    console.log('✅ 인증 코드 발송 성공');
+                    
+                    // 인증코드 발송 버튼 숨기고 인증확인 버튼 보이기
+                    sendCodeBtn.style.display = 'none';
+                    verifyCodeBtn.style.display = 'inline-block';
+                    
+                    // 인증코드 입력 필드 포커스
+                    document.getElementById('verificationCode').focus();
+                } else if (data.error) {
+                    verificationError.textContent = data.error;
+                    verificationError.style.display = 'block';
+                    verificationSuccess.style.display = 'none';
+                    showNotification(data.error, 'error');
+                    console.log('❌ 인증 코드 발송 실패:', data.error);
+                }
+            })
+            .catch(error => {
+                verificationError.textContent = '인증 코드 발송에 실패했습니다.';
+                verificationError.style.display = 'block';
+                verificationSuccess.style.display = 'none';
+                console.log('❌ 인증 코드 발송 오류:', error);
+            })
+            .finally(() => {
+                // 오류가 발생한 경우에만 버튼 재활성화
+                if (sendCodeBtn.style.display !== 'none') {
+                    sendCodeBtn.disabled = false;
+                    sendCodeBtn.textContent = '인증코드 발송';
+                }
+            });
+        }
+        
+        // 알림 메시지 표시 함수 (movieDetail.html과 동일)
+        function showNotification(message, type) {
+            const notification = document.createElement('div');
+            notification.className = `notification notification-${type}`;
+            notification.textContent = message;
+            
+            document.body.appendChild(notification);
+            
+            // 애니메이션 효과
+            setTimeout(() => {
+                notification.classList.add('show');
+            }, 100);
+            
+            // 3초 후 자동 제거
+            setTimeout(() => {
+                notification.classList.remove('show');
+                setTimeout(() => {
+                    document.body.removeChild(notification);
+                }, 300);
+            }, 3000);
+        }
+        
+        // 인증 코드 확인
+        function verifyCode() {
+            const email = document.getElementById('emailInput').value;
+            const code = document.getElementById('verificationCode').value;
+            const verificationError = document.getElementById('verificationError');
+            const verificationSuccess = document.getElementById('verificationSuccess');
+            const verifyCodeBtn = document.getElementById('verifyCodeBtn');
+            
+            // 이메일 유효성 검사
+            if (!email || !email.includes('@')) {
+                showNotification('올바른 이메일을 입력해주세요.', 'error');
+                return;
+            }
+            
+            // 인증 코드 유효성 검사
+            if (!code || code.length !== 6) {
+                showNotification('6자리 인증 코드를 입력해주세요.', 'error');
+                return;
+            }
+            
+            // 버튼 비활성화
+            verifyCodeBtn.disabled = true;
+            verifyCodeBtn.textContent = '확인 중...';
+            
+            fetch('/api/email/verify-code', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken
+                },
+                body: JSON.stringify({ email: email, code: code })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.message) {
+                    verificationError.style.display = 'none';
+                    verificationSuccess.style.display = 'block';
+                    showNotification('이메일 인증이 완료되었습니다.', 'success');
+                    console.log('✅ 이메일 인증 성공');
+                    
+                    // 인증 성공 시 인증확인 버튼 비활성화
+                    verifyCodeBtn.disabled = true;
+                    verifyCodeBtn.textContent = '인증 완료';
+                    verifyCodeBtn.style.backgroundColor = '#6c757d';
+                } else if (data.error) {
+                    verificationError.textContent = data.error;
+                    verificationError.style.display = 'block';
+                    verificationSuccess.style.display = 'none';
+                    showNotification(data.error, 'error');
+                    console.log('❌ 이메일 인증 실패:', data.error);
+                }
+            })
+            .catch(error => {
+                verificationError.textContent = '인증 확인 중 오류가 발생했습니다.';
+                verificationError.style.display = 'block';
+                verificationSuccess.style.display = 'none';
+                showNotification('인증 확인 중 오류가 발생했습니다.', 'error');
+                console.log('❌ 이메일 인증 오류:', error);
+            })
+            .finally(() => {
+                // 버튼 재활성화
+                verifyCodeBtn.disabled = false;
+                verifyCodeBtn.textContent = '인증확인';
+            });
+        }
+        
+        // 회원가입 폼 유효성 검사
+        function validateForm() {
+            console.log('🔍 validateForm 함수 실행');
+            
+            const password = document.getElementById('passwordInput').value;
+            const passwordConfirm = document.getElementById('passwordConfirm').value;
+            const verificationSuccess = document.getElementById('verificationSuccess');
+            const verificationCode = document.getElementById('verificationCode').value;
+            
+            console.log('비밀번호:', password);
+            console.log('비밀번호 확인:', passwordConfirm);
+            console.log('인증 코드:', verificationCode);
+            
+            // 이메일 인증 확인
+            if (!verificationSuccess || verificationSuccess.style.display === 'none') {
+                showNotification('이메일 인증을 완료해주세요.', 'error');
+                console.log('❌ 이메일 인증 미완료');
+                return false;
+            }
+            
+            // 인증 코드가 입력되었는지 확인
+            if (!verificationCode || verificationCode.trim() === '') {
+                showNotification('인증 코드를 입력해주세요.', 'error');
+                console.log('❌ 인증 코드 미입력');
+                return false;
+            }
+            
+            // 비밀번호가 비어있는지 확인
+            if (password.trim() === '') {
+                showNotification('비밀번호를 입력해주세요.', 'error');
+                console.log('❌ 비밀번호가 비어있음');
+                return false;
+            }
+            
+            // 비밀번호 확인이 비어있는지 확인
+            if (passwordConfirm.trim() === '') {
+                showNotification('비밀번호 확인을 입력해주세요.', 'error');
+                console.log('❌ 비밀번호 확인이 비어있음');
+                return false;
+            }
+            
+            // 비밀번호 길이 확인
+            if (password.length < 8) {
+                showNotification('비밀번호는 8자 이상이어야 합니다.', 'error');
+                console.log('❌ 비밀번호 길이 부족:', password.length);
+                return false;
+            }
+            
+            // 비밀번호 확인
+            if (password !== passwordConfirm) {
+                showNotification('비밀번호가 일치하지 않습니다.', 'error');
+                console.log('❌ 비밀번호 불일치');
+                return false;
+            }
+            
+            console.log('✅ 유효성 검사 통과');
+            return true;
+        }
+    </script>
+</th:block>

@@ -1,6 +1,8 @@
 package com.movie.controller;
 
 import com.movie.dto.MyPageDto;
+import com.movie.entity.Member;
+import com.movie.repository.MemberRepository;
 import com.movie.service.MemberService;
 import com.movie.service.FileService;
 import jakarta.validation.Valid;
@@ -15,6 +17,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 @Controller
 @RequiredArgsConstructor
@@ -23,6 +28,7 @@ public class MyPageController {
     private final MemberService memberService;
     private final PasswordEncoder passwordEncoder;
     private final FileService fileService;
+    private final MemberRepository memberRepository;
 
     @GetMapping("/mypage")
     public String myPage(Model model) {
@@ -30,6 +36,14 @@ public class MyPageController {
         String memberId = auth.getName();
         
         try {
+            Member member = memberRepository.findById(memberId).orElseThrow();
+            String reserve = member.getReserve();
+            List<String> reserveList = new ArrayList<>();
+            if (reserve != null && !reserve.isEmpty()) {
+                reserveList = Arrays.asList(reserve.split("\\n"));
+            }
+            model.addAttribute("reserveList", reserveList);
+            
             MyPageDto myPageDto = memberService.getMyPageInfo(memberId);
             model.addAttribute("myPageDto", myPageDto);
         } catch (Exception e) {

@@ -54,15 +54,23 @@ public class ReviewController {
             
             response.put("success", true);
             response.put("message", "리뷰가 성공적으로 작성되었습니다.");
-            response.put("review", review);
+            response.put("reviewId", review.getReviewId());
+            response.put("movieId", review.getMovieId());
+            response.put("memberId", review.getMemberId());
+            response.put("rating", review.getRating());
+            response.put("content", review.getContent());
             
             log.info("리뷰 작성 성공: reviewId={}", review.getReviewId());
-            return ResponseEntity.ok(response);
+            return ResponseEntity.ok()
+                    .header("Content-Type", "application/json")
+                    .body(response);
         } catch (Exception e) {
             log.error("리뷰 작성 실패: {}", e.getMessage(), e);
             response.put("success", false);
             response.put("message", e.getMessage());
-            return ResponseEntity.badRequest().body(response);
+            return ResponseEntity.badRequest()
+                    .header("Content-Type", "application/json")
+                    .body(response);
         }
     }
 
@@ -82,13 +90,19 @@ public class ReviewController {
             
             response.put("success", true);
             response.put("message", "리뷰가 성공적으로 수정되었습니다.");
-            response.put("review", review);
+            response.put("reviewId", review.getReviewId());
+            response.put("rating", review.getRating());
+            response.put("content", review.getContent());
             
-            return ResponseEntity.ok(response);
+            return ResponseEntity.ok()
+                    .header("Content-Type", "application/json")
+                    .body(response);
         } catch (Exception e) {
             response.put("success", false);
             response.put("message", e.getMessage());
-            return ResponseEntity.badRequest().body(response);
+            return ResponseEntity.badRequest()
+                    .header("Content-Type", "application/json")
+                    .body(response);
         }
     }
 
@@ -107,11 +121,15 @@ public class ReviewController {
             response.put("success", true);
             response.put("message", "리뷰가 성공적으로 삭제되었습니다.");
             
-            return ResponseEntity.ok(response);
+            return ResponseEntity.ok()
+                    .header("Content-Type", "application/json")
+                    .body(response);
         } catch (Exception e) {
             response.put("success", false);
             response.put("message", e.getMessage());
-            return ResponseEntity.badRequest().body(response);
+            return ResponseEntity.badRequest()
+                    .header("Content-Type", "application/json")
+                    .body(response);
         }
     }
 
