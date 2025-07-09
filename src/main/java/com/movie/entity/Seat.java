@@ -17,11 +17,11 @@ import java.util.List;
 public class Seat {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "seat_id")
     private Long id;
 
     private String seatRow;
     private int seatColumn;
-
     private int price;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -34,4 +34,9 @@ public class Seat {
 
     /*@OneToMany(mappedBy = "seat")
     private List<ReservedSeat> reservedSeats = new ArrayList<>();*/
+    @OneToMany(mappedBy = "seat")
+    private List<ReservedSeat> reservedSeats = new ArrayList<>();
+
+
+
 }

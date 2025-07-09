@@ -19,4 +19,9 @@ public class ScheduleDto {
     private LocalTime startTime;
     private String status;           //상태
     private String description;      //설명
+
+    //이다은 추가 roodId로 seat 구성해야되서 추가함
+    private Long roomId;
+    private int availableSeat;      //잔여좌석
+
 }

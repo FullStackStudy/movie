@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://ultaq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/layout1}">
+<head>
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+</head>
+<div layout:fragment="content">
+
+<h1>결제 완료!! 지금 디비 들어가있어야함</h1>
+    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+</div>

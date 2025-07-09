@@ -32,14 +32,17 @@
         }
 
         .schedule-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            display: flex;
+            flex-direction: column;
             gap: 30px;
-            max-width: 1200px;
+            justify-content: center;
+            /* 가운데 정렬 옵션 */
+            max-width: 700px;
             margin: 0 auto;
         }
 
         .schedule-card {
+            width: 100%;
             background: #ffffff;
             border-radius: 16px;
             padding: 30px;
@@ -87,7 +90,6 @@
             border-radius: 8px;
         }
 
-
         .detail-item.screen {
             color: #3498db;
             font-weight: 500;
@@ -99,6 +101,7 @@
 
         .time-button {
             background: linear-gradient(45deg, #11998e, #38ef7d);
+            /* 진초록~밝은 민트 */
             color: #fff;
             border: none;
             padding: 16px 28px;
@@ -202,7 +205,7 @@
                             <tr style="background:#f1f3f5;">
                                 <th style="padding:8px;">상영날짜</th>
                                 <th style="padding:8px;">상영관</th>
-                                <th style="padding:8px;">설명</th>
+                                <th style="padding:8px;">잔여좌석</th>
                                 <th style="padding:8px;">시작시간</th>
                             </tr>
                         </thead>
@@ -210,7 +213,7 @@
                             <tr th:each="schedule : ${entry.value}">
                                 <td th:text="${schedule.showDate}" style="padding:8px;"></td>
                                 <td th:text="${schedule.screenRoomName}" style="padding:8px;"></td>
-                                <td th:text="${schedule.description}" style="padding:8px;"></td>
+                                <td th:text="${schedule.availableSeat}" style="padding:8px;"></td>
                                 <td style="padding:8px;">
                                     <a href="#" class="time-button"
                                         th:text="${#temporals.format(schedule.startTime, 'HH:mm')} + ' 시작'"
@@ -236,7 +239,7 @@
                 //좌석 선택 페이지로
                 console.log('좌석 선택 페이지로 이동:', scheduleId);
                 // 실제 구현시에는 해당 스케줄 ID로 좌석 선택 페이지로 이동
-                 window.location.href = '/reserve?scheduleId=' + scheduleId;
+                window.location.href = '/reservation/reserve?scheduleId=' + scheduleId;
             }
 
             // 페이지 로드시 부드러운 애니메이션

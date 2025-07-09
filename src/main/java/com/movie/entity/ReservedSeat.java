@@ -1,10 +1,12 @@
 package com.movie.entity;
 
+import com.movie.entity.reservation.Reservation;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
+/* 실제 예약 좌석 */
 @Entity
 @Table(name = "reserved_seat")
 @Getter
@@ -14,17 +16,22 @@ public class ReservedSeat {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name="reservedSeat_id")
     private Long id;
 
-/*    // 예약 정보
-
-@ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "reservation_id")
-    private Reservation reservation;*/
+    private Reservation reservation;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "member_id")
+    private Member member;
 
-    // 좌석 정보
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "seat_id")
     private Seat seat;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "schedule_id")
+    private Schedule schedule;
 }
