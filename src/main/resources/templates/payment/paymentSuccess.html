@@ -220,6 +220,10 @@
                     <span class="label">결제금액</span>
                     <span class="value" th:text="${paymentInfo.amount} + '원'"></span>
                 </div>
+                <div class="info-item" th:if="${paymentInfo.paymentDate}">
+                    <span class="label">결제일시</span>
+                    <span class="value" th:text="${paymentInfo.paymentDate}"></span>
+                </div>
             </div>
         </div>
         

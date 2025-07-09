@@ -4,6 +4,8 @@
       layout:decorate="~{layouts/layout1}">
 <head>
 <title>🎥MovieFlex</title>
+<meta name="_csrf" th:content="${_csrf.token}"/>
+<meta name="_csrf_header" th:content="${_csrf.headerName}"/>
 </head>
 <th:block layout:fragment="css">
     <link th:href="@{/css/login.css}" rel="stylesheet"/>
@@ -98,6 +100,19 @@
                             <button type="submit">
                                 로그인
                     </button>
+                            
+                            <!-- 소셜 로그인 섹션 -->
+                            <div class="social-login-section">
+                                <div class="divider">
+                                    <span>또는</span>
+                                </div>
+                                <div class="social-login-buttons">
+                                    <a href="/oauth2/authorization/google" class="social-login-btn google-btn">
+                                        <i class='bx bxl-google'></i>
+                                        <span>Google로 로그인</span>
+                                    </a>
+                                </div>
+                            </div>
                         </form>
                     <p>
               <span>
@@ -368,7 +383,8 @@
             sendCodeBtn.textContent = '발송 중...';
             
             // CSRF 토큰 가져오기 (메타 태그에서)
-            const csrfToken = document.querySelector('meta[name="_csrf"]').getAttribute('content');
+            const csrfMeta = document.querySelector('meta[name="_csrf"]');
+            const csrfToken = csrfMeta ? csrfMeta.getAttribute('content') : '';
             
             // API 호출
             fetch('/api/email/send-code', {
@@ -460,6 +476,10 @@
             // 버튼 비활성화
             verifyCodeBtn.disabled = true;
             verifyCodeBtn.textContent = '확인 중...';
+            
+            // CSRF 토큰 가져오기
+            const csrfMeta = document.querySelector('meta[name="_csrf"]');
+            const csrfToken = csrfMeta ? csrfMeta.getAttribute('content') : '';
             
             fetch('/api/email/verify-code', {
                 method: 'POST',

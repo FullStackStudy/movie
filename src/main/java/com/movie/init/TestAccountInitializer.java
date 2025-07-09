@@ -1,8 +1,8 @@
 package com.movie.init;
 
 import com.movie.constant.Role;
-import com.movie.entity.Member;
-import com.movie.repository.MemberRepository;
+import com.movie.entity.member.Member;
+import com.movie.repository.member.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;

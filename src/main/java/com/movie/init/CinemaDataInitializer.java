@@ -1,7 +1,7 @@
 package com.movie.init;
 
-import com.movie.dto.CinemaDto;
-import com.movie.service.CinemaService;
+import com.movie.dto.cinema.CinemaDto;
+import com.movie.service.cinema.CinemaService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;

@@ -239,7 +239,7 @@
   </style>
   <script>
     function updateFinalPrice() {
-      const moviePrice = parseInt(document.getElementById('moviePrice').innerText);
+      const moviePrice = parseInt(document.getElementById('moviePrice').dataset.price);
       const memberPoint = parseInt(document.getElementById('memberPoint').innerText);
       let usePoint = parseInt(document.getElementById('usePoint').value);
       if (isNaN(usePoint) || usePoint < 0) usePoint = 0;
@@ -319,7 +319,7 @@
         </div>
         <div class="info-item">
           <span class="label">가격</span>
-          <span class="value" id="moviePrice" th:text="${paymentInfo.moviePrice} + '원'"></span>
+          <span class="value" id="moviePrice" th:text="${paymentInfo.moviePrice} + '원'" th:data-price="${paymentInfo.moviePrice}"></span>
         </div>
       </div>
     </div>
@@ -344,8 +344,6 @@
         
         <!-- 카카오페이 결제 -->
         <form th:action="@{/movie/payment/kakao-pay-ready}" method="post">
-          <!-- CSRF 토큰 추가 -->
-          <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
           <input type="hidden" name="memberId" th:value="${paymentInfo.memberId}" />
           <input type="hidden" name="usePoint" id="usePointKakao" />
           <button type="submit" class="payment-btn btn-kakao" onclick="document.getElementById('usePointKakao').value = document.getElementById('usePoint').value;">

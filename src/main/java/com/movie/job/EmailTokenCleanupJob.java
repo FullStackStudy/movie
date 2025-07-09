@@ -1,6 +1,6 @@
 package com.movie.job;
 
-import com.movie.service.EmailVerificationService;
+import com.movie.service.member.EmailVerificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.quartz.Job;

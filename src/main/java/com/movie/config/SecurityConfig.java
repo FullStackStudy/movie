@@ -1,6 +1,6 @@
 package com.movie.config;
 
-import com.movie.service.CustomOAuth2UserService;
+import com.movie.service.member.CustomOAuth2UserService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -25,7 +25,7 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf
-                        .ignoringRequestMatchers("/api/**")  // REST API만 제외
+                        .ignoringRequestMatchers("/api/email/**", "/login/oauth2/code/**")
                         .csrfTokenRepository(new HttpSessionCsrfTokenRepository())
                 ) 
                 .formLogin(form -> form
@@ -39,12 +39,15 @@ public class SecurityConfig {
                 .oauth2Login(oauth2 -> oauth2
                         .loginPage("/members/auth")
                         .defaultSuccessUrl("/")
-                        .failureUrl("/members/login/error")
+                        .failureUrl("/members/login/error?error=oauth2_error")
                         .userInfoEndpoint(userInfo -> userInfo
                                 .userService(customOAuth2UserService)
                         )
                         .redirectionEndpoint(redirection -> redirection
                                 .baseUri("/login/oauth2/code/*")
+                        )
+                        .authorizationEndpoint(authorization -> authorization
+                                .baseUri("/oauth2/authorization")
                         )
                 )
                 .logout(logout -> logout

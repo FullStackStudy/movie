@@ -9,7 +9,7 @@
 
 ### 1. 테스트 결제 페이지 접근
 ```
-GET http://localhost:8080/payment/test
+GET http://localhost:/payment/test
 ```
 
 **예상 결과:**

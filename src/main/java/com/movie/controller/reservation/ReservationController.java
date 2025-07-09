@@ -1,18 +1,18 @@
 package com.movie.controller.reservation;
 
-import com.movie.dto.ReservedSeatDto;
-import com.movie.dto.ScheduleDto;
-import com.movie.dto.SeatDto;
+import com.movie.dto.reservation.ReservedSeatDto;
+import com.movie.dto.cinema.ScheduleDto;
+import com.movie.dto.seat.SeatDto;
 import com.movie.dto.reservation.ReservationDto;
 import com.movie.dto.reservation.ReservationRedisResultDto;
 import com.movie.dto.reservation.ReservationResponseDto;
 import com.movie.dto.reservation.SeatStatusMessageDto;
-import com.movie.entity.Seat;
-import com.movie.repository.ReservedSeatRepository;
-import com.movie.repository.ScreenRoomRepository;
-import com.movie.repository.SeatRepository;
-import com.movie.service.ScheduleService;
-import com.movie.service.SeatService;
+import com.movie.entity.cinema.Seat;
+import com.movie.repository.reservation.ReservedSeatRepository;
+import com.movie.repository.cinema.ScreenRoomRepository;
+import com.movie.repository.seat.SeatRepository;
+import com.movie.service.cinema.ScheduleService;
+import com.movie.service.seat.SeatService;
 import com.movie.service.reservation.ReservationService;
 import com.movie.service.reservation.SeatNotificationService;
 import jakarta.servlet.http.HttpSession;

@@ -9,7 +9,7 @@ import org.springframework.web.client.RestTemplate;
 public class PaymentConfig {
 
     @Bean
-    public RestTemplate restTemplate() {
+    public RestTemplate paymentRestTemplate() {
         return new RestTemplate();
     }
 

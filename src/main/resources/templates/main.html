@@ -231,7 +231,7 @@
                     <div class="card-body text-center">
                         <h5 class="card-title" th:text="${movie.movieTitle}">영화 제목</h5>
                         <p class="mb-1">
-                            <span th:text="'🍿 '+${#numbers.formatInteger(movie.movieRating, 1, 'COMMA')}">0</span>
+                            <span th:text="'🍿 '+${movie.movieRating}">0</span>
                         </p>
                         <p class="mb-2">
                             <span th:text="'장르 : '+${movie.genre}">장르</span>
