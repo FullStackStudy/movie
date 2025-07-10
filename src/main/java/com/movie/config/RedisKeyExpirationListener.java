@@ -1,8 +1,8 @@
 package com.movie.config;
 
 import com.movie.dto.reservation.SeatStatusMessageDto;
-import com.movie.entity.Seat;
-import com.movie.repository.SeatRepository;
+import com.movie.entity.cinema.Seat;
+import com.movie.repository.seat.SeatRepository;
 import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.messaging.simp.SimpMessagingTemplate;

@@ -1,15 +1,22 @@
 package com.movie.service.reservation;
 
 import com.movie.constant.ReservationStatus;
-import com.movie.dto.ReservedSeatDto;
-import com.movie.dto.ScheduleDto;
-import com.movie.dto.SeatDto;
+import com.movie.dto.reservation.ReservedSeatDto;
+import com.movie.dto.cinema.ScheduleDto;
+import com.movie.dto.seat.SeatDto;
 import com.movie.dto.reservation.ReservationDto;
 import com.movie.dto.reservation.ReservationRedisResultDto;
 import com.movie.dto.reservation.ReservationResponseDto;
-import com.movie.entity.*;
+import com.movie.entity.cinema.Schedule;
+import com.movie.entity.cinema.Seat;
+import com.movie.entity.member.Member;
 import com.movie.entity.reservation.Reservation;
-import com.movie.repository.*;
+import com.movie.entity.reservation.ReservedSeat;
+import com.movie.repository.member.MemberRepository;
+import com.movie.repository.seat.SeatRepository;
+import com.movie.repository.reservation.ReservedSeatRepository;
+import com.movie.repository.cinema.ScheduleRepository;
+import com.movie.repository.cinema.ScreenRoomRepository;
 import com.movie.repository.reservation.ReservationRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -61,9 +68,9 @@ public class ReservationService {
         //ScreenRoom screenRoom = screenRoomRepository.findById(roomId).orElseThrow(()-> new IllegalArgumentException());
         //
         List<Seat> seatList = seatRepository.findByScreenRoom_Id(roomId);
-        List<SeatDto> seatDtos = SeatDto.ofList(seatList);
+        List<SeatDto> seatDtos1 = SeatDto.ofList(seatList);
 
-        return seatDtos;
+        return seatDtos1;
     }
 
     //해당 스케쥴 예약된 좌석 가져오기

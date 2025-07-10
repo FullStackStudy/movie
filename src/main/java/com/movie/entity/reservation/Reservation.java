@@ -1,10 +1,10 @@
 package com.movie.entity.reservation;
 
 import com.movie.constant.ReservationStatus;
-import com.movie.entity.BaseEntity;
-import com.movie.entity.BaseTimeEntity;
-import com.movie.entity.Member;
-import com.movie.entity.Schedule;
+import com.movie.entity.common.BaseEntity;
+import com.movie.entity.common.BaseTimeEntity;
+import com.movie.entity.member.Member;
+import com.movie.entity.cinema.Schedule;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;

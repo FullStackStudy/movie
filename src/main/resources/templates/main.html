@@ -5,7 +5,6 @@
     <meta charset="UTF-8">
     <title>🎥MovieFlex</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <!-- Bootstrap CSS -->
     <link th:href="@{/css/style.css}" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
     <style>
@@ -121,6 +120,42 @@
             display: inline-block;
             transform: translateX(-4px);
         }
+        
+        /* 알림 메시지 스타일 */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 500;
+            z-index: 9999;
+            transform: translateX(100%);
+            transition: transform 0.3s ease-in-out;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            max-width: 350px;
+        }
+        
+        .notification.show {
+            transform: translateX(0);
+        }
+        
+        .notification-success {
+            background: linear-gradient(135deg, #28a745, #20c997);
+        }
+        
+        .notification-error {
+            background: linear-gradient(135deg, #dc3545, #c82333);
+        }
+        
+        .notification-info {
+            background: linear-gradient(135deg, #17a2b8, #138496);
+        }
+        
+        .notification-warning {
+            background: linear-gradient(135deg, #ffc107, #e0a800);
+        }
     </style>
     <script>
         function scrollMovies(direction) {
@@ -129,12 +164,53 @@
             if (!card) return;
                 const scrollAmount = card.offsetWidth * 2 + 32; // 카드 2개 + gap
                 container.scrollBy({ left: direction * scrollAmount, behavior: 'smooth' });
-    }
+        }
+        
+        // 알림 메시지 표시 함수
+        function showNotification(message, type = 'success') {
+            const notification = document.createElement('div');
+            notification.className = `notification notification-${type}`;
+            notification.textContent = message;
+            
+            document.body.appendChild(notification);
+            
+            // 애니메이션 효과
+            setTimeout(() => {
+                notification.classList.add('show');
+            }, 100);
+            
+            // 4초 후 자동 제거
+            setTimeout(() => {
+                notification.classList.remove('show');
+                setTimeout(() => {
+                    if (document.body.contains(notification)) {
+                        document.body.removeChild(notification);
+                    }
+                }, 300);
+            }, 4000);
+        }
+        
+        // 페이지 로드 시 회원가입 성공 알림 표시
+        document.addEventListener('DOMContentLoaded', function() {
+            const signupSuccessElement = document.getElementById('signupSuccessMessage');
+            if (signupSuccessElement) {
+                const message = signupSuccessElement.getAttribute('data-message');
+                if (message) {
+                    // 페이지 로드 후 약간의 지연을 두고 알림 표시
+                    setTimeout(() => {
+                        showNotification(message, 'success');
+                    }, 500);
+                }
+            }
+        });
     </script>
 </head>
 <body>
 <div layout:fragment="content">
-    <div class="container my-5 position-relative">
+    <!-- 회원가입 성공 알림 (JavaScript로 처리) -->
+    <div th:if="${signupSuccessMessage}" id="signupSuccessMessage" th:data-message="${signupSuccessMessage}" style="display: none;"></div>
+    
+    <div class="my-5 position-relative">
         <button class="scroll-btn left" onclick="scrollMovies(-1)">
             <span class="scroll-icon left">〈</span>
         </button>
@@ -142,7 +218,7 @@
             <span class="scroll-icon right">〉</span>
         </button>
         <div class="mb-5 text-center">
-            <h1>무비차트</h1>
+            <h1>🎬MovieFlex</h1>
             <p class="lead">현재 상영작</p>
         </div>
         <div class="movie-scroll-wrapper">
@@ -155,10 +231,10 @@
                     <div class="card-body text-center">
                         <h5 class="card-title" th:text="${movie.movieTitle}">영화 제목</h5>
                         <p class="mb-1">
-                            <span th:text="'🍿 '+${#numbers.formatInteger(movie.movieRating, 1, 'COMMA')}">0</span>
+                            <span th:text="'🍿 '+${movie.movieRating}">0</span>
                         </p>
                         <p class="mb-2">
-                            <span th:text="'장르 '+${movie.genre}">장르</span>
+                            <span th:text="'장르 : '+${movie.genre}">장르</span>
                         </p>
                         <p class="mb-2">
                             <span th:text="'개봉일 : ' + ${movie.openDate}">개봉일</span>

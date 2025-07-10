@@ -24,7 +24,8 @@ public class QuartzConfig {
                 .withIdentity("movieCrawlingTrigger")
                 // cron 표현식 (" 0초 0분 0시 *(매일) *(매월) ?(무시요일))
                 // ex) "0 0 6 * * ?" : 매일 매월 06시 00분 00초 무시요일 없음
-                .withSchedule(CronScheduleBuilder.cronSchedule("0 0 6 * * ?"))
+                // "0 0 */2 * * ?" : 2시간마다 실행
+                .withSchedule(CronScheduleBuilder.cronSchedule("0 0 */2 * * ?"))
                 .build();
     }
 

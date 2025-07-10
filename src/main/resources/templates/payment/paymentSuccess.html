@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>결제 성공</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <style>
+        /* 전체 컨테이너 */
+        .success-container {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            padding: 3rem;
+            margin: 2rem auto;
+            max-width: 800px;
+            position: relative;
+            overflow: hidden;
+            text-align: center;
+        }
+        
+        .success-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            z-index: 1;
+        }
+        
+        .success-container > * {
+            position: relative;
+            z-index: 2;
+        }
+        
+        /* 제목 스타일 */
+        .success-container h2 {
+            color: #fff;
+            margin-bottom: 2rem;
+            font-size: 2.5rem;
+            font-weight: 700;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .success-container h2::after {
+            content: '';
+            display: block;
+            width: 60px;
+            height: 4px;
+            background: linear-gradient(90deg, #28a745, #20c997);
+            margin: 1rem auto 0;
+            border-radius: 2px;
+        }
+        
+        /* 성공 아이콘 */
+        .success-icon {
+            color: #28a745;
+            font-size: 4rem;
+            margin-bottom: 2rem;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        /* 메시지 */
+        .success-message {
+            color: #fff;
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+            font-weight: 500;
+        }
+        
+        /* 결제 정보 섹션 */
+        .payment-info {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 2rem;
+            margin: 2rem 0;
+            text-align: left;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        }
+        
+        .payment-info h3 {
+            color: #495057;
+            margin-bottom: 1.5rem;
+            font-size: 1.5rem;
+            font-weight: 600;
+            border-bottom: 2px solid #e9ecef;
+            padding-bottom: 0.5rem;
+            text-align: center;
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+        
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #28a745;
+        }
+        
+        .info-item .label {
+            font-weight: 600;
+            color: #495057;
+        }
+        
+        .info-item .value {
+            color: #28a745;
+            font-weight: 500;
+        }
+        
+        /* 버튼 그룹 */
+        .button-group {
+            margin-top: 2rem;
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            text-align: center;
+            margin: 0.5rem;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            box-shadow: 0 8px 25px rgba(0, 123, 255, 0.3);
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(135deg, #6c757d, #545b62);
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            box-shadow: 0 8px 25px rgba(108, 117, 125, 0.3);
+        }
+        
+        /* 반응형 디자인 */
+        @media (max-width: 768px) {
+            .success-container {
+                margin: 1rem;
+                padding: 2rem;
+            }
+            
+            .success-container h2 {
+                font-size: 2rem;
+            }
+            
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .btn {
+                display: block;
+                margin: 0.5rem 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="success-container">
+        <div class="success-icon">🎉</div>
+        <h2>결제가 성공적으로 완료되었습니다!</h2>
+        
+        <div class="success-message" th:if="${message}" th:text="${message}"></div>
+        
+        <div class="payment-info" th:if="${paymentInfo}">
+            <h3>📋 결제 정보</h3>
+            <div class="info-grid">
+                <!-- 카카오페이 결제 정보 -->
+                <div class="info-item" th:if="${paymentInfo.partner_order_id}">
+                    <span class="label">주문번호</span>
+                    <span class="value" th:text="${paymentInfo.partner_order_id}"></span>
+                </div>
+                <div class="info-item" th:if="${paymentInfo.payment_method_type}">
+                    <span class="label">결제수단</span>
+                    <span class="value" th:text="${paymentInfo.payment_method_type}"></span>
+                </div>
+                <div class="info-item" th:if="${paymentInfo.amount?.total}">
+                    <span class="label">결제금액</span>
+                    <span class="value" th:text="${paymentInfo.amount.total} + '원'"></span>
+                </div>
+                <div class="info-item" th:if="${paymentInfo.approved_at}">
+                    <span class="label">결제일시</span>
+                    <span class="value" th:text="${paymentInfo.approved_at}"></span>
+                </div>
+                
+                <!-- 카드결제 정보 -->
+                <div class="info-item" th:if="${paymentInfo.orderId}">
+                    <span class="label">주문번호</span>
+                    <span class="value" th:text="${paymentInfo.orderId}"></span>
+                </div>
+                <div class="info-item" th:if="${paymentInfo.transactionId}">
+                    <span class="label">거래번호</span>
+                    <span class="value" th:text="${paymentInfo.transactionId}"></span>
+                </div>
+                <div class="info-item" th:if="${paymentInfo.amount && !paymentInfo.amount.total}">
+                    <span class="label">결제금액</span>
+                    <span class="value" th:text="${paymentInfo.amount} + '원'"></span>
+                </div>
+                <div class="info-item" th:if="${paymentInfo.paymentDate}">
+                    <span class="label">결제일시</span>
+                    <span class="value" th:text="${paymentInfo.paymentDate}"></span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="button-group">
+            <a href="/" class="btn btn-primary">🏠 홈으로</a>
+            <a href="/mypage" class="btn btn-secondary">👤 마이페이지</a>
+        </div>
+    </div>
+</body>
+</html>

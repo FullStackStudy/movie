@@ -16,7 +16,7 @@ public class ChatGPTConfig {
     private String secretKey;
 
     @Bean
-    public RestTemplate restTemplate() {
+    public RestTemplate chatGptRestTemplate() {
         RestTemplate restTemplate = new RestTemplate();
         return restTemplate;
     }

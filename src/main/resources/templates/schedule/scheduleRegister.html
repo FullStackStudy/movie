@@ -5,7 +5,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>상영시간표 등록 - MovieFlex</title>
+    <title>🎥MovieFlex</title>
 
     <style>
         .schedule-register-container {
@@ -159,6 +159,8 @@
 
         <!-- 📌 여기부터 form -->
         <form action="/admin/schedule" method="post" id="scheduleForm">
+            <!-- CSRF 토큰 추가 -->
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
             <div class="form-row">
                 <div class="form-col">
                     <label for="cinemaName" class="form-label">영화관 <span class="required">*</span></label>

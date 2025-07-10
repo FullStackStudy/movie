@@ -1,8 +1,8 @@
 package com.movie.dto.reservation;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.movie.dto.SeatDto;
-import com.movie.entity.Schedule;
+import com.movie.dto.seat.SeatDto;
+import com.movie.entity.cinema.Schedule;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
