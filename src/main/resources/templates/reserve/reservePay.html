@@ -3,6 +3,7 @@
       xmlns:layout="http://ultaq.net.nz/thymeleaf/layout"
       layout:decorate="~{layouts/layout1}">
 <head>
+    <title>🎥MovieFlex</title>
     <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
     <meta name="_csrf" th:content="${_csrf.token}"/>
@@ -16,25 +17,348 @@
         .detail{
             font-size:12px;
         }
+        
+        /* 전체 컨테이너 스타일 */
+        .payment-container {
+            max-width: 60%;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        /* 탭 스타일 */
+        .tab-container {
+            margin-bottom: 2rem;
+        }
+        
+        .tab-buttons {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .tab-button {
+            padding: 0.75rem 1.5rem;
+            border: 2px solid #dee2e6;
+            background: #f8f9fa;
+            color: #6c757d;
+            border-radius: 8px 8px 0 0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+        
+        .tab-button.active {
+            background: #28a745;
+            color: white;
+            border-color: #28a745;
+        }
+        
+        .tab-button:hover {
+            background: #e9ecef;
+        }
+        
+        .tab-button.active:hover {
+            background: #218838;
+        }
+        
+        .tab-content {
+            display: none;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border: 2px solid #dee2e6;
+            border-radius: 0 12px 12px 12px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .tab-content h6 {
+            color: #495057;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            border-bottom: 2px solid #28a745;
+            padding-bottom: 0.5rem;
+        }
+        
+        .point-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.75rem;
+            padding: 0.5rem;
+            background: white;
+            border-radius: 8px;
+            border-left: 4px solid #28a745;
+        }
+        
+        .point-label {
+            font-weight: 600;
+            color: #495057;
+            font-size: 0.9rem;
+        }
+        
+        .point-value {
+            font-weight: 700;
+            color: #28a745;
+            font-size: 1.1rem;
+        }
+        
+        .point-input-group {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin: 0.75rem 0;
+        }
+        
+        .point-input {
+            width: 100px;
+            padding: 0.5rem;
+            border: 2px solid #dee2e6;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            text-align: center;
+        }
+        
+        .point-input:focus {
+            border-color: #28a745;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.1);
+        }
+        
+        .final-price-section {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            padding: 1rem;
+            border-radius: 8px;
+            text-align: center;
+            margin-top: 1rem;
+            box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+        }
+        
+        .final-price-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+            margin-bottom: 0.25rem;
+        }
+        
+        .final-price-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+        
+        /* 버튼 스타일 */
+        .btn {
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+            font-size: 1.1rem;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 123, 255, 0.3);
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(135deg, #6c757d, #545b62);
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(108, 117, 125, 0.3);
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+        }
+        
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(40, 167, 69, 0.3);
+        }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, #dc3545, #c82333);
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(220, 53, 69, 0.3);
+        }
+        
+        /* 버튼 그룹 스타일 */
+        .button-group {
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+        
+        /* 반응형 디자인 */
+        @media (max-width: 768px) {
+            .payment-container {
+                max-width: 95%;
+                padding: 1rem;
+            }
+            
+            .point-row {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.5rem;
+            }
+            
+            .point-input-group {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .point-input {
+                width: 100%;
+                max-width: 150px;
+            }
+            
+            .button-group {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .tab-buttons {
+                flex-wrap: wrap;
+            }
+        }
     </style>
 </div>
 <div layout:fragment="content">
-<div>
-    <input id="member_id1" type="text" th:field="${reservedData.memberId}"  readonly/>
-    <input id="movie_name" type="text" th:field="${reservedData.movieName}" readonly/>
+    <div class="payment-container">
+        <!-- 탭 컨테이너 -->
+        <div class="tab-container">
+            <div class="tab-buttons">
+                <button type="button" class="tab-button active" onclick="showTab('point')">💎 포인트</button>
+                <button type="button" class="tab-button" onclick="showTab('coupon')">🎫 할인쿠폰</button>
+                <button type="button" class="tab-button" onclick="showTab('gift')">🎁 관람권/기프티콘</button>
+            </div>
+            
+            <!-- 포인트 탭 -->
+            <div id="point-tab" class="tab-content active">
+                <h6>포인트 사용</h6>
+                
+                <!-- 결제금액 표시 -->
+                <div class="point-row">
+                    <span class="point-label">결제금액</span>
+                    <span class="point-value" id="originalPrice" th:text="${reservedData.price} + '원'"></span>
+                </div>
+                
+                <!-- 보유 포인트 표시 -->
+                <div class="point-row">
+                    <span class="point-label">보유 포인트</span>
+                    <span class="point-value" id="memberPoint" th:text="${memberPoint} + 'P'"></span>
+                </div>
+                
+                <!-- 포인트 사용 입력 -->
+                <div class="point-row">
+                    <span class="point-label">사용할 포인트</span>
+                    <div class="point-input-group">
+                        <input type="number" id="usePoint" name="usePoint" min="0" 
+                               th:attr="max=${memberPoint}" value="0" 
+                               class="point-input" />
+                        <span style="color: #6c757d; font-size: 0.9rem;">P</span>
+                    </div>
+                </div>
+                
+                <!-- 최종 결제금액 표시 -->
+                <div class="final-price-section">
+                    <div class="final-price-label">최종 결제금액</div>
+                    <div class="final-price-value" id="finalPrice" th:text="${reservedData.price} + '원'"></div>
+                </div>
+            </div>
+            
+            <!-- 할인쿠폰 탭 -->
+            <div id="coupon-tab" class="tab-content">
+                <h6>할인쿠폰 사용</h6>
+                
+                <div class="point-row">
+                    <span class="point-label">사용 가능한 쿠폰</span>
+                    <span class="point-value">0개</span>
+                </div>
+                
+                <div class="point-row">
+                    <span class="point-label">선택된 쿠폰</span>
+                    <span class="point-value">없음</span>
+                </div>
+                
+                <div class="point-row">
+                    <span class="point-label">할인 금액</span>
+                    <span class="point-value">0원</span>
+                </div>
+                
+                <div class="final-price-section">
+                    <div class="final-price-label">최종 결제금액</div>
+                    <div class="final-price-value" id="finalPriceCoupon" th:text="${reservedData.price} + '원'"></div>
+                </div>
+            </div>
+            
+            <!-- 관람권/기프티콘 탭 -->
+            <div id="gift-tab" class="tab-content">
+                <h6>관람권/기프티콘 사용</h6>
+                
+                <div class="point-row">
+                    <span class="point-label">보유 관람권</span>
+                    <span class="point-value">0개</span>
+                </div>
+                
+                <div class="point-row">
+                    <span class="point-label">보유 기프티콘</span>
+                    <span class="point-value">0개</span>
+                </div>
+                
+                <div class="point-row">
+                    <span class="point-label">사용할 관람권</span>
+                    <div class="point-input-group">
+                        <input type="number" id="useGift" name="useGift" min="0" max="0" value="0" class="point-input" />
+                        <span style="color: #6c757d; font-size: 0.9rem;">개</span>
+                    </div>
+                </div>
+                
+                <div class="final-price-section">
+                    <div class="final-price-label">최종 결제금액</div>
+                    <div class="final-price-value" id="finalPriceGift" th:text="${reservedData.price} + '원'"></div>
+                </div>
+            </div>
+        </div>
 
-    <p>선택 좌석 (임의 선택):, 결제 정보창임</p>
-    <label><input type="text" th:field="${reservedData.seatName}" id="seat_name"> </label>
-    <br><br>
-
-    <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#myModal">결제하기</button>
-    <!--<button type="button" class="btn btn-warning" id="back" onclick="cancelRedis('back')">좌석 다시 선택하기</button>-->
-    <button type="button" class="btn btn-danger" id="cancel" onclick="cancelRedis('cancel')">취소하기</button>
-    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
-</div>
-    <div class="modal fade" id="myModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
-        <form method="POST" th:action="@{/reservation/pay}" >
-            <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable" >
+        <!-- 버튼 그룹 -->
+        <div class="button-group">
+            <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#myModal">결제하기</button>
+            <button type="button" class="btn btn-danger" id="cancel" onclick="cancelRedis('cancel')">취소하기</button>
+        </div>
+        
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+    </div>
+    
+    <!-- 필요한 hidden input들 -->
+    <input type="hidden" th:value="${reservedData.per}" id="per">
+    <input type="hidden" th:value="${reservedData.price}" id="price">
+    
+    <div class="modal fade" id="myModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+         aria-labelledby="staticBackdropLabel" aria-hidden="true">
+        <form method="POST" th:action="@{/reservation/pay}">
+            <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
                 <div class="modal-content">
                     <div class="modal-header">
                         <h1 class="modal-title fs-5" id="staticBackdropLabel">예약 정보 확인</h1>
@@ -49,61 +373,63 @@
                             </tr>
                             </thead>
                             <tbody class="table-group-divider">
-                                <tr>
-                                    <td>
-                                        <div class="row">
-                                            <div class="col-auto">
-                                                <img th:src="${moviePoster}" style="max-width: 100px; height: auto;">
-                                            </div>
+                            <tr>
+                                <td>
+                                    <div class="row">
+                                        <div class="col-auto">
+                                            <img th:src="${moviePoster}" style="max-width: 100px; height: auto;">
+                                        </div>
                                         <div class="col">
                                             <table class="table table-borderless table-sm">
                                                 <tr>
                                                     <td>영화명</td>
-                                                    <td><span id="modal_movie_name" th:text="${reservedData.movieName}"></span></td>
+                                                    <td><span id="modal_movie_name"
+                                                              th:text="${reservedData.movieName}"></span></td>
                                                 </tr>
                                                 <tr>
                                                     <td>극장</td>
-                                                    <td><span  id="modal_cinema_name" th:text="${reservedData.cinemaName}"></span></td>
+                                                    <td><span id="modal_cinema_name"
+                                                              th:text="${reservedData.cinemaName}"></span></td>
                                                 </tr>
                                                 <tr>
                                                     <td>상영관</td>
-                                                    <td><span  id="modal_screen_name" th:text="${reservedData.screenName}"></span></td>
+                                                    <td><span id="modal_screen_name"
+                                                              th:text="${reservedData.screenName}"></span></td>
                                                 </tr>
                                                 <tr>
                                                     <td>일시</td>
-                                                    <td><span  id="modal_start_time" th:text="${reservedData.startTime}"></span></td>
+                                                    <td><span id="modal_start_time"
+                                                              th:text="${reservedData.startTime}"></span></td>
                                                 </tr>
                                                 <tr>
                                                     <td>인원</td>
-                                                    <td><span  id="modal_per" th:text="${reservedData.per}"></span></td>
+                                                    <td><span id="modal_per" th:text="${reservedData.per}"></span></td>
                                                 </tr>
                                                 <tr>
                                                     <td>유저이름</td>
-                                                    <td><span id="modal_member_id" th:text="${reservedData.memberId}"></span></td>
+                                                    <td><span id="modal_member_id"
+                                                              th:text="${reservedData.memberId}"></span></td>
                                                 </tr>
                                                 <tr>
                                                     <td>좌석</td>
-                                                    <td><span id="modal_seat_name" th:text="${reservedData.seatName}"></span></td>
+                                                    <td><span id="modal_seat_name"
+                                                              th:text="${reservedData.seatName}"></span></td>
                                                 </tr>
                                             </table>
 
                                         </div>
                                     </div>
 
-                                    </td>
-                                    <td style="vertical-align: top;">
-                                        <table class="table table-borderless table-sm" style="margin-top:2px">
-                                            <tr>
-                                                <td>결제금액</td>
-                                                <td><span id="modal_price" th:text="${reservedData.price}"></span></td>
-                                            </tr>
-                                            <tr>
-                                                <td>결제수단</td>
-                                                <td><span id="modal_pay_method" th:text="${reservedData.payMethod}"></span></td>
-                                            </tr>
-                                        </table>
-                                    </td>
-                                </tr>
+                                </td>
+                                <td style="vertical-align: top;">
+                                    <table class="table table-borderless table-sm" style="margin-top:2px">
+                                        <tr>
+                                            <td>결제금액</td>
+                                            <td><span id="modal_price" th:text="${reservedData.price} + '원'"></span></td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
                             </tbody>
                         </table>
 
@@ -121,15 +447,17 @@
                     </div>
                 </div>
             </div>
-            <input type="hidden" th:value="${reservedData.per}" id="per">
-            <input type="hidden" th:value="${reservedData.price}" id="price">
+            <input type="hidden" name="usePoint" id="usePointHidden" value="0">
+            <input type="hidden" name="finalPrice" id="finalPriceHidden" th:value="${reservedData.price}">
             <th:block th:each="sid : ${seatId}">
-                <input type="hidden" name="seat_id" th:value="${sid}" />
+                <input type="hidden" name="seat_id" th:value="${sid}"/>
             </th:block>
             <input type="hidden" th:value="${scheduleId}" id="schedule_id" name="schedule_id">
 
         </form>
+    </div>
 </div>
+
     <!--toast-->
     <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 1080">
         <div id="countdownToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
@@ -139,7 +467,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="닫기"></button>
             </div>
             <div class="toast-body">
-                좌석 예약 만료까지 <span id="toastTimer">10</span>초 남았습니다.
+                좌석 예약 만료까지 <span id="toastTimer">60</span>초 남았습니다.
             </div>
         </div>
     </div>
@@ -156,7 +484,75 @@
 </div>
 <div layout:fragment="script">
     <script th:inline="javascript">
+        // 탭 전환 함수
+        function showTab(tabName) {
+            // 모든 탭 버튼 비활성화
+            document.querySelectorAll('.tab-button').forEach(button => {
+                button.classList.remove('active');
+            });
+            
+            // 모든 탭 콘텐츠 숨기기
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            // 선택된 탭 버튼 활성화
+            document.querySelector(`[onclick="showTab('${tabName}')"]`).classList.add('active');
+            
+            // 선택된 탭 콘텐츠 표시
+            document.getElementById(`${tabName}-tab`).classList.add('active');
+        }
+        
         document.addEventListener("DOMContentLoaded", function () {
+            // 포인트 계산 함수
+            function updateFinalPrice() {
+                const moviePrice = parseInt(document.getElementById('price').value);
+                const memberPointText = document.getElementById('memberPoint').innerText;
+                const memberPoint = parseInt(memberPointText.replace('P', ''));
+                let usePoint = parseInt(document.getElementById('usePoint').value);
+                
+                // 입력값 검증
+                if (isNaN(usePoint) || usePoint < 0) usePoint = 0;
+                if (usePoint > memberPoint) usePoint = memberPoint;
+                if (usePoint > moviePrice) usePoint = moviePrice;
+                
+                // 입력값 업데이트
+                document.getElementById('usePoint').value = usePoint;
+                
+                // 최종 금액 계산
+                const finalPrice = Math.max(0, moviePrice - usePoint);
+                document.getElementById('finalPrice').innerText = finalPrice + '원';
+                document.getElementById('usePointHidden').value = usePoint;
+                document.getElementById('finalPriceHidden').value = finalPrice;
+                
+                // 포인트 사용량에 따른 시각적 피드백
+                const usePointInput = document.getElementById('usePoint');
+                if (usePoint > 0) {
+                    usePointInput.style.borderColor = '#28a745';
+                    usePointInput.style.backgroundColor = '#f8fff9';
+                } else {
+                    usePointInput.style.borderColor = '#dee2e6';
+                    usePointInput.style.backgroundColor = 'white';
+                }
+            }
+            
+            // 포인트 입력 이벤트 리스너
+            document.getElementById('usePoint').addEventListener('input', updateFinalPrice);
+            
+            // 페이지 로드 시 초기 계산 실행
+            updateFinalPrice();
+            
+            // 모달이 열릴 때 포인트 정보 전달 및 금액 업데이트
+            $('#myModal').on('show.bs.modal', function (event) {
+                // 기본 페이지의 포인트 정보를 모달의 hidden input으로 전달
+                const usePoint = document.getElementById('usePoint').value;
+                document.getElementById('usePointHidden').value = usePoint;
+                
+                // 모달의 결제금액을 최종 금액으로 업데이트
+                const finalPrice = document.getElementById('finalPrice').innerText;
+                document.getElementById('modal_price').innerText = finalPrice;
+            });
+            
             // 카운트다운 시작 함수
             function startSeatCountdown(seatId, ttl) {
                 if (seatCountdowns[seatId]) {
@@ -169,7 +565,8 @@
                     console.log(`[⏱️] 좌석 ${seatId} 남은 시간: ${timeLeft}초`);
                     timeLeft--;
 
-                    if (timeLeft === 10) {
+                    // 10분 대기 시간에 맞춰 토스트 알림 (마지막 1분 전부터 표시)
+                    if (timeLeft === 60) {
                        startToastCountdown(timeLeft);
                     }
 
@@ -234,28 +631,7 @@
 
             });
 
-            // 1. 모달이 열릴 때 데이터 설정
-            $('#myModal').on('show.bs.modal', function (event) {
-                var memberId = $("#member_id").val();
-                var cinemaName = $("#hidden_cinema_name").val();
-                var screenName = $("#hidden_screen_name").val();
-                var movieName = $("#hidden_movie_name").val();
-                var seatName = $("#seat_name").val();
-                var startTime = $("#hidden_start_time").val();
-                var per = $("#hidden_per").val();
-                var payText = $("#hidden_pay_method").val();
-                var price = $("#hidden_price").val();
 
-                $("#modal_member_id").text(memberId);
-                $("#modal_cinema_name").text(cinemaName);
-                $("#modal_screen_name").text(screenName);
-                $("#modal_movie_name").text(movieName);
-                $("#modal_seat_name").text(seatName);
-                $("#modal_start_time").text(startTime);
-                $("#modal_per").text(per);
-                $("#modal_pay_method").text(payText);
-                $("#modal_price").text(price);
-            });
 
             // 2. cancelRedis
             window.cancelRedis = function (type) {
@@ -288,7 +664,7 @@
         function startToastCountdown(initialTime) {
             let toastEl = document.getElementById('countdownToast');
             let toastTimerEl = document.getElementById('toastTimer');
-            let toast = new bootstrap.Toast(toastEl, { delay: 11000 }); // 11초 정도 표시
+            let toast = new bootstrap.Toast(toastEl, { delay: 65000 }); // 65초 정도 표시 (1분 + 5초)
 
             let current = initialTime;
             toastTimerEl.textContent = current;

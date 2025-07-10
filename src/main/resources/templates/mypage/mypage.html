@@ -3,35 +3,236 @@
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{layouts/layout1}">
 <head>
-<title>🎥MovieFlex</title>
+    <title>🎥MovieFlex</title>
+    <style>
+        /* 주문 내역 테이블 스타일 */
+        .order-table {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            margin-bottom: 2rem;
+        }
+        
+        .order-table .table {
+            margin-bottom: 0;
+        }
+        
+        .order-table .table thead th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-weight: 600;
+            border: none;
+            padding: 1rem 0.75rem;
+            font-size: 0.9rem;
+            text-align: center;
+        }
+        
+        .order-table .table tbody td {
+            border: none;
+            border-bottom: 1px solid #f8f9fa;
+            padding: 1rem 0.75rem;
+            vertical-align: middle;
+            font-size: 0.9rem;
+        }
+        
+        .order-table .table tbody tr:hover {
+            background-color: #f8f9fa;
+            transition: background-color 0.3s ease;
+        }
+        
+        .order-table .table tbody tr:last-child td {
+            border-bottom: none;
+        }
+        
+        /* 주문내역 테이블 셀 스타일 통일 */
+        .order-table .table tbody td {
+            border: none;
+            border-bottom: 1px solid #f8f9fa;
+            padding: 1rem 0.75rem;
+            vertical-align: middle;
+            font-size: 0.9rem;
+            color: #000000;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 150px;
+        }
+        
+        /* 주문번호 스타일 */
+        .order-number {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-weight: 600;
+            color: #000000;
+            background: #f8f9fa;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 120px;
+            display: inline-block;
+        }
+        
+        /* 영화제목 스타일 */
+        .movie-title {
+            font-weight: 600;
+            color: #000000;
+            font-size: 0.9rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 150px;
+            display: inline-block;
+        }
+        
+        /* 영화관 스타일 */
+        .cinema-name {
+            color: #000000;
+            font-size: 0.9rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 100px;
+            display: inline-block;
+        }
+        
+        /* 예매수 스타일 */
+        .ticket-count {
+            background: #28a745;
+            color: white;
+            padding: 0.25rem 0.5rem;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-align: center;
+            display: inline-block;
+            min-width: 40px;
+            white-space: nowrap;
+        }
+        
+        /* 좌석 스타일 */
+        .seat-info {
+            background: #e9ecef;
+            color: #000000;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 120px;
+            display: inline-block;
+        }
+        
+        /* 결제금액 스타일 */
+        .payment-amount {
+            font-weight: 700;
+            color: #000000;
+            font-size: 0.9rem;
+            white-space: nowrap;
+        }
+        
+        /* 결제수단 스타일 */
+        .payment-method {
+            padding: 0.25rem 0.5rem;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-align: center;
+            display: inline-block;
+            min-width: 60px;
+            white-space: nowrap;
+        }
+        
+        .payment-method.kakao {
+            background: #fee500;
+            color: #3c1e1e;
+        }
+        
+        .payment-method.card {
+            background: #007bff;
+            color: white;
+        }
+        
+        .payment-method.point {
+            background: #28a745;
+            color: white;
+        }
+        
+        /* 결제일시 스타일 */
+        .payment-date {
+            color: #000000;
+            font-size: 0.9rem;
+            white-space: nowrap;
+        }
+        
+        /* 빈 주문 내역 스타일 */
+        .empty-orders {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: #6c757d;
+        }
+        
+        .empty-orders i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+        
+        /* 반응형 디자인 */
+        @media (max-width: 768px) {
+            .order-table {
+                font-size: 0.8rem;
+            }
+            
+            .order-table .table thead th,
+            .order-table .table tbody td {
+                padding: 0.5rem 0.25rem;
+                font-size: 0.75rem;
+            }
+            
+            .movie-title,
+            .seat-info {
+                max-width: 80px;
+            }
+            
+            .order-number {
+                font-size: 0.7rem;
+            }
+        }
+    </style>
 </head>
 <div layout:fragment="content">
     <div class="container my-5">
         <div class="row justify-content-center">
             <div class="col-lg-8 col-md-10">
                 <h2 class="mb-4 text-center">마이페이지</h2>
-            
+
                 <div th:if="${message}" class="alert alert-success" role="alert">
-                <p th:text="${message}"></p>
-            </div>
-            
+                    <p th:text="${message}"></p>
+                </div>
+
                 <div th:if="${errorMessage}" class="alert alert-danger" role="alert">
-                <p th:text="${errorMessage}"></p>
-            </div>
-            
+                    <p th:text="${errorMessage}"></p>
+                </div>
+
                 <div th:if="${myPageDto}" class="card">
                     <div class="card-body">
-                <!-- 프로필 이미지 섹션 -->
+                        <!-- 프로필 이미지 섹션 -->
                         <div class="text-center mb-4">
-                            <img th:src="${myPageDto.profile != null and myPageDto.profile != '' ? myPageDto.profile : '/images/default-profile.png'}" 
-                                 alt="프로필 이미지" 
-                                 class="rounded-circle" 
+                            <img th:src="${myPageDto.profile != null and myPageDto.profile != '' ? myPageDto.profile : '/images/default-profile.png'}"
+                                 alt="프로필 이미지"
+                                 class="rounded-circle"
                                  style="width: 120px; height: 120px; object-fit: cover; border: 3px solid #007bff;"
                                  onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIwIiBoZWlnaHQ9IjEyMCIgdmlld0JveD0iMCAwIDEyMCAxMjAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxMjAiIGhlaWdodD0iMTIwIiBmaWxsPSIjRkZGRkZGIi8+CjxjaXJjbGUgY3g9IjYwIiBjeT0iNDgiIHI9IjE2IiBmaWxsPSIjQ0NDIi8+CjxyZWN0IHg9IjI0IiB5PSI3MiIgd2lkdGg9IjcyIiBoZWlnaHQ9IjMyIiBmaWxsPSIjQ0NDIi8+Cjwvc3ZnPgo='">
                             <h4 class="mt-3" th:text="${myPageDto.name}"></h4>
                             <p class="text-muted" th:text="${'@' + myPageDto.nickname}"></p>
-                </div>
-                
+                        </div>
+
                         <!-- 기본 정보 -->
                         <h5 class="card-title mb-3">기본 정보</h5>
                         <div class="row mb-3">
@@ -43,28 +244,29 @@
                                 <label class="form-label">닉네임</label>
                                 <input type="text" class="form-control" th:value="${myPageDto.nickname}" readonly>
                             </div>
-                    </div>
+                        </div>
                         <div class="row mb-3">
                             <div class="col-md-6">
                                 <label class="form-label">이름</label>
                                 <input type="text" class="form-control" th:value="${myPageDto.name}" readonly>
-                    </div>
+                            </div>
                             <div class="col-md-6">
                                 <label class="form-label">생년월일</label>
-                                <input type="text" class="form-control" th:value="${#temporals.format(myPageDto.birth, 'yyyy-MM-dd')}" readonly>
-                    </div>
-                    </div>
+                                <input type="text" class="form-control"
+                                       th:value="${#temporals.format(myPageDto.birth, 'yyyy-MM-dd')}" readonly>
+                            </div>
+                        </div>
                         <div class="row mb-3">
                             <div class="col-md-6">
                                 <label class="form-label">휴대폰</label>
                                 <input type="text" class="form-control" th:value="${myPageDto.phone}" readonly>
-                    </div>
+                            </div>
                             <div class="col-md-6">
                                 <label class="form-label">주소</label>
                                 <input type="text" class="form-control" th:value="${myPageDto.address}" readonly>
-                    </div>
-                </div>
-                
+                            </div>
+                        </div>
+
                         <!-- 회원 정보 -->
                         <h5 class="card-title mb-3 mt-4">회원 정보</h5>
                         <div class="row mb-3">
@@ -74,39 +276,79 @@
                             </div>
                             <div class="col-md-4">
                                 <label class="form-label">가입일</label>
-                                <input type="text" class="form-control" th:value="${#temporals.format(myPageDto.regDate, 'yyyy-MM-dd')}" readonly>
+                                <input type="text" class="form-control"
+                                       th:value="${#temporals.format(myPageDto.regDate, 'yyyy-MM-dd')}" readonly>
                             </div>
                             <div class="col-md-4">
                                 <label class="form-label">포인트</label>
-                                <input type="text" class="form-control" th:value="${myPageDto.point != null ? myPageDto.point : '0'}" readonly>
+                                <input type="text" class="form-control"
+                                       th:value="${myPageDto.point != null ? myPageDto.point : '0'}" readonly>
                             </div>
-                    </div>
-                        
-                        <!-- 예약 정보 -->
-                        <h5 class="card-title mb-3 mt-4">예약 정보</h5>
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label class="form-label">예약 내역</label>
-                                <input type="text" class="form-control" th:value="${myPageDto.reserve != null ? myPageDto.reserve : '없음'}" readonly>
-                    </div>
-                            <div class="col-md-6">
-                                <label class="form-label">문의 내역</label>
-                                <input type="text" class="form-control" th:value="${myPageDto.inquiry != null ? myPageDto.inquiry : '없음'}" readonly>
-                    </div>
-                </div>
-                
-                        <!-- 결제 내역 -->
-                        <h3>결제 내역</h3>
-                        <ul>
-                            <li th:each="history : ${reserveList}" th:text="${history}"></li>
-                        </ul>
-                
+                        </div>
+
+
+                        <!-- 주문 내역 -->
+                        <h5 class="card-title mb-3 mt-4">📋 주문 내역</h5>
+                        <div th:if="${orderList != null and !orderList.empty}" class="order-table">
+                            <div class="table-responsive">
+                                <table class="table">
+                                    <thead>
+                                    <tr>
+                                        <th>주문번호</th>
+                                        <th>영화제목</th>
+                                        <th>영화관</th>
+                                        <th>예매수</th>
+                                        <th>좌석</th>
+                                        <th>결제금액</th>
+                                        <th>결제수단</th>
+                                        <th>결제일시</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    <tr th:each="order : ${orderList}">
+                                        <td>
+                                            <span class="order-number" th:text="${order.orderNumber}"></span>
+                                        </td>
+                                        <td>
+                                            <div class="movie-title" th:text="${order.movieTitle}"></div>
+                                        </td>
+                                        <td>
+                                            <div class="cinema-name" th:text="${order.cinemaName}"></div>
+                                        </td>
+                                        <td>
+                                            <span class="ticket-count" th:text="${order.per != null ? order.per + '매' : '1매'}"></span>
+                                        </td>
+                                        <td>
+                                            <div class="seat-info" th:text="${order.seat}"></div>
+                                        </td>
+                                        <td>
+                                            <span class="payment-amount" th:text="${order.paymentAmount} + '원'"></span>
+                                        </td>
+                                        <td>
+                                            <span th:class="${'payment-method ' + (order.paymentMethod == 'KAKAO_PAY' ? 'kakao' : (order.paymentMethod == 'CARD' ? 'card' : 'point'))}" 
+                                                  th:text="${order.paymentMethod == 'KAKAO_PAY' ? '카카오페이' : (order.paymentMethod == 'CARD' ? '카드' : '포인트')}"></span>
+                                        </td>
+                                        <td>
+                                            <div class="payment-date" th:text="${#temporals.format(order.paymentDate, 'yyyy-MM-dd HH:mm')}"></div>
+                                        </td>
+                                    </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div th:if="${orderList == null or orderList.empty}" class="empty-orders">
+                            <i class="fas fa-ticket-alt">🎫</i>
+                            <p>주문 내역이 없습니다.</p>
+                            <small class="text-muted">영화를 예매하시면 여기에 표시됩니다.</small>
+                        </div>
+
+
                         <!-- 버튼 그룹 -->
                         <div class="d-grid gap-2 mt-4">
                             <a href="/mypage/edit" class="btn btn-primary btn-lg">회원정보 수정</a>
                             <a href="/mypage/change-password" class="btn btn-secondary btn-lg">비밀번호 변경</a>
                             <a href="/" class="btn btn-outline-secondary btn-lg">홈으로 돌아가기</a>
-                    </div>
+                        </div>
                     </div>
                 </div>
             </div>

@@ -33,8 +33,6 @@ public class Seat {
     @Transient
     private boolean occupied; // DB에는 없지만 UI 렌더링용으로 사용
 
-    /*@OneToMany(mappedBy = "seat")
-    private List<ReservedSeat> reservedSeats = new ArrayList<>();*/
     @OneToMany(mappedBy = "seat")
     private List<ReservedSeat> reservedSeats = new ArrayList<>();
 
