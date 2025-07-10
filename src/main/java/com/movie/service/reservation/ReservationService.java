@@ -18,6 +18,7 @@ import com.movie.repository.reservation.ReservedSeatRepository;
 import com.movie.repository.cinema.ScheduleRepository;
 import com.movie.repository.cinema.ScreenRoomRepository;
 import com.movie.repository.reservation.ReservationRepository;
+import com.movie.service.cinema.ScheduleService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -42,6 +43,7 @@ public class ReservationService {
     private final SeatRepository seatRepository;
     private final ReservedSeatRepository reservedSeatRepository;
     private final ScheduleRepository scheduleRepository;
+    private final ScheduleService scheduleService;
     private final ScreenRoomRepository screenRoomRepository;
 
     final private StringRedisTemplate redisTemplate; //redis
@@ -118,6 +120,7 @@ public class ReservationService {
             reservationRepository.save(reservation); //예약 정보 저장
             //예약정보에는 list로 들어가있고 seat에서 나눠서 하나씩 넣고, redis도 삭제해줌
 
+            scheduleService.updateAvailableSeats(schedule.getId());
 
             //해당 유저 id랑 가져온 id 같으면 redis지움 and reservedSeat에 하나씩 넣음
             for (Long seat : reservationDto.getSeatId()) {
@@ -229,6 +232,10 @@ public class ReservationService {
         //상태 cancel로 바꿔준다.
         reservation.setReservationStatus(ReservationStatus.CANCEL);
         reservation.setCancelAt(LocalDateTime.now());
+
+        // ✅ 예약 취소 후 잔여 좌석 갱신
+        scheduleService.updateAvailableSeats(reservation.getSchedule().getId());
+
 
         return true;
     }

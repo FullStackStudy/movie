@@ -11,6 +11,7 @@ import com.movie.repository.cinema.CinemaRepository;
 import com.movie.repository.movie.MovieRepository;
 import com.movie.repository.cinema.ScheduleRepository;
 import com.movie.repository.cinema.ScreenRoomRepository;
+import com.movie.repository.reservation.ReservationRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,6 +28,7 @@ public class ScheduleService {
     private final ScreenRoomRepository screenRoomRepository;
     private final CinemaRepository cinemaRepository;
     private final ScheduleRepository scheduleRepository;
+    private final ReservationRepository reservationRepository;
 
     /* 스케줄 등록: DTO를 받아서 스케줄 등록*/
     public void registerFromDto(ScheduleDto dto) {
@@ -74,6 +76,19 @@ public class ScheduleService {
                                         .collect(Collectors.toList())
                         )
                 ));
+    }
+
+    //스케줄 별 잔여좌석 관리하기
+    public void updateAvailableSeats(Long scheduleId) {
+        Schedule schedule = scheduleRepository.findById(scheduleId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 스케줄이 존재하지 않습니다."));
+        int totalSeat = schedule.getScreenRoom().getTotalSeats();
+        int reservedCount = reservationRepository.countBySchedule_Id(scheduleId);
+
+        int availableSeat = totalSeat - reservedCount;
+
+        schedule.setAvailableSeat(availableSeat);
+        scheduleRepository.save(schedule);
     }
 
     //포스터가져오기 이다은
