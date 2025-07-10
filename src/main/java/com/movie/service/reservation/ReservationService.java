@@ -1,16 +1,24 @@
 package com.movie.service.reservation;
 
 import com.movie.constant.ReservationStatus;
-import com.movie.dto.ReservedSeatDto;
-import com.movie.dto.ScheduleDto;
-import com.movie.dto.SeatDto;
+import com.movie.dto.reservation.ReservedSeatDto;
+import com.movie.dto.cinema.ScheduleDto;
+import com.movie.dto.seat.SeatDto;
 import com.movie.dto.reservation.ReservationDto;
 import com.movie.dto.reservation.ReservationRedisResultDto;
 import com.movie.dto.reservation.ReservationResponseDto;
-import com.movie.entity.*;
+import com.movie.entity.cinema.Schedule;
+import com.movie.entity.cinema.Seat;
+import com.movie.entity.member.Member;
 import com.movie.entity.reservation.Reservation;
-import com.movie.repository.*;
+import com.movie.entity.reservation.ReservedSeat;
+import com.movie.repository.member.MemberRepository;
+import com.movie.repository.seat.SeatRepository;
+import com.movie.repository.reservation.ReservedSeatRepository;
+import com.movie.repository.cinema.ScheduleRepository;
+import com.movie.repository.cinema.ScreenRoomRepository;
 import com.movie.repository.reservation.ReservationRepository;
+import com.movie.service.cinema.ScheduleService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -34,6 +42,7 @@ public class ReservationService {
     private final SeatRepository seatRepository;
     private final ReservedSeatRepository reservedSeatRepository;
     private final ScheduleRepository scheduleRepository;
+    private final ScheduleService scheduleService;
     private final ScreenRoomRepository screenRoomRepository;
 
     final private StringRedisTemplate redisTemplate; //redis
@@ -61,9 +70,9 @@ public class ReservationService {
         //ScreenRoom screenRoom = screenRoomRepository.findById(roomId).orElseThrow(()-> new IllegalArgumentException());
         //
         List<Seat> seatList = seatRepository.findByScreenRoom_Id(roomId);
-        List<SeatDto> seatDtos = SeatDto.ofList(seatList);
+        List<SeatDto> seatDtos1 = SeatDto.ofList(seatList);
 
-        return seatDtos;
+        return seatDtos1;
     }
 
     //해당 스케쥴 예약된 좌석 가져오기
@@ -107,6 +116,7 @@ public class ReservationService {
             reservationRepository.save(reservation); //예약 정보 저장
             //예약정보에는 list로 들어가있고 seat에서 나눠서 하나씩 넣고, redis도 삭제해줌
 
+            scheduleService.updateAvailableSeats(schedule.getId());
 
             //해당 유저 id랑 가져온 id 같으면 redis지움 and reservedSeat에 하나씩 넣음
             for (Long seat : reservationDto.getSeatId()) {
@@ -218,6 +228,10 @@ public class ReservationService {
         //상태 cancel로 바꿔준다.
         reservation.setReservationStatus(ReservationStatus.CANCEL);
         reservation.setCancelAt(LocalDateTime.now());
+
+        // ✅ 예약 취소 후 잔여 좌석 갱신
+        scheduleService.updateAvailableSeats(reservation.getSchedule().getId());
+
 
         return true;
     }

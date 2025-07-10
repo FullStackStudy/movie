@@ -1,11 +1,11 @@
 package com.movie.dto.reservation;
 
 import com.movie.constant.ReservationStatus;
-import com.movie.dto.ReservedSeatDto;
-import com.movie.entity.Member;
-import com.movie.entity.ReservedSeat;
-import com.movie.entity.Schedule;
-import com.movie.entity.Seat;
+import com.movie.dto.reservation.ReservedSeatDto;
+import com.movie.entity.member.Member;
+import com.movie.entity.reservation.ReservedSeat;
+import com.movie.entity.cinema.Schedule;
+import com.movie.entity.cinema.Seat;
 import com.movie.entity.reservation.Reservation;
 import lombok.Getter;
 import lombok.Setter;

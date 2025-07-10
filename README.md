@@ -24,13 +24,15 @@ Spring Boot 기반 영화 예매 웹 애플리케이션입니다.
 - 회원가입 및 로그인
 - 이메일 인증 기능
 - 마이페이지 관리
-- OAuth2 소셜 로그인 (Google, Kakao)
+- OAuth2 소셜 로그인 (Google)
 - 외부 사이트를 selenium 과 jsoup 을 이용하여 크롤링
 - 메인배너에 영화정보 팝업
 - quartz 스케쥴러를 활용하여 매시간 토큰삭제 및 재차 크롤링
 - movieList 페이지 infinite scroll 기능 적용
 - 데이터 캐싱
 - 리뷰 게시판
+- 결제화면 제작 (/payment/test)
+- 카카오페이/신용카드 결제 구현 (임시카드번호 4532015112830366 만료일 12/25 CVC 123 소유자명 홍길동 )
 
 ### test 계정
 - test@test.com / 1234

@@ -1,8 +1,8 @@
 package com.movie.init;
 
 import com.movie.constant.Role;
-import com.movie.entity.Member;
-import com.movie.repository.MemberRepository;
+import com.movie.entity.member.Member;
+import com.movie.repository.member.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
@@ -38,8 +38,8 @@ public class TestAccountInitializer implements CommandLineRunner {
             testUser.setRole(Role.USER);
             testUser.setRegDate(LocalDate.now());
             testUser.setGrade("일반");
-            testUser.setReserve("쥬라기 월드: 새로운 시작");
-            testUser.setPoint("0");
+            testUser.setReserve("0:00:00,CGV 강남,서울 강남구 테헤란로,1관,B7,범죄도시4");
+            testUser.setPoint("12000");
             testUser.setInquiry("");
 
             memberRepository.save(testUser);
@@ -71,4 +71,4 @@ public class TestAccountInitializer implements CommandLineRunner {
         log.info("   👤 USER 계정: test@test.com / 1234");
         log.info("   👨‍💼 ADMIN 계정: admin@admin.com / 1234");
     }
-} 
+}

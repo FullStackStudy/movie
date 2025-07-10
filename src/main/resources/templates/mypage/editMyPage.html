@@ -14,17 +14,18 @@
                 </div>
                 
                 <form th:action="@{/mypage/edit}" th:object="${myPageDto}" method="post" enctype="multipart/form-data">
+                    <!-- CSRF 토큰 추가 -->
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
                     <div class="card">
                         <div class="card-body">
                             <!-- 프로필 이미지 섹션 -->
                             <div class="text-center mb-4">
-                                <div th:if="${myPageDto.profile != null and myPageDto.profile != ''}">
-                                    <img th:src="${myPageDto.profile}" alt="프로필 이미지" class="rounded-circle" id="profilePreview" style="width: 150px; height: 150px; object-fit: cover; border: 3px solid #007bff;">
-                                </div>
-                                <div th:unless="${myPageDto.profile != null and myPageDto.profile != ''}">
-                                    <img src="/images/default-profile.png" alt="기본 프로필" class="rounded-circle" id="profilePreview" style="width: 150px; height: 150px; object-fit: cover; border: 3px solid #007bff;" 
-                                         onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE1MCIgdmlld0JveD0iMCAwIDE1MCAxNTAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxNTAiIGhlaWdodD0iMTUwIiBmaWxsPSIjRkZGRkZGIi8+CjxjaXJjbGUgY3g9Ijc1IiBjeT0iNjAiIHI9IjIwIiBmaWxsPSIjQ0NDIi8+CjxyZWN0IHg9IjMwIiB5PSI5MCIgd2lkdGg9IjkwIiBoZWlnaHQ9IjQwIiBmaWxsPSIjQ0NDIi8+Cjwvc3ZnPgo='">
-                                </div>
+                                <img th:src="${myPageDto.profile != null and myPageDto.profile != '' ? myPageDto.profile : '/images/default-profile.png'}" 
+                                     alt="프로필 이미지" 
+                                     class="rounded-circle" 
+                                     id="profilePreview" 
+                                     style="width: 150px; height: 150px; object-fit: cover; border: 3px solid #007bff;"
+                                     onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE1MCIgdmlld0JveD0iMCAwIDE1MCAxNTAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxNTAiIGhlaWdodD0iMTUwIiBmaWxsPSIjRkZGRkZGIi8+CjxjaXJjbGUgY3g9Ijc1IiBjeT0iNjAiIHI9IjIwIiBmaWxsPSIjQ0NDIi8+CjxyZWN0IHg9IjMwIiB5PSI5MCIgd2lkdGg9IjkwIiBoZWlnaHQ9IjQwIiBmaWxsPSIjQ0NDIi8+Cjwvc3ZnPgo='">
                                 <div class="mt-3">
                                     <label for="profileImage" class="btn btn-outline-primary">프로필 이미지 변경</label>
                                     <input type="file" id="profileImage" name="profileImage" class="d-none" accept="image/*">
