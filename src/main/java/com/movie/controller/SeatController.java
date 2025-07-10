@@ -53,8 +53,9 @@ public class SeatController {
                 seats = createDefaultSeats(screenRoom);
             }
 
-            List<ReservedSeat> reservedSeats = reservedSeatRepository.findBySeat_ScreenRoom(screenRoom);
-
+            //상영관 -> 스케쥴별 예약된 좌석 수정 이다은
+            //List<ReservedSeat> reservedSeats = reservedSeatRepository.findBySeat_ScreenRoom(screenRoom);
+            List<ReservedSeat> reservedSeats = reservedSeatRepository.findBySchedule_Id(scheduleId);
             // 예약된 좌석 목록을 "A1", "B3" 이런 식으로 저장 (1부터 시작)
             List<String> reservedKeys = reservedSeats.stream()
                     .map(rs -> rs.getSeat().getSeatRow() + rs.getSeat().getSeatColumn())

@@ -51,7 +51,8 @@ public class ReservationController {
     private final RedisTemplate redisTemplate;
     private final SeatService seatService;
     private final ScheduleService scheduleService;
-    //예약페이지 in
+
+   /* //예약페이지 in
     @GetMapping({"/",""})
     public String reserveSet(@AuthenticationPrincipal UserDetails userDetails, Model model){
         System.out.println("들어오니");
@@ -110,7 +111,7 @@ public class ReservationController {
         //model.addAttribute("holdingSeatList", holdingSeatIds);
         return "seat/seatSelect"; // templates/reservation.html
     }
-
+*/
     //예약하기
     @PostMapping("/reserve")
     public @ResponseBody ResponseEntity<String> reserveSeats(

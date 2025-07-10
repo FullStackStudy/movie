@@ -185,6 +185,9 @@
                     <li class="nav-item" sec:authorize="isAuthenticated()">
                         <a class="nav-link" href="/mypage">마이페이지</a>
                     </li>
+                    <li class="nav-item" sec:authorize="isAuthenticated()">
+                        <a class="nav-link" href="/recommend">AI추천</a>
+                    </li>
                     <li class="nav-item" sec:authorize="!isAuthenticated()">
                         <a class="nav-link" href="/members/new">회원가입</a>
                     </li>

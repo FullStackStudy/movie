@@ -7,4 +7,5 @@ import java.util.List;
 
 public interface ReservationRepository extends JpaRepository<Reservation, Long> {
     List<Reservation> findAllByMember_memberIdOrderByReservedAtDesc(String memberId); //내가 본 영화 목록
+
 }
