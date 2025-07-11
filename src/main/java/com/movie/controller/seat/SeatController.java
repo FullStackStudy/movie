@@ -96,7 +96,7 @@ public class SeatController {
                 seat.setSeatRow(row);
                 seat.setSeatColumn(col);
                 seat.setScreenRoom(screenRoom);
-                seat.setPrice(15000);
+                seat.setPrice(12000);
                 seats.add(seat);
             }
         }

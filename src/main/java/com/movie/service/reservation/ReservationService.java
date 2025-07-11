@@ -25,6 +25,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.nio.file.AccessDeniedException;
 import java.time.Duration;
@@ -47,6 +48,9 @@ public class ReservationService {
 
     final private StringRedisTemplate redisTemplate; //redis
     final private SeatNotificationService seatNotificationService; //websocket
+    
+    @Value("${reservation.seat.hold.timeout:10}")
+    private int seatHoldTimeoutMinutes;
 
     public List<ScheduleDto> getScheduleInfo(){//
             List<Schedule> scheduleList = scheduleRepository.findAll();
@@ -265,7 +269,7 @@ public class ReservationService {
 
         // setIfAbsent = Redis SETNX (Set if Not Exists)
         // 성공하면 true, 이미 존재하면 false (이미 예약된 상태)
-        Boolean success = redisTemplate.opsForValue().setIfAbsent(key, userId, Duration.ofSeconds(30));
+        Boolean success = redisTemplate.opsForValue().setIfAbsent(key, userId, Duration.ofMinutes(seatHoldTimeoutMinutes));
 
         System.out.println("Redis 저장 시도: key=" + key + ", 결과=" + success);
 
@@ -277,7 +281,7 @@ public class ReservationService {
             boolean stillExists = redisTemplate.hasKey(key);
 
             if(!stillExists){
-                success = redisTemplate.opsForValue().setIfAbsent(key, userId, Duration.ofMinutes(1));
+                success = redisTemplate.opsForValue().setIfAbsent(key, userId, Duration.ofMinutes(seatHoldTimeoutMinutes));
             }
         }
         return Boolean.TRUE.equals(success);

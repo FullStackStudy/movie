@@ -1,10 +1,12 @@
 package com.movie.controller.member;
 
 import com.movie.dto.member.MyPageDto;
+import com.movie.dto.payment.MovieOrderDto;
 import com.movie.entity.member.Member;
 import com.movie.repository.member.MemberRepository;
 import com.movie.service.member.MemberService;
 import com.movie.service.common.FileService;
+import com.movie.service.payment.MovieOrderService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
@@ -29,6 +31,7 @@ public class MyPageController {
     private final PasswordEncoder passwordEncoder;
     private final FileService fileService;
     private final MemberRepository memberRepository;
+    private final MovieOrderService movieOrderService;
 
     @GetMapping("/mypage")
     public String myPage(Model model) {
@@ -51,6 +54,10 @@ public class MyPageController {
             
             MyPageDto myPageDto = memberService.getMyPageInfo(memberId);
             model.addAttribute("myPageDto", myPageDto);
+            
+            // 주문 내역 조회
+            List<MovieOrderDto> orderList = movieOrderService.getOrdersByMemberId(memberId);
+            model.addAttribute("orderList", orderList);
         } catch (Exception e) {
             System.out.println("❌ 마이페이지 오류: " + e.getMessage());
             model.addAttribute("errorMessage", e.getMessage());

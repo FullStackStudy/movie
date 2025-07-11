@@ -12,4 +12,5 @@ public class PaymentInfoDto {
         private String memberId;
         private String movieTitle;
         private int moviePrice;
+        private Long per; // 예매수
 } 

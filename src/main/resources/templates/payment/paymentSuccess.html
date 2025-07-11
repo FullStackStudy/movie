@@ -189,40 +189,46 @@
         <div class="payment-info" th:if="${paymentInfo}">
             <h3>📋 결제 정보</h3>
             <div class="info-grid">
-                <!-- 카카오페이 결제 정보 -->
-                <div class="info-item" th:if="${paymentInfo.partner_order_id}">
-                    <span class="label">주문번호</span>
-                    <span class="value" th:text="${paymentInfo.partner_order_id}"></span>
-                </div>
-                <div class="info-item" th:if="${paymentInfo.payment_method_type}">
+                <!-- 주문 정보 (주문번호, 거래번호는 숨김) -->
+                <div class="info-item" th:if="${paymentInfo.paymentMethod}">
                     <span class="label">결제수단</span>
-                    <span class="value" th:text="${paymentInfo.payment_method_type}"></span>
+                    <span class="value" th:text="${paymentInfo.paymentMethod}"></span>
                 </div>
-                <div class="info-item" th:if="${paymentInfo.amount?.total}">
+                <div class="info-item" th:if="${paymentInfo.paymentAmount}">
                     <span class="label">결제금액</span>
-                    <span class="value" th:text="${paymentInfo.amount.total} + '원'"></span>
+                    <span class="value" th:text="${paymentInfo.paymentAmount} + '원'"></span>
                 </div>
-                <div class="info-item" th:if="${paymentInfo.approved_at}">
-                    <span class="label">결제일시</span>
-                    <span class="value" th:text="${paymentInfo.approved_at}"></span>
+                <div class="info-item" th:if="${paymentInfo.usedPoint}">
+                    <span class="label">사용포인트</span>
+                    <span class="value" th:text="${paymentInfo.usedPoint} + '원'"></span>
                 </div>
-                
-                <!-- 카드결제 정보 -->
-                <div class="info-item" th:if="${paymentInfo.orderId}">
-                    <span class="label">주문번호</span>
-                    <span class="value" th:text="${paymentInfo.orderId}"></span>
+                <div class="info-item" th:if="${paymentInfo.movieTitle}">
+                    <span class="label">영화제목</span>
+                    <span class="value" th:text="${paymentInfo.movieTitle}"></span>
                 </div>
-                <div class="info-item" th:if="${paymentInfo.transactionId}">
-                    <span class="label">거래번호</span>
-                    <span class="value" th:text="${paymentInfo.transactionId}"></span>
+                <div class="info-item" th:if="${paymentInfo.per != null && paymentInfo.per > 1}">
+                    <span class="label">예매수</span>
+                    <span class="value" th:text="${paymentInfo.per} + '매'"></span>
                 </div>
-                <div class="info-item" th:if="${paymentInfo.amount && !paymentInfo.amount.total}">
-                    <span class="label">결제금액</span>
-                    <span class="value" th:text="${paymentInfo.amount} + '원'"></span>
+                <div class="info-item" th:if="${paymentInfo.cinemaName}">
+                    <span class="label">영화관</span>
+                    <span class="value" th:text="${paymentInfo.cinemaName}"></span>
+                </div>
+                <div class="info-item" th:if="${paymentInfo.screenRoomName}">
+                    <span class="label">상영관</span>
+                    <span class="value" th:text="${paymentInfo.screenRoomName}"></span>
+                </div>
+                <div class="info-item" th:if="${paymentInfo.seat}">
+                    <span class="label">좌석</span>
+                    <span class="value" th:text="${paymentInfo.seat}"></span>
+                </div>
+                <div class="info-item" th:if="${paymentInfo.movieStart}">
+                    <span class="label">상영시간</span>
+                    <span class="value" th:text="${paymentInfo.movieStart}"></span>
                 </div>
                 <div class="info-item" th:if="${paymentInfo.paymentDate}">
                     <span class="label">결제일시</span>
-                    <span class="value" th:text="${paymentInfo.paymentDate}"></span>
+                    <span class="value" th:text="${#temporals.format(paymentInfo.paymentDate, 'yyyy-MM-dd HH:mm:ss')}"></span>
                 </div>
             </div>
         </div>

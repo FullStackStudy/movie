@@ -7,10 +7,13 @@ import com.movie.dto.payment.KakaoPayApprovalRequestDto;
 import com.movie.dto.payment.KakaoPayApprovalResponseDto;
 import com.movie.dto.payment.CardPaymentRequestDto;
 import com.movie.dto.payment.CardPaymentResponseDto;
+import com.movie.dto.payment.MovieOrderDto;
+import com.movie.dto.reservation.ReservationResponseDto;
 import com.movie.repository.member.MemberRepository;
 import com.movie.entity.member.Member;
 import com.movie.service.payment.KakaoPayService;
 import com.movie.service.payment.CardPaymentService;
+import com.movie.service.payment.MovieOrderService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -30,44 +33,48 @@ public class PaymentController {
     private final MemberRepository memberRepository;
     private final KakaoPayService kakaoPayService;
     private final CardPaymentService cardPaymentService;
+    private final MovieOrderService movieOrderService;
     
     @Value("${kakao.pay.base-url}")
     private String kakaoPayBaseUrl;
 
-    // member_reserve를 파싱하는 공통 메서드
-    private PaymentInfoDto parseReserveInfo(String memberId) {
-        Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
+    // 세션에서 ReservationResponseDto를 가져와서 PaymentInfoDto로 변환하는 메서드
+    private PaymentInfoDto parseReservationInfo(HttpSession session) {
+        ReservationResponseDto reservationData = (ReservationResponseDto) session.getAttribute("reservedData");
+        if (reservationData == null) {
+            throw new IllegalArgumentException("예약 정보를 찾을 수 없습니다.");
+        }
 
         PaymentInfoDto dto = new PaymentInfoDto();
-        dto.setMemberId(memberId);
-        dto.setMoviePrice(12000); // 기본 가격 설정
-
-        // member_reserve 에서 정보 파싱
-        String reserve = member.getReserve();
-        if (reserve != null && !reserve.isEmpty()) {
-            String[] reserveLines = reserve.split("\\n");
-            if (reserveLines.length > 0) {
-                String firstReserve = reserveLines[0];
-                String[] reserveInfo = firstReserve.split(",");
-
-                if (reserveInfo.length >= 6) {
-                    dto.setMovieStart(reserveInfo[0].trim()); // 영화시작시간 (인덱스 0)
-                    dto.setCinemaName(reserveInfo[1].trim()); // 영화관명 (인덱스 1)
-                    dto.setCinemaAddress(reserveInfo[2].trim()); // 주소 (인덱스 2)
-                    dto.setScreenRoomName(reserveInfo[3].trim()); // 상영관 (인덱스 3)
-                    dto.setSeat(reserveInfo[4].trim()); // 좌석 (인덱스 4)
-                    dto.setMovieTitle(reserveInfo[5].trim()); // 영화제목 (인덱스 5)
-                }
-            }
-        }
+        dto.setMemberId(reservationData.getMemberId());
+        
+        // ReservationResponseDto의 price는 이미 예매수(per)를 고려한 총 금액이므로 그대로 사용
+        int totalPrice = reservationData.getPrice() != null ? reservationData.getPrice() : 12000;
+        Long per = reservationData.getPer() != null ? reservationData.getPer() : 1L;
+        
+        dto.setMoviePrice(totalPrice);
+        dto.setMovieTitle(reservationData.getMovieName());
+        dto.setCinemaName(reservationData.getCinemaName());
+        dto.setScreenRoomName(reservationData.getScreenName());
+        dto.setSeat(String.join(", ", reservationData.getSeatName()));
+        dto.setMovieStart(reservationData.getStartTime() != null ? reservationData.getStartTime().toString() : "");
+        dto.setCinemaAddress(""); // ReservationResponseDto에는 주소 정보가 없으므로 빈 문자열로 설정
+        dto.setPer(per); // 예매수 설정
 
         return dto;
     }
 
     @GetMapping("/movie/payment")
     public String moviePaymentPage(@RequestParam String memberId,
+                              HttpSession session,
                               Model model) {
+        // 세션에서 예약 정보 확인
+        ReservationResponseDto reservationData = (ReservationResponseDto) session.getAttribute("reservedData");
+        if (reservationData == null) {
+            model.addAttribute("error", "예약 정보를 찾을 수 없습니다. 다시 예약해주세요.");
+            return "payment/paymentFail";
+        }
+
         // memberId로 회원 정보 조회
         Member member = memberRepository.findById(memberId).orElse(null);
         if (member == null) {
@@ -75,7 +82,7 @@ public class PaymentController {
             return "payment/paymentFail";
         }
 
-        PaymentInfoDto dto = parseReserveInfo(memberId);
+        PaymentInfoDto dto = parseReservationInfo(session);
 
         // 회원 포인트 조회
         int memberPoint = 0;
@@ -87,26 +94,36 @@ public class PaymentController {
             }
         }
 
+        // 세션에서 usePoint 가져오기
+        Integer usePoint = (Integer) session.getAttribute("usePoint");
+        if (usePoint == null) usePoint = 0;
+        
         model.addAttribute("paymentInfo", dto);
         model.addAttribute("memberPoint", memberPoint);
+        model.addAttribute("usePoint", usePoint);
         return "payment/moviePaymentPage";
     }
 
     // 결제 테스트용 엔드포인트
     @GetMapping("/movie/payment/test")
-    public String paymentTest(Model model) {
-        // test@test.com 계정의 reserve 내역을 파싱해서 사용
-        String memberId = "test@test.com";
-        Member member = memberRepository.findById(memberId).orElse(null);
-        
-        if (member == null) {
-            model.addAttribute("error", "테스트 계정을 찾을 수 없습니다.");
+    public String paymentTest(HttpSession session, Model model) {
+        // 세션에서 예약 정보를 가져와서 사용
+        ReservationResponseDto reservationData = (ReservationResponseDto) session.getAttribute("reservedData");
+        if (reservationData == null) {
+            model.addAttribute("error", "예약 정보를 찾을 수 없습니다.");
             return "payment/paymentFail";
         }
 
-        PaymentInfoDto dto = parseReserveInfo(memberId);
+        PaymentInfoDto dto = parseReservationInfo(session);
 
         // 회원 포인트 조회
+        String memberId = dto.getMemberId();
+        Member member = memberRepository.findById(memberId).orElse(null);
+        if (member == null) {
+            model.addAttribute("error", "존재하지 않는 회원입니다.");
+            return "payment/paymentFail";
+        }
+
         int memberPoint = 0;
         if (member.getPoint() != null) {
             try {
@@ -127,8 +144,8 @@ public class PaymentController {
                                 HttpSession session,
                                 Model model) {
 
-        // member_reserve에서 정보 파싱
-        PaymentInfoDto paymentInfo = parseReserveInfo(memberId);
+        // 예약 정보에서 결제 정보 파싱
+        PaymentInfoDto paymentInfo = parseReservationInfo(session);
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
 
@@ -144,8 +161,8 @@ public class PaymentController {
             return "payment/paymentFail";
         }
 
-        // 실제 결제 금액 계산
-        int finalPrice = paymentInfo.getMoviePrice() - Math.min(usePoint, paymentInfo.getMoviePrice());
+        // paymentInfo.getMoviePrice()는 이미 포인트가 차감된 금액이므로 그대로 사용
+        int finalPrice = paymentInfo.getMoviePrice();
 
         // 주문 ID 생성 (현재 시간 기반)
         String orderId = "ORDER_" + System.currentTimeMillis();
@@ -203,8 +220,8 @@ public class PaymentController {
             return "payment/paymentFail";
         }
         
-        // member_reserve에서 정보 파싱
-        PaymentInfoDto paymentInfo = parseReserveInfo(memberId);
+        // 예약 정보에서 결제 정보 파싱
+        PaymentInfoDto paymentInfo = parseReservationInfo(session);
 
         try {
             // 카카오페이 승인 요청
@@ -243,11 +260,25 @@ public class PaymentController {
 
             memberRepository.save(member);
 
+            // MovieOrder에 주문 정보 저장
+            movieOrderService.saveOrder(
+                paymentInfo, 
+                orderId, 
+                responseDto.getTid(), // transactionId로 사용
+                "KAKAO_PAY", 
+                usePoint, 
+                orderId, // partnerOrderId
+                pg_token
+            );
+
             // 세션 정리
             session.removeAttribute("kakao_tid");
             session.removeAttribute("kakao_orderId");
             session.removeAttribute("kakao_memberId");
             session.removeAttribute("kakao_usePoint");
+            
+            // 성공 페이지에서 주문 정보를 표시하기 위해 주문번호를 세션에 저장
+            session.setAttribute("lastOrderNumber", orderId);
 
             log.info("카카오페이 결제 성공 - memberId: {}, orderId: {}, usePoint: {}", memberId, orderId, usePoint);
             return "redirect:/movie/payment/success";
@@ -298,7 +329,7 @@ public class PaymentController {
             return "payment/paymentFail";
         }
 
-        PaymentInfoDto dto = parseReserveInfo(memberId);
+        PaymentInfoDto dto = parseReservationInfo(null); // session 파라미터 제거
 
         // 회원 포인트 조회
         int memberPoint = 0;
@@ -329,10 +360,11 @@ public class PaymentController {
                                      @RequestParam String cardHolderName,
                                      @RequestParam String memberId,
                                      @RequestParam int usePoint,
+                                     HttpSession session,
                                      Model model) {
         try {
-            // member_reserve에서 정보 파싱
-            PaymentInfoDto paymentInfo = parseReserveInfo(memberId);
+            // 예약 정보에서 결제 정보 파싱
+            PaymentInfoDto paymentInfo = parseReservationInfo(session);
             Member member = memberRepository.findById(memberId)
                     .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
 
@@ -348,8 +380,8 @@ public class PaymentController {
                 return "payment/paymentFail";
             }
 
-            // 실제 결제 금액 계산
-            int finalPrice = paymentInfo.getMoviePrice() - Math.min(usePoint, paymentInfo.getMoviePrice());
+            // paymentInfo.getMoviePrice()는 이미 포인트가 차감된 금액이므로 그대로 사용
+            int finalPrice = paymentInfo.getMoviePrice();
 
             // 주문 ID 생성
             String orderId = "ORDER_" + System.currentTimeMillis();
@@ -383,6 +415,20 @@ public class PaymentController {
 
                 memberRepository.save(member);
 
+                // MovieOrder에 주문 정보 저장
+                movieOrderService.saveOrder(
+                    paymentInfo, 
+                    orderId, 
+                    responseDto.getTransactionId(), 
+                    "CARD", 
+                    usePoint, 
+                    null, // partnerOrderId (카드결제는 없음)
+                    null  // pgToken (카드결제는 없음)
+                );
+
+                // 성공 페이지에서 주문 정보를 표시하기 위해 주문번호를 세션에 저장
+                session.setAttribute("lastOrderNumber", orderId);
+
                 log.info("카드 결제 성공 - memberId: {}, orderId: {}, usePoint: {}", memberId, orderId, usePoint);
                 return "redirect:/movie/payment/success";
             } else {
@@ -401,10 +447,11 @@ public class PaymentController {
     public String completePayment(
             @RequestParam String memberId,
             @RequestParam(defaultValue = "0") int usePoint,
+            HttpSession session,
             Model model) {
         try {
-            // member_reserve에서 정보 파싱
-            PaymentInfoDto paymentInfo = parseReserveInfo(memberId);
+            // 예약 정보에서 결제 정보 파싱
+            PaymentInfoDto paymentInfo = parseReservationInfo(session);
             Member member = memberRepository.findById(memberId)
                     .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
 
@@ -437,6 +484,21 @@ public class PaymentController {
 
             memberRepository.save(member);
 
+            // MovieOrder에 주문 정보 저장
+            String orderId = "ORDER_" + System.currentTimeMillis();
+            movieOrderService.saveOrder(
+                paymentInfo, 
+                orderId, 
+                "POINT_" + System.currentTimeMillis(), // 포인트 결제용 거래번호
+                "POINT", 
+                usePoint, 
+                null, // partnerOrderId (포인트결제는 없음)
+                null  // pgToken (포인트결제는 없음)
+            );
+
+            // 성공 페이지에서 주문 정보를 표시하기 위해 주문번호를 세션에 저장
+            session.setAttribute("lastOrderNumber", orderId);
+
             log.info("포인트 결제 성공 - memberId: {}, usePoint: {}", memberId, usePoint);
             return "redirect:/movie/payment/success";
 
@@ -448,7 +510,17 @@ public class PaymentController {
     }
 
     @GetMapping("/movie/payment/success")
-    public String paymentSuccess(Model model) {
+    public String paymentSuccess(@SessionAttribute(name = "lastOrderNumber", required = false) String lastOrderNumber,
+                                Model model) {
+        if (lastOrderNumber != null) {
+            try {
+                MovieOrderDto orderInfo = movieOrderService.getOrderByOrderNumber(lastOrderNumber);
+                model.addAttribute("paymentInfo", orderInfo);
+                model.addAttribute("message", "결제가 성공적으로 완료되었습니다!");
+            } catch (Exception e) {
+                log.warn("주문 정보 조회 실패: {}", e.getMessage());
+            }
+        }
         return "payment/paymentSuccess";
     }
 }
