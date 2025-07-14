@@ -60,7 +60,7 @@ public class TestAccountInitializer implements CommandLineRunner {
             testAdmin.setRegDate(LocalDate.now());
             testAdmin.setGrade("관리자");
             testAdmin.setReserve("테스트 영화, 샘플 영화");
-            testAdmin.setPoint("0");
+            testAdmin.setPoint("12000");
             testAdmin.setInquiry("");
 
             memberRepository.save(testAdmin);

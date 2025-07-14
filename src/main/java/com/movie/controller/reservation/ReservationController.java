@@ -15,6 +15,8 @@ import com.movie.service.cinema.ScheduleService;
 import com.movie.service.seat.SeatService;
 import com.movie.service.reservation.ReservationService;
 import com.movie.service.reservation.SeatNotificationService;
+import com.movie.repository.member.MemberRepository;
+import com.movie.entity.member.Member;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -51,8 +53,8 @@ public class ReservationController {
     private final RedisTemplate redisTemplate;
     private final SeatService seatService;
     private final ScheduleService scheduleService;
-
-   /* //예약페이지 in
+    private final MemberRepository memberRepository;
+    //예약페이지 in
     @GetMapping({"/",""})
     public String reserveSet(@AuthenticationPrincipal UserDetails userDetails, Model model){
         System.out.println("들어오니");
@@ -111,7 +113,7 @@ public class ReservationController {
         //model.addAttribute("holdingSeatList", holdingSeatIds);
         return "seat/seatSelect"; // templates/reservation.html
     }
-*/
+
     //예약하기
     @PostMapping("/reserve")
     public @ResponseBody ResponseEntity<String> reserveSeats(
@@ -163,18 +165,32 @@ public class ReservationController {
 
     //결제 페이지 in
     @GetMapping("/pay")
-    public String payReservation(HttpSession session, Model model){//redis는 예약하기 누르부터 저장됨
+    public String payReservation(HttpSession session, Model model, @AuthenticationPrincipal UserDetails userDetails){//redis는 예약하기 누르부터 저장됨
         ReservationResponseDto reservationResponseDto = (ReservationResponseDto) session.getAttribute("reservedData");
         List<Long> seatId = (List<Long>)session.getAttribute("seatId");
         Long scheduleId = (Long)session.getAttribute("scheduleId");
         String moviePoster = scheduleService.getPosterUrl(scheduleId).getMoviePoster();
-        model .addAttribute("moviePoster", moviePoster);
+        
+        // 회원 포인트 정보 조회
+        int memberPoint = 0;
+        try {
+            String memberId = userDetails.getUsername();
+            Member member = memberRepository.findById(memberId).orElse(null);
+            if (member != null && member.getPoint() != null) {
+                memberPoint = Integer.parseInt(member.getPoint());
+            }
+        } catch (Exception e) {
+            // 포인트 조회 실패 시 0으로 설정
+        }
+        
+        model.addAttribute("moviePoster", moviePoster);
         model.addAttribute("seatId",seatId);
         model.addAttribute("scheduleId",scheduleId);
         model.addAttribute("reservedData", reservationResponseDto);
+        model.addAttribute("memberPoint", memberPoint);
         //Long key = reservationService.getTtl(reservationService.makeKey(reservationResponseDto.getScheduleId(), reservationResponseDto.getSeatId().getFirst()));
         //seatNotificationService.notifyPayHold(reservationResponseDto.getScheduleId(), reservationResponseDto.getSeatId(),"hold", key);
-        return "/reserve/reservePay";
+        return "reserve/reservePay";
     }
 
     //결제
@@ -182,27 +198,24 @@ public class ReservationController {
     public String payReservation(HttpSession session,
                                  @RequestParam("seat_id")List<Long> seatId,
                                  @RequestParam("schedule_id") Long scheduleId,
+                                 @RequestParam(defaultValue = "0") int usePoint,
+                                 @RequestParam int finalPrice,
                                  Model model,
                                  @AuthenticationPrincipal UserDetails userDetails) {
-        ReservationDto reserve = (ReservationDto) session.getAttribute("reservedData");
-        System.out.println("뭐야" + reserve.toString());
+        ReservationResponseDto reserve = (ReservationResponseDto) session.getAttribute("reservedData");
+        System.out.println("결제 페이지로 이동 - 예약 정보: " + reserve.toString());
         reserve.setSeatId(seatId);
         reserve.setScheduleId(scheduleId);
 
-        boolean failPay = true; //결제 아직 모르니까 성공으로 가게 해놓음
-        if (!failPay) { //결제 취소하면, 결제 화면 나가면 그냥 결제 화면 보여주는거잖아? //이건 아예 예약확정 전에 예약취소하는거지 -> 합치고고민하기
-            for (Long seatIds : reserve.getSeatId()) { //좌석
-                reservationService.releaseSeat(reserve.getScheduleId(), seatIds, reserve.getMemberId());
-                model.addAttribute("errorMessage", "결제 실패");
-            }
-            return "redirect:/reservation/pay";
-        } else { //결제 성공
-            boolean success = reservationService.saveReservation(userDetails ,reserve);
-            if (success) {
-                System.out.println("결제 성공!!!!!!!!!!!!!!!!!!!!!! 메인간다");
-                return "redirect:/";
-            }else return "redirect:/reservation/pay";
-        }
+        // 최종 금액 설정 (reservePay에서 계산된 값 사용)
+        reserve.setPrice(finalPrice);
+
+        // 세션에 업데이트된 예약 정보 저장
+        session.setAttribute("reservedData", reserve);
+        session.setAttribute("usePoint", usePoint);
+        
+        // movie/payment 페이지로 리다이렉트
+        return "redirect:/movie/payment?memberId=" + userDetails.getUsername();
     }
 
     @PostMapping("/back")

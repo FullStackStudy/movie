@@ -238,48 +238,7 @@
     }
   </style>
   <script>
-    function updateFinalPrice() {
-      const moviePrice = parseInt(document.getElementById('moviePrice').dataset.price);
-      const memberPoint = parseInt(document.getElementById('memberPoint').innerText);
-      let usePoint = parseInt(document.getElementById('usePoint').value);
-      if (isNaN(usePoint) || usePoint < 0) usePoint = 0;
-      if (usePoint > memberPoint) usePoint = memberPoint;
-      if (usePoint > moviePrice) usePoint = moviePrice;
-      document.getElementById('usePoint').value = usePoint;
-      const finalPrice = moviePrice - usePoint;
-      document.getElementById('finalPrice').innerText = finalPrice;
-      
-      // 금액이 0이 되면 자동으로 결제완료 페이지로 이동
-      if (finalPrice === 0 && usePoint > 0) {
-        setTimeout(() => {
-          if (confirm('포인트로 전체 금액을 결제하시겠습니까?')) {
-            const form = document.createElement('form');
-            form.method = 'POST';
-            form.action = '/movie/payment/complete';
-            
-            const fields = {
-              'memberId': document.querySelector('input[name="memberId"]').value,
-              'usePoint': usePoint
-            };
-            
-            for (const [name, value] of Object.entries(fields)) {
-              const input = document.createElement('input');
-              input.type = 'hidden';
-              input.name = name;
-              input.value = value;
-              form.appendChild(input);
-            }
-            
-            document.body.appendChild(form);
-            form.submit();
-          }
-        }, 500);
-      }
-    }
-    window.onload = function() {
-      document.getElementById('usePoint').addEventListener('input', updateFinalPrice);
-      updateFinalPrice();
-    }
+    // 포인트 기능이 reservePay.html로 이동했으므로 여기서는 불필요
   </script>
 </head>
 <body>
@@ -298,10 +257,6 @@
           <span class="value" th:text="${paymentInfo.movieStart}"></span>
         </div>
         <div class="info-item">
-          <span class="label">주소</span>
-          <span class="value" th:text="${paymentInfo.cinemaAddress}"></span>
-        </div>
-        <div class="info-item">
           <span class="label">상영관</span>
           <span class="value" th:text="${paymentInfo.screenRoomName}"></span>
         </div>
@@ -317,6 +272,10 @@
           <span class="label">영화제목</span>
           <span class="value" th:text="${paymentInfo.movieTitle}"></span>
         </div>
+        <div class="info-item" th:if="${paymentInfo.per != null && paymentInfo.per > 1}">
+          <span class="label">예매수</span>
+          <span class="value" th:text="${paymentInfo.per} + '매'"></span>
+        </div>
         <div class="info-item">
           <span class="label">가격</span>
           <span class="value" id="moviePrice" th:text="${paymentInfo.moviePrice} + '원'" th:data-price="${paymentInfo.moviePrice}"></span>
@@ -324,18 +283,8 @@
       </div>
     </div>
     
-    <div class="point-section">
-      <h4>💎 포인트 사용</h4>
-      <div class="point-input">
-        <span>보유 포인트: <strong id="memberPoint" th:text="${memberPoint} + 'P'"></strong></span>
-        <label>사용할 포인트:
-          <input type="number" id="usePoint" name="usePoint" min="0" th:attr="max=${memberPoint}" value="0" />
-        </label>
-      </div>
-    </div>
-    
     <div class="final-price">
-      💰 총 결제금액: <span id="finalPrice"></span>원
+      💰 총 결제금액: <span id="finalPrice" th:text="${paymentInfo.moviePrice} + '원'"></span>
     </div>
     
     <div class="payment-methods">
@@ -345,8 +294,8 @@
         <!-- 카카오페이 결제 -->
         <form th:action="@{/movie/payment/kakao-pay-ready}" method="post">
           <input type="hidden" name="memberId" th:value="${paymentInfo.memberId}" />
-          <input type="hidden" name="usePoint" id="usePointKakao" />
-          <button type="submit" class="payment-btn btn-kakao" onclick="document.getElementById('usePointKakao').value = document.getElementById('usePoint').value;">
+          <input type="hidden" name="usePoint" th:value="${usePoint}" />
+          <button type="submit" class="payment-btn btn-kakao">
             🟡 카카오페이
           </button>
         </form>
@@ -354,8 +303,8 @@
         <!-- 카드결제 -->
         <form th:action="@{/movie/payment/card}" method="get">
           <input type="hidden" name="memberId" th:value="${paymentInfo.memberId}" />
-          <input type="hidden" name="usePoint" id="usePointCard" />
-          <button type="submit" class="payment-btn btn-card" onclick="document.getElementById('usePointCard').value = document.getElementById('usePoint').value;">
+          <input type="hidden" name="usePoint" th:value="${usePoint}" />
+          <button type="submit" class="payment-btn btn-card">
             💳 신용카드
           </button>
         </form>
