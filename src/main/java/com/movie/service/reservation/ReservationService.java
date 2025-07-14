@@ -30,7 +30,6 @@ import java.nio.file.AccessDeniedException;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Service
@@ -107,15 +106,9 @@ public class ReservationService {
             // dto -> entity 변환
             Reservation reservation = reservationDto.createReservation(schedule, member, reservationDto);
 
-            //seatId String으로 변환
-            //String seat_id = reservation.getSeat_id().toString(); //seatId String으로 변환
-
-            //seatId 저장
-           // reservation.setSeat_id(seat_id); //seatId 저장
-
             reservationRepository.save(reservation); //예약 정보 저장
-            //예약정보에는 list로 들어가있고 seat에서 나눠서 하나씩 넣고, redis도 삭제해줌
 
+            //예약정보에는 list로 들어가있고 seat에서 나눠서 하나씩 넣고, redis도 삭제해줌
             scheduleService.updateAvailableSeats(schedule.getId());
 
             //해당 유저 id랑 가져온 id 같으면 redis지움 and reservedSeat에 하나씩 넣음
@@ -140,6 +133,9 @@ public class ReservationService {
                     releaseSeat(reservationDto.getScheduleId(), seat, currentUser); //redis 삭제
                 }
             }
+
+            //예약하면 추천 ai 새로 받아오기 위해 redis 삭제
+            relaseRecomRedis(member.getMemberId());
             return true;
         }else{
             System.out.println("로그인 유저와 지금 저장하려는 유저가 다름");
@@ -314,5 +310,23 @@ public class ReservationService {
                 }).collect(Collectors.toList());
 
         return seatRepository.findAllById(seatId);
+    }
+    //예약완료하면 추천 ai 다시 보여주려고 redis 지움
+    public void relaseRecomRedis(String memberId){
+        try {
+            String hybridKey = "recommend:hybrid:"+memberId;
+            String collaboKey = "recommend:collabo:"+memberId;
+            String contentKey = "recommend:content:"+memberId;
+            String tmdbKey = "recommend:tmdb:"+memberId;
+
+            redisTemplate.delete(hybridKey);
+            redisTemplate.delete(collaboKey);
+            redisTemplate.delete(contentKey);
+            redisTemplate.delete(tmdbKey);
+            System.out.println("예약저장 추천레디스 삭제 성공");
+        }catch (Exception e){
+            e.printStackTrace();
+            System.out.println("예약저장 추천레디스 삭제과정에서 실패하였습니다.");
+        }
     }
 }

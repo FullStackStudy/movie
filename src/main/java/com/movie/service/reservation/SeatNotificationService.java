@@ -15,7 +15,6 @@ public class SeatNotificationService {
     private final SimpMessagingTemplate messagingTemplate;
     private final SeatRepository seatRepository;
 
-    //생성자 주입
     public SeatNotificationService(SimpMessagingTemplate messagingTemplate, SeatRepository seatRepository){
         this.messagingTemplate = messagingTemplate;
         this.seatRepository = seatRepository;

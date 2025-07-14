@@ -14,6 +14,7 @@ public class TmdbDto { //flask에서 받은 데이터에 있는 movieid로 post 
     private String moviePoster;
     private String movieTitle;
     private String releasedDate;
-    private String Detail;
-    private List<String> genres;
+    private String detail;
+    private String genres;
+    private Double voteAverage;
 }

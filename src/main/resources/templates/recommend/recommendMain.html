@@ -22,6 +22,9 @@
           box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
           transition: box-shadow 0.3s ease;
         }
+        #movieDiv{
+            margin-top: 50px;
+        }
         .swiper {
           width: 100%;
           padding-top: 2rem;
@@ -42,8 +45,6 @@
           transition: transform 0.3s ease;
           box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
         }
-
-
         .swiper-slide:hover {
           transform: scale(1.05);
           z-index: 5;
@@ -51,6 +52,7 @@
         .movie-poster {
           width: 100%;
           height: 100%;
+          border-radius: 12px;
           object-fit: cover;
           display: block;
         }
@@ -87,8 +89,6 @@
         .swiper-button-prev {
           color: #4CAF50;
         }
-
-
         .hybrid-section {
           background: linear-gradient(150deg, #43a047, #1b4332);
           padding: 2rem 2.5rem;
@@ -202,6 +202,56 @@
           z-index: 9999;
         }
 
+        #movie-container {
+          display: flex;
+          flex-wrap: wrap;
+          justify-content: space-between;
+          gap: 24px;
+        }
+        #movie-container ul{
+            padding-left: 0rem;
+        }
+        #movie-container li {
+          width: calc(50% - 12px);
+          display: flex;
+          padding: 16px;
+          background: #fff;
+          border-radius: 10px;
+          box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+          box-sizing: border-box;
+        }
+        #movie-container li img {
+          width: 100px;
+          height: auto;
+          border-radius: 6px;
+          box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+          object-fit: cover;
+        }
+        #movie-container li div {
+          flex: 1;
+          margin-left: 2rem;
+        }
+        #movie-container li h3 {
+          margin: 0 0 6px 0;
+          font-size: 18px;
+          font-weight: bold;
+        }
+        #movie-container li p {
+          margin: 4px 0;
+          color: #555;
+          font-size: 15px;
+          line-height: 1.4;
+        }
+        #loader {
+          text-align: center;
+          color: #999;
+          font-size: 14px;
+          display: none;
+          margin-top: 20px;
+        }
+        .popover {
+            max-width: 400px; /* 원하는 크기로 조절 */
+          }
     </style>
 </head>
 
@@ -216,7 +266,7 @@
     </div>
     <div class="container py-4">
         <div class="section hybrid-section">
-            <h3>🎯 <span th:text="${nickname}" style="font-size: 1.2em; font-weight: bold; color:#1b3b2a;">닉네임</span>님을 위해 엄선한 영화</h3>
+            <h4>🎯 <span th:text="${nickname}" style="font-size: 1.2em; font-weight: bold; color:#1b3b2a;">닉네임</span>님을 위해 엄선한 영화</h4>
             <div class="swiper mySwiper1 mb-5">
                 <div class="swiper-wrapper">
                     <div class="swiper-slide hybrid" th:each="movie : ${hybridList}" onclick="goDetail(this)">
@@ -233,7 +283,7 @@
         </div>
 
         <!-- 2 -->
-        <h3>👥 비슷한 유저들이 본 영화</h3>
+        <h4>👥 비슷한 유저들이 본 영화</h4>
         <div class="swiper mySwiper2 mb-5">
             <div class="swiper-wrapper">
                 <div class="swiper-slide" th:each="movie : ${collaboList}" onclick="goDetail(this)">
@@ -249,7 +299,7 @@
         </div>
 
         <!-- 3 -->
-        <h3>🎞️ 내가 본 영화와 비슷한 영화</h3>
+        <h4>🎞️ 내가 본 영화와 비슷한 영화</h4>
         <div class="swiper mySwiper3 mb-5">
             <div class="swiper-wrapper">
                 <div class="swiper-slide" th:each="movie : ${contentList}" onclick="goDetail(this)">
@@ -264,47 +314,67 @@
             <div class="swiper-button-prev"></div>
         </div>
 
-        <!-- 4 -->
-        <h3>📼 <span th:text="${nickname}" style="font-size: 1.2em; font-weight: bold color: #007bff;">닉네임</span>
-            님의 취향을 가득 담은 명작 추천</h3>
-        <h6>상영 중인 영화가 아닌 영화 정보만 제공합니다. </h6>
-        <div class="swiper mySwiper4 mb-5">
-            <div class="swiper-wrapper">
-                <div class="swiper-slide" th:each="movie : ${tmdbList}" onclick="showCustomPopover(event, this)">
-                    <img th:src="${movie.moviePoster}" alt="포스터" class="movie-poster"/>
-                    <div class="card-overlay">
-                        <div class="movie-title" th:text="${movie.movieTitle}"></div>
-                        <input type="hidden" th:value="${movie.movieId}" class="movie_id">
-                    </div>
-                </div>
-            </div>
-            <div class="swiper-button-next"></div>
-            <div class="swiper-button-prev"></div>
-        </div>
-    </div>
-    <!-- Swiper JS -->
-    <script src="https://cdn.jsdelivr.net/npm/swiper/swiper-bundle.min.js"></script>
-    <script>
-        window.addEventListener('load', function () {
-            document.getElementById('loadingSpinner').style.display = 'none';
-          });
-        new Swiper(".mySwiper1", {
-          loop: true,
-          slidesPerView: 4,
-          spaceBetween: 12,
-          autoplay: {
-            delay: 3000,
-            disableOnInteraction: false,
-          },
-          navigation: {
-            nextEl: ".mySwiper1 .swiper-button-next",
-            prevEl: ".mySwiper1 .swiper-button-prev",
-          },
-        });
+        <hr style="border: none; height: 3px; background: linear-gradient(150deg, #43a047, #1b4332); margin: 40px 0;">
 
-        // 나머지 3줄은 자동 슬라이드 없이 화살표만
-        ["mySwiper2", "mySwiper3", "mySwiper4"].forEach(className => {
-          new Swiper(`.${className}`, {
+        <h4>📼 <span th:text="${nickname}" style="font-size: 1.2em; font-weight: bold color: #007bff;">닉네임</span>
+            님의 취향을 가득 담은 명작 추천</h4>
+        <h6>상영 중인 영화가 아닌 TMDB에서 가져온 영화 정보만 제공합니다. </h6>
+        <div id="movieDiv">
+            <ul id="movie-container">
+                <!-- 초기 5개 서버 렌더링 -->
+                <th:block th:each="movie, iterStat : ${tmdbList}">
+                    <li th:if="${iterStat.index < 4}">
+                        <img th:src="${movie.moviePoster}" alt="포스터" />
+                        <div>
+                            <h3 th:text="${movie.movieTitle}">영화 제목</h3>
+                            <p>📅 개봉일 <span th:text="${movie.releasedDate}">0</span></p>
+                            <p>🏷️ 장르 <span th:text="${movie.genres}">0</span></p>
+                            <p>⭐ 평점 <span th:text="${movie.voteAverage}">0</span></p>
+                            <span tabindex="0" role="button" data-bs-toggle="popover" data-bs-trigger="hover focus" data-bs-placement="top"
+                                  th:attr="data-bs-content=${movie.detail}">줄거리 보기</span>
+                        </div>
+                    </li>
+                </th:block>
+            </ul>
+            <div id="loader" style="display:none; text-align:center; padding: 10px; font-size:14px; color:#666;">
+                영화를 더 불러오는 중입니다...
+            </div>
+        </div>
+</div>
+<!-- Swiper JS -->
+<script src="https://cdn.jsdelivr.net/npm/swiper/swiper-bundle.min.js"></script>
+
+<script th:inline="javascript">
+    const LOADING_DELAY = 500;
+    window.addEventListener('load', function () {
+        document.getElementById('loadingSpinner').style.display = 'none';
+
+     });
+    document.addEventListener('DOMContentLoaded', () => {
+        renderMovies();
+        //줄거리 팝오버
+        var popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'))
+        var popoverList = popoverTriggerList.map(function (popoverTriggerEl) {
+            return new bootstrap.Popover(popoverTriggerEl)
+        });
+     });
+    new Swiper(".mySwiper1", {
+      loop: true,
+      slidesPerView: 4,
+      spaceBetween: 12,
+      autoplay: {
+        delay: 3000,
+        disableOnInteraction: false,
+      },
+      navigation: {
+        nextEl: ".mySwiper1 .swiper-button-next",
+        prevEl: ".mySwiper1 .swiper-button-prev",
+      },
+    });
+
+    // 나머지 3줄은 자동 슬라이드 없이 화살표만
+    ["mySwiper2", "mySwiper3", "mySwiper4"].forEach(className => {
+        new Swiper(`.${className}`, {
             loop: true,
             slidesPerView: 6,
             spaceBetween: 12,
@@ -312,15 +382,74 @@
               nextEl: `.${className} .swiper-button-next`,
               prevEl: `.${className} .swiper-button-prev`,
             },
-          });
         });
+    });
 
-        function goDetail(el) {
-            const movieId = el.querySelector(".movie_id").value;
-            console.log("클릭한 영화 ID:", movieId);
-            // 예: 상세 페이지로 이동
-            window.location.href = `/movie/${movieId}`;
+    function goDetail(el) {
+        const movieId = el.querySelector(".movie_id").value;
+        console.log("클릭한 영화 ID:", movieId);
+        window.location.href = `/movie/${movieId}`;
+    }
+
+    //무한스크롤링
+     /*<![CDATA[*/
+        var movies = /*[[${tmdbList}]]*/ [];
+     /*]]>*/
+
+     let currentIndex = 4; // 이미 0~4 렌더링됨
+     const batchSize = 4;
+     const container = document.getElementById('movie-container');
+     const loader = document.getElementById('loader');
+     let isLoading = false;
+
+     function renderMovies() {
+         if (isLoading) return;
+         isLoading = true;
+         loader.style.display = 'block';
+
+         setTimeout(() => {
+             for (let i = currentIndex; i < currentIndex + batchSize && i < movies.length; i++) {
+                 const movie = movies[i];
+
+                 const li = document.createElement('li');
+                 li.style.display = 'flex';
+                 li.style.gap = '20px';
+                 li.style.marginBottom = '30px';
+                 li.style.alignItems = 'flex-start';
+
+                 li.innerHTML = `
+                     <img src="${movie.moviePoster}" alt="포스터" />
+                     <div>
+                       <h3 style="margin:0 0 6px 0; font-size:18px; font-weight:bold;">${movie.movieTitle}</h3>
+                       <p>📅 개봉일 <span>${movie.releasedDate}</span></p>
+                       <p>🏷️ 장르 <span>${movie.genres}</span></p>
+                       <p>⭐ 평점 <span>${movie.voteAverage}</span></p>
+                       <span tabindex="0" role="button" data-bs-toggle="popover" data-bs-trigger="hover focus" data-bs-placement="top" data-bs-content="${movie.detail}">줄거리 보기</span>
+                     </div>
+                 `;
+                 container.appendChild(li);
+                 var popoverTrigger = li.querySelector('[data-bs-toggle="popover"]');
+                     if (popoverTrigger) {
+                         new bootstrap.Popover(popoverTrigger);
+                     }
+             }
+
+             currentIndex += batchSize;
+             isLoading = false;
+             loader.style.display = 'none';
+
+         }, LOADING_DELAY);
+     }
+
+     window.addEventListener('scroll', () => {
+     console.log("들어완?");
+
+
+    if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 100) {
+        if (currentIndex < movies.length) {
+            renderMovies();
         }
-
-    </script>
+    }
+});
+</script>
 </div>

@@ -13,6 +13,7 @@ import com.movie.repository.reservation.ReservationRepository;
 import lombok.RequiredArgsConstructor;
 import net.minidev.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -23,6 +24,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -36,6 +38,9 @@ public class RecommendService {
     private final MovieRepository movieRepository;
     private final MemberRepository memberRepository;
     private final ReservationRepository reservationRepository;
+
+    private final RedisTemplate<String, Object> redisTemplate;
+    private static final Duration TTL = Duration.ofHours(1);
 
     //tmdb api
     @Value("${tmdb.api-key}")
@@ -131,23 +136,21 @@ public class RecommendService {
         requestBody.put("watchedMovieIds", getMovieIdOneUser(userDetails.getUsername()));
         requestBody.put("interactions", getInteraction());
         requestBody.put("targetMemberId", userDetails.getUsername());
-        RestTemplate restTemplate = new RestTemplate();
-        String pythonApiUrl = "http://127.0.0.1:5000/recommend-hybrid"; //파이선 주소
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-
-        ObjectMapper mapper = new ObjectMapper();
-        String json = mapper.writeValueAsString(requestBody); // Map -> JSON 문자열 변환
-
-        HttpEntity<String> requestEntity = new HttpEntity<>(json, headers);
-        System.out.println("요청 JSON = " + requestEntity);
-        ResponseEntity<String> response =restTemplate.postForEntity(pythonApiUrl, requestEntity, String.class);
-        // 받은 JSON을 다시 DTO로 변환
-        List<UserRecommendationResultDto> resultDto = mapper.readValue(response.getBody(), new TypeReference<List<UserRecommendationResultDto>>() {});
-        System.out.println("하이브리드 추천결과:"+resultDto);
-        return setResultToResponse(resultDto);
-
+        //먼저 redis에 있으면 가져옴
+        String key = "recommend:hybrid:"+userDetails.getUsername();
+        if(redisTemplate.hasKey(key)){
+            System.out.println(" 하이브리드 추천 redis에서 결과 가져옴니다");
+            List<UserRecommendationResultDto>resultDto =  (List<UserRecommendationResultDto>)redisTemplate.opsForValue().get(key);
+            return setResultToResponse(resultDto);
+        }else {
+            //없으면 lightfm ㄱㄱ
+            List<UserRecommendationResultDto> resultDto = gotoLightfm("recommend-hybrid", "hybrid", requestBody);
+            //redis 한시간 저장
+            Boolean success = redisTemplate.opsForValue().setIfAbsent(key, resultDto, TTL);
+            System.out.println("하이브리드 redis 저장 성공?: "+success);
+            return setResultToResponse(resultDto);
+        }
     }
 
     //협업추천
@@ -156,30 +159,42 @@ public class RecommendService {
         requestBody.put("watchedMovieIds", getMovieIdOneUser(userDetails.getUsername()));
         requestBody.put("interactions", getInteraction());
         requestBody.put("targetMemberId", userDetails.getUsername());
-        RestTemplate restTemplate = new RestTemplate();
-        String pythonApiUrl = "http://127.0.0.1:5000/recommend"; //파이선 주소
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-
-
-        ObjectMapper mapper = new ObjectMapper();
-        String json = mapper.writeValueAsString(requestBody); // Map -> JSON 문자열 변환
-
-        HttpEntity<String> requestEntity = new HttpEntity<>(json, headers);
-        System.out.println("요청 JSON = " + requestEntity);
-        ResponseEntity<String> response =restTemplate.postForEntity(pythonApiUrl, requestEntity, String.class);
-
-        List<UserRecommendationResultDto> resultDto = mapper.readValue(response.getBody(), new TypeReference<List<UserRecommendationResultDto>>() {});
-        System.out.println("협업 추천 돌아온 결과"+resultDto);
-        return setResultToResponse(resultDto);
+        //redis
+        String key = "recommend:collabo:"+userDetails.getUsername();
+        if(redisTemplate.hasKey(key)){
+            List<UserRecommendationResultDto> resultDto = (List<UserRecommendationResultDto>) redisTemplate.opsForValue().get(key);
+            System.out.println(" 협업 추천 redis에서 결과 가져옴니다");
+            return setResultToResponse(resultDto);
+        }else {
+            List<UserRecommendationResultDto> resultDto = gotoLightfm("recommend", "collaba", requestBody);
+            Boolean success = redisTemplate.opsForValue().setIfAbsent(key, resultDto, TTL);
+            System.out.println("협업 redis 저장 성공?: "+success);
+            return setResultToResponse(resultDto);
+        }
     }
     //컨텐츠기반추천
     public List<RecommendResponseDto> getRecommendContent(@AuthenticationPrincipal UserDetails userDetails) throws JsonProcessingException {
         Map<String, Object> requestBody = new HashMap<>();
         requestBody.put("movieIds", getMovieIdOneUser(userDetails.getUsername()));
+
+        String key = "recommend:content:"+userDetails.getUsername();
+        if(redisTemplate.hasKey(key)){
+            List<UserRecommendationResultDto> resultDto = (List<UserRecommendationResultDto>)redisTemplate.opsForValue().get(key);
+            System.out.println("콘텐츠 추천 redis에서 결과 가져옴니다");
+            return setResultToResponse(resultDto);
+        }else {
+            List<UserRecommendationResultDto> resultDto = gotoLightfm("recommend-content", "content", requestBody);
+            Boolean success = redisTemplate.opsForValue().setIfAbsent(key, resultDto, TTL);
+            System.out.println("콘텐츠 redis 저장 성공?: "+success);
+            return setResultToResponse(resultDto);
+        }
+    }
+
+    //lightfm 가는 함수
+    public List<UserRecommendationResultDto> gotoLightfm(String url, String name,Map<String, Object> requestBody) throws JsonProcessingException {
         RestTemplate restTemplate = new RestTemplate();
-        String pythonApiUrl = "http://127.0.0.1:5000/recommend-content"; //파이선 주소
+        String pythonApiUrl = "http://127.0.0.1:5000/"+url; //파이선 주소
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
@@ -192,51 +207,58 @@ public class RecommendService {
         ResponseEntity<String> response =restTemplate.postForEntity(pythonApiUrl, requestEntity, String.class);
         // 받은 JSON을 다시 DTO로 변환
         List<UserRecommendationResultDto> resultDto = mapper.readValue(response.getBody(), new TypeReference<List<UserRecommendationResultDto>>() {});
-        System.out.println("컨텐츠 추천결과:"+resultDto);
-        return setResultToResponse(resultDto);
+        System.out.println(name+" 추천결과:"+resultDto);
+
+        return resultDto;
     }
 
     /// //////////////////////////////////정보가 모자라서 추가를 위해 tmdbapi로 영화 받아옴 hybrid로 뽑은 상위3개의 tmdbid 뽑아옴
-    public List<TmdbDto> searchMovieInTMDB(String title, int year){ //하나씩이라고 생각하면됨 movieid 하나당
+    public List<TmdbDto> searchMovieInTMDB(String memberId, String title, int year){ //하나씩이라고 생각하면됨 movieid 하나당
+        String key = "recommend:tmdb:"+memberId;
         RestTemplate restTemplate = new RestTemplate();
-        String url = TMDB_URL + "search/movie?api_key=" + TMDB_API_KEY + "&query="+title+"&year="+year+"&language=ko";
-        System.out.println("url: "+url);
+        System.out.println("Title"+title);
+        String url = TMDB_URL + "search/movie?api_key=" + TMDB_API_KEY + "&query=" + title + "&year=" + year + "&language=ko";
         try {
-                ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
+            ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
 
-                ObjectMapper objectMapper = new ObjectMapper();
-                Map<String, Object> jsonResponse = objectMapper.readValue(response.getBody(), Map.class); //받아오는 json
-                List<Map<String, Object>> results = (List<Map<String, Object>>) jsonResponse.get("results"); //결과를 map 형식으로 list로 받음
+            ObjectMapper objectMapper = new ObjectMapper();
+            Map<String, Object> jsonResponse = objectMapper.readValue(response.getBody(), Map.class); //받아오는 json
+            List<Map<String, Object>> results = (List<Map<String, Object>>) jsonResponse.get("results"); //결과를 map 형식으로 list로 받음
+            if (!results.isEmpty() && results != null) {
                 Map<String, Object> result = results.get(0);
                 System.out.println("응답 본문: " + result);
 
-                List<Map<String, Object>> movieList = searchSimilarInTMDB((Integer)result.get("id"));
+                List<Map<String, Object>> movieList = searchSimilarInTMDB((Integer) result.get("id"));
                 //tmdb에서 가져온 리스트 ->dto 변환
-                List<TmdbDto> recommedList = movieList.stream()
+                List<TmdbDto> recommendList = movieList.stream()
                         .map(movie -> {
-                            TmdbDto dto =new TmdbDto();
-
+                            TmdbDto dto = new TmdbDto();
                             dto.setMovieId(((Number) movie.get("id")).longValue());
                             dto.setMovieTitle((String) movie.get("title"));
-                            String fullUrl = "https://image.tmdb.org/t/p/w500" + (String)movie.get("poster_path");
+                            String fullUrl = "https://image.tmdb.org/t/p/w500" + (String) movie.get("poster_path");
                             dto.setMoviePoster(fullUrl);
                             dto.setDetail((String) movie.get("overview"));
-                            dto.setReleasedDate((String)movie.get("release_date"));
-
+                            dto.setReleasedDate((String) movie.get("release_date"));
+                            dto.setVoteAverage((Double) movie.get("vote_average"));
                             Object genreObj = movie.get("genre_ids");
-                            if(genreObj instanceof List<?>){
+                            if (genreObj instanceof List<?>) {
                                 List<Integer> genreIds = (List<Integer>) genreObj;
                                 dto.setGenres(genreIds.stream()
                                         .map(id -> genreIdToName(id)) //id ->한글
-                                        .collect(Collectors.toList()));
+                                        .collect(Collectors.joining(",")));
                             }
                             return dto;
                         }).collect(Collectors.toList());
-
-                return recommedList;
-
-
-        } catch (Exception e){
+                Boolean success = redisTemplate.opsForValue().setIfAbsent(key,recommendList,TTL);
+                System.out.println("tmdb 레디스 저장 성공?"+success);
+                return recommendList;
+            } else {
+                // 빈 리스트 할당하거나 로그 출력
+                List<TmdbDto> recommendList = new ArrayList<>();
+                System.out.println("movieList가 null입니다.");
+                return recommendList;
+            }
+        } catch (Exception e) {
             e.printStackTrace();
             return null;
         }
@@ -302,25 +324,4 @@ public class RecommendService {
             default: return "알 수 없음";
         }
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 }
