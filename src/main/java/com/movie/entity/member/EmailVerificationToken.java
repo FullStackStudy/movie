@@ -30,7 +30,8 @@ public class EmailVerificationToken {
     @Column(nullable = false)
     private boolean used = false;
 
-    public EmailVerificationToken(String token, String email, LocalDateTime expiryDate) {
+    public EmailVerificationToken(String token, String email,
+                                  LocalDateTime expiryDate) {
         this.token = token;
         this.email = email;
         this.expiryDate = expiryDate;

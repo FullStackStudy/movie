@@ -15,15 +15,15 @@ import java.time.LocalDate;
 @Setter
 public class MemberFormDto {
 
-    @Email(message = "올바른 이메일 형식으로 입력해주세요.")
-    @NotBlank(message = "이메일은 필수 입력 항목입니다.")
+    @Email
+    @NotBlank
     private String memberId;
 
-    @NotEmpty(message = "비밀번호는 필수 입력 항목입니다.")
-    @Length(min = 8, message = "비밀번호는 8자 이상이어야 합니다.")
+    @NotEmpty
+    @Length(min = 8)
     private String password;
 
-    @NotBlank(message = "이름은 필수 입력 항목입니다.")
+    @NotBlank
     private String name;
 
     private LocalDate birth;

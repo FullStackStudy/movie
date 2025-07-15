@@ -138,14 +138,17 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
         private String email;
         private String picture;
 
-        public static OAuthAttributes of(String registrationId, String userNameAttributeName, Map<String, Object> attributes) {
+        public static OAuthAttributes of(String registrationId,
+                                         String userNameAttributeName,
+                                         Map<String, Object> attributes) {
             if ("google".equals(registrationId)) {
                 return ofGoogle(userNameAttributeName, attributes);
             }
             return null;
         }
 
-        private static OAuthAttributes ofGoogle(String userNameAttributeName, Map<String, Object> attributes) {
+        private static OAuthAttributes ofGoogle(String userNameAttributeName,
+                                                Map<String, Object> attributes) {
             OAuthAttributes oAuthAttributes = new OAuthAttributes();
             oAuthAttributes.name = (String) attributes.get("name");
             oAuthAttributes.email = (String) attributes.get("email");
