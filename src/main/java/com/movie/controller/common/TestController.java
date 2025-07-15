@@ -2,6 +2,7 @@ package com.movie.controller.common;
 
 import com.movie.entity.member.Member;
 import com.movie.repository.member.MemberRepository;
+import com.movie.service.movie.MovieCrawlingService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -18,6 +19,7 @@ import java.util.Map;
 public class TestController {
 
     private final MemberRepository memberRepository;
+    private final MovieCrawlingService movieCrawlingService;
 
     @GetMapping("/accounts")
     public Map<String, Object> getTestAccounts() {
@@ -88,5 +90,18 @@ public class TestController {
         result.put("message", "테스트 계정 상태 확인 완료");
         
         return result;
+    }
+
+    @GetMapping("/crawl")
+    public String testCrawl() {
+        try {
+            log.info("테스트 크롤링 시작");
+            movieCrawlingService.crawlAndSaveMovies();
+            log.info("테스트 크롤링 완료");
+            return "크롤링 완료!";
+        } catch (Exception e) {
+            log.error("테스트 크롤링 실패: {}", e.getMessage(), e);
+            return "크롤링 실패: " + e.getMessage();
+        }
     }
 } 
