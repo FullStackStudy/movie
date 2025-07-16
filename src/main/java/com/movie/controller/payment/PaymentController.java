@@ -39,6 +39,7 @@ public class PaymentController {
     private final CardPaymentService cardPaymentService;
     private final MovieOrderService movieOrderService;
     private final ReservationService reservationService; //reservation db 이다은
+
     @Value("${kakao.pay.base-url}")
     private String kakaoPayBaseUrl;
 
@@ -51,11 +52,11 @@ public class PaymentController {
 
         PaymentInfoDto dto = new PaymentInfoDto();
         dto.setMemberId(reservationData.getMemberId());
-        
+
         // ReservationResponseDto의 price는 이미 예매수(per)를 고려한 총 금액이므로 그대로 사용
         int totalPrice = reservationData.getPrice() != null ? reservationData.getPrice() : 12000;
         Long per = reservationData.getPer() != null ? reservationData.getPer() : 1L;
-        
+
         dto.setMoviePrice(totalPrice);
         dto.setMovieTitle(reservationData.getMovieName());
         dto.setCinemaName(reservationData.getCinemaName());
@@ -101,7 +102,7 @@ public class PaymentController {
         // 세션에서 usePoint 가져오기
         Integer usePoint = (Integer) session.getAttribute("usePoint");
         if (usePoint == null) usePoint = 0;
-        
+
         model.addAttribute("paymentInfo", dto);
         model.addAttribute("memberPoint", memberPoint);
         model.addAttribute("usePoint", usePoint);
@@ -184,22 +185,22 @@ public class PaymentController {
         String approvalUrl = "http://localhost:80/movie/payment/kakao-pay-success";
         String cancelUrl = "http://localhost:80/movie/payment/kakao-pay-cancel";
         String failUrl = "http://localhost:80/movie/payment/kakao-pay-fail";
-        
+
         log.info("카카오페이 URL 설정 - approval: {}, cancel: {}, fail: {}", approvalUrl, cancelUrl, failUrl);
-        
+
         requestDto.setApproval_url(approvalUrl);
         requestDto.setCancel_url(cancelUrl);
         requestDto.setFail_url(failUrl);
 
         try {
             KakaoPayReadyResponseDto responseDto = kakaoPayService.kakaoPayReady(requestDto);
-            
+
             // tid를 세션에 저장 (승인 요청 시 사용)
             session.setAttribute("kakao_tid", responseDto.getTid());
             session.setAttribute("kakao_orderId", orderId);
             session.setAttribute("kakao_memberId", memberId);
             session.setAttribute("kakao_usePoint", usePoint);
-            
+
             log.info("카카오페이 준비 성공 - tid: {}, orderId: {}", responseDto.getTid(), orderId);
             return "redirect:" + responseDto.getNext_redirect_pc_url();
         } catch (Exception e) {
@@ -228,12 +229,13 @@ public class PaymentController {
             return "payment/paymentFail";
         }
 
+
         if (tid == null || orderId == null || memberId == null || usePoint == null) {
             log.error("세션에서 카카오페이 정보를 찾을 수 없습니다.");
             model.addAttribute("error", "결제 정보를 찾을 수 없습니다.");
             return "payment/paymentFail";
         }
-        
+
         // 예약 정보에서 결제 정보 파싱
         PaymentInfoDto paymentInfo = parseReservationInfo(session);
 
@@ -276,11 +278,11 @@ public class PaymentController {
 
             // MovieOrder에 주문 정보 저장
             movieOrderService.saveOrder(
-                paymentInfo, 
-                orderId, 
+                paymentInfo,
+                orderId,
                 responseDto.getTid(), // transactionId로 사용
-                "KAKAO_PAY", 
-                usePoint, 
+                "KAKAO_PAY",
+                usePoint,
                 orderId, // partnerOrderId
                 pg_token
             );
@@ -293,7 +295,7 @@ public class PaymentController {
             session.removeAttribute("kakao_orderId");
             session.removeAttribute("kakao_memberId");
             session.removeAttribute("kakao_usePoint");
-            
+
             // 성공 페이지에서 주문 정보를 표시하기 위해 주문번호를 세션에 저장
             session.setAttribute("lastOrderNumber", orderId);
 
@@ -310,13 +312,13 @@ public class PaymentController {
     @GetMapping("/movie/payment/kakao-pay-cancel")
     public String kakaoPayCancel(HttpSession session, Model model) {
         log.info("카카오페이 결제 취소");
-        
+
         // 세션 정리
         session.removeAttribute("kakao_tid");
         session.removeAttribute("kakao_orderId");
         session.removeAttribute("kakao_memberId");
         session.removeAttribute("kakao_usePoint");
-        
+
         model.addAttribute("error", "결제가 취소되었습니다.");
         return "payment/paymentFail";
     }
@@ -324,13 +326,13 @@ public class PaymentController {
     @GetMapping("/movie/payment/kakao-pay-fail")
     public String kakaoPayFail(HttpSession session, Model model) {
         log.info("카카오페이 결제 실패");
-        
+
         // 세션 정리
         session.removeAttribute("kakao_tid");
         session.removeAttribute("kakao_orderId");
         session.removeAttribute("kakao_memberId");
         session.removeAttribute("kakao_usePoint");
-        
+
         model.addAttribute("error", "결제에 실패했습니다.");
         return "payment/paymentFail";
     }
@@ -442,11 +444,11 @@ public class PaymentController {
 
                 // MovieOrder에 주문 정보 저장
                 movieOrderService.saveOrder(
-                    paymentInfo, 
-                    orderId, 
-                    responseDto.getTransactionId(), 
-                    "CARD", 
-                    usePoint, 
+                    paymentInfo,
+                    orderId,
+                    responseDto.getTransactionId(),
+                    "CARD",
+                    usePoint,
                     null, // partnerOrderId (카드결제는 없음)
                     null  // pgToken (카드결제는 없음)
                 );
@@ -526,11 +528,11 @@ public class PaymentController {
             // MovieOrder에 주문 정보 저장
             String orderId = "ORDER_" + System.currentTimeMillis();
             movieOrderService.saveOrder(
-                paymentInfo, 
-                orderId, 
+                paymentInfo,
+                orderId,
                 "POINT_" + System.currentTimeMillis(), // 포인트 결제용 거래번호
-                "POINT", 
-                usePoint, 
+                "POINT",
+                usePoint,
                 null, // partnerOrderId (포인트결제는 없음)
                 null  // pgToken (포인트결제는 없음)
             );

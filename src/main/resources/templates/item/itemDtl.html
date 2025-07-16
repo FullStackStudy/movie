@@ -1,0 +1,398 @@
+  <!DOCTYPE html>
+  <html xmlns:th="http://www.thymeleaf.org"
+        xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+        layout:decorate="~{layouts/layout1}">
+  <head>
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}">
+  </head>
+
+  <th:block layout:fragment="script">
+    <script th:inline="javascript">
+      $(document).ready(function(){
+         calculateTotalPrice();
+
+         $("#count").change(function(){
+             calculateTotalPrice();
+         });
+      });
+      function updateCount(amount) {
+    const countInput = $("#count");
+    let currentCount = parseInt(countInput.val());
+
+    let newCount = currentCount + amount;
+    if (newCount < 1) newCount = 1;
+
+    countInput.val(newCount).change();
+  }
+
+      function calculateTotalPrice(){
+         var count = $("#count").val();
+         var price = $("#price").val();
+         var totalPrice = price * count;
+
+         $("#totalPrice").html(totalPrice + '원');
+      }
+
+     function order() {
+      var token = $("meta[name='_csrf']").attr("content");
+      var header = $("meta[name='_csrf_header']").attr("content");
+
+      // 값 추출
+      var itemId = $("#itemId").val();
+      var quantity = $("#count").val();
+      var memberId = $("#memberId").val();  // hidden input 필요
+      const cinemaName = $("#cinemaSelect").val();
+       const pickupTime = $("#pickupTimeSelect").val() || $("#nonePickupTimeSelect").val();
+
+       if (!cinemaName) {
+    Swal.fire({
+        icon: 'info',
+        title: '영화관을 선택해주세요',
+        text: '상품을 받을 영화관을 선택하셔야 합니다.',
+        confirmButtonText: '확인',
+        confirmButtonColor: '#016064'
+    });
+    return;
+}
+
+      // 검증
+      if (!memberId || !itemId) {
+          alert("회원 ID 또는 상품 ID가 누락되었습니다.");
+          return;
+      }
+
+      // 쿼리 파라미터 방식으로 전송
+     const url = `/store/payment?memberId=${memberId}&itemId=${itemId}&quantity=${quantity}&pickupTime=${pickupTime}&cinemaName=${cinemaName}`;
+
+      $.ajax({
+          url: url,
+          type: "POST",
+          beforeSend: function(xhr) {
+              xhr.setRequestHeader(header, token);
+          },
+          success: function(result, status) {
+              // 서버에서 HTML 페이지를 반환하므로 전체 페이지로 전환
+              document.open();
+              document.write(result);
+              document.close();
+          },
+          error: function(jqXHR, status, error) {
+              Swal.fire({
+          icon: 'info',
+          title: '픽업 시간이 필요해요',
+          text: '픽업 시간을 선택해주세요.',
+          confirmButtonText: '확인',
+          confirmButtonColor: '#016064'
+      });
+          }
+      });
+  }
+
+      function addCart(){
+          var token = $("meta[name='_csrf']").attr("content");
+          var header = $("meta[name='_csrf_header']").attr("content");
+
+              const pickupTime = $("#pickupTimeSelect").val() || $("#nonePickupTimeSelect").val();
+              const cinemaName = $("#cinemaSelect").val();
+
+      if (!cinemaName) {
+        Swal.fire({
+        icon: 'info',
+        title: '영화관을 선택해주세요',
+        text: '상품을 받을 영화관을 선택하셔야 합니다.',
+        confirmButtonText: '확인',
+        confirmButtonColor: '#016064'
+    });
+    return;
+}
+
+      if (!pickupTime) {
+      Swal.fire({
+          icon: 'info',
+          title: '픽업 시간이 필요해요',
+          text: '픽업 시간을 선택해주세요.',
+          confirmButtonText: '확인',
+          confirmButtonColor: '#016064'
+      });
+      return;
+  }
+
+          var url = "/cart";
+
+          var paramData = {
+              itemId : $("#itemId").val(),
+              count : $("#count").val(),
+              pickupTime: $("#pickupTimeSelect").val() || $("#nonePickupTimeSelect").val(),
+              cinemaName : $("#cinemaSelect").val()
+          };
+          var param = JSON.stringify(paramData);
+
+         $.ajax({
+      url : url,
+      type : "POST",
+      contentType : "application/json",
+      data : param,
+      beforeSend : function(xhr){
+          xhr.setRequestHeader(header, token);
+      },
+      dataType : "json",
+      cache : false,
+      success : function(result, status){
+          Swal.fire({
+              icon: 'success',
+              title: '장바구니에 담겼습니다!',
+              text: '스토어 페이지로 이동합니다.',
+              confirmButtonText: '확인',
+              confirmButtonColor: '#016064'
+          }).then(() => {
+              location.href = '/store';
+          });
+      },
+      error : function(jqXHR, status, error){
+          if(jqXHR.status == '401'){
+              Swal.fire({
+                  icon: 'warning',
+                  title: '로그인이 필요해요!',
+                  text: '로그인 후 이용해주세요.',
+                  confirmButtonText: '로그인 하기',
+                  confirmButtonColor: '#016064'
+              }).then(() => {
+                  location.href = '/members/login';
+              });
+          } else {
+              Swal.fire({
+                  icon: 'error',
+                  title: '오류 발생',
+                  text: jqXHR.responseText,
+                  confirmButtonColor: '#016064'
+              });
+          }
+      }
+  });
+  }
+  document.addEventListener("DOMContentLoaded", function () {
+    const movieTimeEl = document.getElementById("movieTime");
+    const movieTimeStr = movieTimeEl ? movieTimeEl.value.trim() : "";
+
+    console.log("영화 시간 확인:", movieTimeStr);
+
+    function generatePickupOptions(baseTime, isBefore, selectId) {
+      const intervals = [5, 10, 15, 20];
+      const select = document.getElementById(selectId);
+
+      const isMovieTimeEmpty = /*[[${#strings.isEmpty(movieTime)}]]*/ true;
+
+       if (isMovieTimeEmpty) {
+          select.innerHTML = '<option value="">시간 선택</option>';
+        } else {
+          select.innerHTML = `<option value="">예약하신 영화 시간 ${movieTimeStr}</option>`;
+        }
+
+      intervals.forEach((mins) => {
+        const offset = mins * 60 * 1000;
+        const pickupTime = new Date(baseTime.getTime() + (isBefore ? -offset : offset));
+
+        const hh = pickupTime.getHours().toString().padStart(2, '0');
+        const mm = pickupTime.getMinutes().toString().padStart(2, '0');
+        const timeStr = `${hh}:${mm}`;
+
+        const option = document.createElement("option");
+        option.value = timeStr;
+        option.text = isBefore
+          ? `${mins}분 전 (${timeStr})`
+          : `${mins}분 후 (${timeStr})`;
+
+        select.appendChild(option);
+      });
+    }
+
+    if (movieTimeStr) {
+      const [hh, mm] = movieTimeStr.split(':');
+      const movieDate = new Date();
+      movieDate.setHours(parseInt(hh));
+      movieDate.setMinutes(parseInt(mm));
+      movieDate.setSeconds(0);
+      movieDate.setMilliseconds(0);
+
+      generatePickupOptions(movieDate, true, "pickupTimeSelect");
+    } else {
+      const now = new Date();
+      generatePickupOptions(now, false, "nonePickupTimeSelect");
+    }
+  });
+
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  </th:block>
+  <!-- 사용자 CSS 추가 -->
+  <th:block layout:fragment="css">
+    <style>
+      body {
+        background-color: #f5f5f5;
+      }
+      .product-container {
+        background-color: #144C3B;
+        border-radius: 100px 40px;
+        color: #FFE066;
+        border-radius: 16px;
+        padding: 40px;
+        max-width: 1000px;
+        margin: 40px auto;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+      }
+      .product-image {
+        width: 100%;
+        height: 500px;
+        object-fit: cover;
+        border-radius: 100px 30px;
+      }
+      .badge {
+        background-color: #FFE066;
+        color: #144C3B;
+        font-weight: bold;
+        padding: 0.5em 1em;
+        border-radius: 1rem;
+      }
+      .section-title {
+        font-size: 1.2rem;
+        font-weight: bold;
+        margin-top: 20px;
+        border-radius:100px30px;
+      }
+      .form-control, .form-select {
+      font-weight: bold;
+      background-color: #144C3B;
+       border: 1px solid #FFE066;
+       border-radius: 100px 30px;
+        color: #FFE066 !important;
+}
+      .btn-outline-custom {
+        color: #FFE066;
+        border: 1.5px solid #FFE066;
+        background-color: transparent;
+        border-radius:100px 30px;
+        font-weight: bold;
+      }
+      .btn-outline-custom:hover {
+        background-color: #FFE066;
+        color: #144C3B;
+      }
+      .btn-primary-custom {
+        background-color: #FFE066;
+        color: #144C3B;
+        font-weight: bold;
+        border: none;
+        border-radius:100px 30px !important;
+      }
+      .btn-primary-custom:hover {
+        background-color: #e6c955;
+      }
+      .total-price {
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: #FF6B6B;
+        text-align: right;
+        margin-top: 20px;
+      }
+      .footer-box {
+        color: white;
+        text-align: center;
+        padding: 16px;
+        border-radius: 100px 30px;
+        font-weight: bold;
+        font-size: 1.25rem;
+      }
+      .footer-box {
+  background-color: #FFE066;
+  color: #144C3B;
+  text-align: center;
+  padding: 16px 24px;
+  font-weight: bold;
+  font-size: 1.5rem;
+  border: 3px solid #FFE066;
+  border-radius: 100px 30px;
+  margin-top: 40px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+.item-detail-text {
+  color: #FFE066;
+  font-size: 1.1rem;
+  line-height: 1.6;
+  margin-top: 24px;
+}
+    </style>
+  </th:block>
+
+  <div layout:fragment="content">
+    <div class="product-container">
+      <input type="hidden" id="itemId" th:value="${item.id}" />
+      <input type="hidden" id="memberId" th:value="${member != null ? member.memberId : ''}" />
+      <input type="hidden" id="price" th:value="${item.price}" />
+      <input type="hidden" id="movieTime" th:value="${movieTime != null ? movieTime : ''}" />
+
+      <div class="row g-4">
+        <div class="col-md-6">
+          <img th:src="${item.itemImgDtoList[0].imgUrl}" th:alt="${item.itemNm}" class="product-image" />
+        </div>
+        <div class="col-md-6">
+          <div th:if="${item.itemSellStatus == T(com.movie.constant.ItemSellStatus).SELL}" class="badge mb-3">판매중</div>
+          <div th:unless="${item.itemSellStatus == T(com.movie.constant.ItemSellStatus).SELL}" class="badge mb-3">품절</div>
+
+          <div class="h4 fw-bold">[[${item.menu}]]</div>
+          <hr class="my-3" />
+
+          <h5>상품 <span th:text="${item.itemNm}" class="ms-2"></span></h5>
+          <h5>가격 <span class="ms-2" th:text="${item.price + '원'}"></span></h5>
+          <h5>구성 <span class="ms-2" th:text="${item.itemComposition}"></span></h5>
+
+          <div class="section-title">수량</div>
+          <div class="input-group w-75">
+            <button type="button" class="btn btn-outline-custom" onclick="updateCount(-1)">−</button>
+            <input type="number" id="count" name="count" class="form-control text-center" value="1" min="1">
+            <button type="button" class="btn btn-outline-custom" onclick="updateCount(1)">+</button>
+          </div>
+
+          <div th:if="${#strings.isEmpty(movieTime)}">
+            <label for="nonePickupTimeSelect" class="form-label mt-3">픽업 시간을 선택해주세요</label>
+            <select id="nonePickupTimeSelect" class="form-select mb-3">
+              <option value="">시간 선택</option>
+            </select>
+          </div>
+          <div th:unless="${#strings.isEmpty(movieTime)}">
+            <label for="pickupTimeSelect" class="form-label mt-3">픽업 시간을 선택해주세요</label>
+            <select id="pickupTimeSelect" class="form-select mb-3">
+              <option value="">예약 하신 영화 시간</option>
+            </select>
+          </div>
+
+          <label for="cinemaSelect" class="form-label">영화관 선택</label>
+          <select id="cinemaSelect" class="form-select mb-3">
+            <option value="">선택</option>
+            <option th:each="cinema : ${cinemaList}" th:value="${cinema.name}" th:text="${cinema.name}"></option>
+          </select>
+
+          <div class="total-price">
+            총 결제 금액 <span name="totalPrice" id="totalPrice">원</span>
+          </div>
+
+          <div class="d-flex justify-content-between mt-4" th:if="${item.itemSellStatus == T(com.movie.constant.ItemSellStatus).SELL}">
+            <button type="button" class="btn btn-outline-custom w-50 me-2" onclick="addCart()">장바구니</button>
+            <button type="button" class="btn btn-primary-custom w-50" onclick="order()">주문하기</button>
+          </div>
+
+          <div class="mt-3" th:unless="${item.itemSellStatus == T(com.movie.constant.ItemSellStatus).SELL}">
+            <button type="button" class="btn btn-danger w-100">품절</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-5">
+        <div class="footer-box">맛있는 하루 되세요</div>
+        <hr class="my-4" />
+        <p class="item-detail-text" th:text="${item.itemDetail}"></p>
+      </div>
+    </div>
+  </div>
+  </html>

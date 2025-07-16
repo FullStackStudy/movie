@@ -1,0 +1,194 @@
+  <!DOCTYPE html>
+  <html xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <title>💳결제 페이지</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <style>
+      body {
+   background-color: #144C3B;
+   font-family: 'Pretendard', sans-serif;
+   margin: 0;
+   padding: 0;
+ }
+
+ .payment-container {
+   background-color: #144C3B;
+   border-radius: 24px;
+   padding: 3rem;
+   margin: 2rem auto;
+   max-width: 800px;
+   color: #FFE066;
+   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.25);
+   border: 2px solid #FFE066;
+ }
+
+ .payment-container h2 {
+   text-align: center;
+   font-size: 2.5rem;
+   font-weight: bold;
+   margin-bottom: 2rem;
+   color: #FFE066;
+   border-bottom: 3px solid #FFE066;
+   padding-bottom: 1rem;
+ }
+
+ .info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); /* ← 두 칸 */
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.info-item {
+  background-color: #103b30;
+  color: #FFE066;
+  border-left: 4px solid #FFE066;
+  border-radius: 12px;
+  padding: 1rem 1.2rem;
+  font-size: 0.95rem;
+  font-weight: 500;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.info-item p {
+  margin: 0;
+}
+
+.label {
+  font-weight: bold;
+}
+
+.value {
+  font-weight: normal;
+}
+
+ .final-price {
+   background-color: #FFE066;
+   color: #144C3B;
+   font-size: 1.5rem;
+   font-weight: bold;
+   padding: 1.5rem;
+   border-radius: 20px;
+   text-align: center;
+   margin-bottom: 2rem;
+ }
+
+ .payment-btn,
+ button[type="button"] {
+   display: block;
+   width: 100%;
+   padding: 1rem;
+   font-size: 1.2rem;
+   font-weight: bold;
+   border: none;
+   border-radius: 30px;
+   transition: background-color 0.3s ease, transform 0.2s;
+   cursor: pointer;
+   background-color: #FFE066;
+   color: #144C3B;
+   margin-top: 1rem;
+ }
+
+ .payment-btn:hover,
+ button[type="button"]:hover {
+   background-color: #f0d34d;
+   transform: translateY(-3px);
+ }
+
+ @media (max-width: 768px) {
+   .payment-container {
+     padding: 2rem;
+     margin: 1rem;
+   }
+
+   .payment-container h2 {
+     font-size: 2rem;
+   }
+
+   .info-grid {
+     grid-template-columns: 1fr;
+   }
+
+   .payment-btn {
+     font-size: 1rem;
+   }
+ }
+
+    </style>
+    <script src="https://cdn.iamport.kr/js/iamport.payment-1.2.0.js"></script>
+    <script th:inline="javascript">
+      const IMP = window.IMP;
+      IMP.init("imp21428454");
+
+      function requestPay() {
+        const form = document.getElementById('paymentForm');
+
+        const itemName = [[${storePaymentInfo.items[0].itemNm}]] +
+          ([[${storePaymentInfo.items.size()}]] > 1 ? ' 외 ' + ([[${storePaymentInfo.items.size()}]] - 1) + '건' : '');
+        const amount = [[${storePaymentInfo.amount}]];
+        const memberId = [[${storePaymentInfo.memberId}]];
+
+        IMP.request_pay({
+          pg: "html5_inicis",
+          pay_method: "card",
+          merchant_uid: "mid_" + new Date().getTime(),
+          name: itemName,
+          amount: amount,
+          buyer_name: memberId
+        }, function (rsp) {
+          if (rsp.success) {
+            document.getElementById("impUid").value = rsp.imp_uid;
+            document.getElementById("merchantUid").value = rsp.merchant_uid;
+            form.submit();
+          } else {
+            alert("❌ 결제 실패: " + rsp.error_msg);
+          }
+        });
+      }
+    </script>
+  </head>
+  <body>
+  <div class="payment-container">
+    <h2> 결제 정보 확인</h2>
+
+    <div class="payment-info">
+      <h3> 상품 정보</h3>
+      <!-- 상품 정보 반복 -->
+      <div class="info-grid" th:if="${#lists.isEmpty(storePaymentInfo.items)} == false">
+        <div th:each="item : ${storePaymentInfo.items}" class="info-item">
+        <p><span class="label">상품</span>: <span class="value" th:text="${item.itemNm}"></span></p>
+        <p><span class="label">구성</span>: <span class="value" th:text="${item.itemComposition}"></span></p>
+        <p><span class="label">수량</span>: <span class="value" th:text="${item.quantity}"></span></p>
+        <p><span class="label">가격</span>: <span class="value" th:text="${item.price} + '원'"></span></p>
+        <p><span class="label">픽업 시간</span>: <span class="value" th:text="${item.pickupTime}"></span></p>
+        <p><span class="label">영화관</span>: <span class="value" th:text="${item.cinemaName}"></span></p>
+        </div>
+      </div>
+      <div class="final-price">
+         총 결제금액: <span th:text="${storePaymentInfo.amount}"></span>원
+      </div>
+        <form id="paymentForm" th:action="@{/store/payment/verify}" method="post">
+        <input type="hidden" name="memberId" th:value="${storePaymentInfo.memberId}">
+        <input type="hidden" id="impUid" name="impUid">
+        <input type="hidden" id="merchantUid" name="merchantUid">
+
+        <!-- 반복적으로 상품 항목을 form으로 전송 -->
+        <div th:each="item, iterStat : ${storePaymentInfo.items}">
+          <input type="hidden" th:name="'items[' + ${iterStat.index} + '].itemNm'" th:value="${item.itemNm}">
+          <input type="hidden" th:name="'items[' + ${iterStat.index} + '].itemComposition'" th:value="${item.itemComposition}">
+          <input type="hidden" th:name="'items[' + ${iterStat.index} + '].quantity'" th:value="${item.quantity}">
+          <input type="hidden" th:name="'items[' + ${iterStat.index} + '].price'" th:value="${item.price}">
+          <input type="hidden" th:name="'items[' + ${iterStat.index} + '].pickupTime'" th:value="${item.pickupTime}">
+          <input type="hidden" th:name="'items[' + ${iterStat.index} + '].cinemaName'" th:value="${item.cinemaName}">
+        </div>
+
+        <button type="button" onclick="requestPay()">결제하기</button>
+      </form>
+      </div>
+  </div>
+  </body>
+  </html>

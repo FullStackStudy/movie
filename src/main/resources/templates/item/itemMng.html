@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/layout1}">
+
+<th:block layout:fragment="css">
+  <style>
+    body {
+      font-family: 'Noto Sans KR', sans-serif;
+      background-color: #f8f9fa;
+      color: #144C3B;
+    }
+
+    .card-wrapper {
+      background-color: white;
+      border: 2px solid #144C3B;
+      border-radius: 16px;
+      padding: 30px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+
+    h2 {
+      color: #144C3B;
+      margin-bottom: 30px;
+      font-weight: bold;
+      border-left: 6px solid #FFE066;
+      padding-left: 12px;
+    }
+
+    .search-box {
+      background-color: #fffde7;
+      border: 1px solid #FFE066;
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 35px;
+    }
+
+    label {
+      font-weight: 600;
+      color: #144C3B;
+    }
+
+    .form-control:focus,
+    .form-select:focus {
+      border-color: #FFE066;
+      box-shadow: 0 0 0 0.25rem rgba(255, 224, 102, 0.3);
+    }
+
+    #searchBtn {
+      background-color: #FFE066;
+      color: #144C3B;
+      font-weight: bold;
+      border: none;
+      border-radius: 100px 30px;
+      padding: 10px 20px;
+      transition: all 0.3s ease;
+    }
+
+    #searchBtn:hover {
+      background-color: #144C3B;
+      color: #FFE066;
+    }
+
+    .table {
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid #144C3B;
+    }
+
+    .table thead {
+      background-color: #144C3B;
+      color: #FFE066;
+      font-size: 0.95rem;
+    }
+
+    .table tbody tr:hover {
+      background-color: #FFF8D6;
+    }
+
+    .table a {
+      color: #144C3B;
+      font-weight: bold;
+      text-decoration: none;
+    }
+
+    .pagination .page-link {
+      background-color: #144C3B;
+      color: #FFE066;
+      border: 1px solid #144C3B;
+      border-radius: 100px 30px; /* ✅ 추가 */
+      margin: 0 3px;
+      padding: 6px 16px;
+      font-weight: 500;
+      transition: all 0.3s ease;
+    }
+
+    .pagination .page-item.active .page-link {
+      background-color: #FFE066;
+      color: #144C3B;
+      border: 1px solid #FFE066;
+    }
+
+    .pagination .page-link:hover {
+      background-color: #FFE066;
+      color: #144C3B;
+    }
+
+    select {
+      margin-right: 10px;
+    }
+  </style>
+</th:block>
+<th:block layout:fragment="script">
+  <script th:inline="javascript">
+    $(document).ready(function(){
+        $("#searchBtn").on("click",function(e){
+            e.preventDefault();
+            page(0);
+        });
+    });
+
+    function page(page){
+        var searchDateType = $("#searchDateType").val();
+        var searchSellStatus = $("#searchSellStatus").val();
+        var searchBy = $("#searchBy").val();
+        var searchQuery = $("#searchQuery").val();
+
+        location.href="/admin/items/" + page + "?searchDateType=" + searchDateType
+        + "&searchSellStatus=" + searchSellStatus + "&searchBy=" + searchBy
+        + "&searchQuery=" + searchQuery;
+    }
+  </script>
+</th:block>
+
+<div layout:fragment="content" class="container mt-5">
+  <div class="card-wrapper">
+    <h2>상품 관리</h2>
+
+    <!-- 🔍 검색 폼 -->
+    <form th:action="@{'/admin/items/'+${items.number}}" method="get" th:object="${items}">
+      <div class="search-box row g-3 align-items-end" th:object="${itemSearchDto}">
+        <div class="col-md-2">
+          <label>기간</label>
+          <select th:field="*{searchDateType}" class="form-control" id="searchDateType">
+            <option value="all">전체기간</option>
+            <option value="1d">1일</option>
+            <option value="1w">1주</option>
+            <option value="1m">1개월</option>
+            <option value="6m">6개월</option>
+          </select>
+        </div>
+        <div class="col-md-2">
+          <label>판매상태</label>
+          <select th:field="*{searchSellStatus}" class="form-control" id="searchSellStatus">
+            <option value="">전체</option>
+            <option value="SELL">판매</option>
+            <option value="SOLD_OUT">품절</option>
+          </select>
+        </div>
+        <div class="col-md-2">
+          <label>검색기준</label>
+          <select th:field="*{searchBy}" class="form-control" id="searchBy">
+            <option value="itemNm">상품명</option>
+            <option value="createdBy">등록자</option>
+          </select>
+        </div>
+        <div class="col-md-4">
+          <label>검색어</label>
+          <input th:field="*{searchQuery}" type="text" class="form-control" id="searchQuery" placeholder="검색어를 입력해주세요">
+        </div>
+        <div class="col-md-2">
+          <button id="searchBtn" type="submit" class="form-control btn">검색</button>
+        </div>
+      </div>
+    </form>
+
+    <!-- 📋 상품 테이블 -->
+    <table class="table mt-4">
+      <thead>
+      <tr>
+        <th>상품명</th>
+        <th>상태</th>
+        <th>등록자</th>
+        <th>등록일</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr th:each="item : ${items.getContent()}">
+        <!-- 상품아이디 열 제거 -->
+        <td>
+          <a th:href="'/admin/item/'+${item.id}" th:text="${item.itemNm}"></a>
+        </td>
+        <td th:text="${item.itemSellStatus == T(com.movie.constant.ItemSellStatus).SELL} ? '판매중' : '품절'"></td>
+        <td th:text="${item.createdBy}"></td>
+        <td th:text="${item.regTime}"></td>
+      </tr>
+      </tbody>
+    </table>
+
+    <!-- 📄 페이지네이션 -->
+    <div th:with="start=${(items.number/maxPage)*maxPage +1},
+        end=(${(items.totalPages == 0) ? 1 : (start + (maxPage-1) < items.totalPages ? start + (maxPage - 1) : items.totalPages)})">
+      <ul class="pagination justify-content-center">
+        <li class="page-item" th:classappend="${items.first}?'disabled'">
+          <a th:onclick="'javascript:page('+${items.number - 1} + ')'" class="page-link">이전</a>
+        </li>
+        <li class="page-item" th:each="page: ${#numbers.sequence(start,end)}"
+            th:classappend="${items.number eq page-1}?'active':''">
+          <a th:onclick="'javascript:page('+${page -1} + ')'" class="page-link">[[${page}]]</a>
+        </li>
+        <li class="page-item" th:classappend="${items.last}?'disabled'">
+          <a th:onclick="'javascript:page(' + ${items.number + 1} + ')'" class="page-link">다음</a>
+        </li>
+      </ul>
+    </div>
+  </div>
+</div>
+</html>
