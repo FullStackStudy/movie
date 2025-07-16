@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/layout1}">
+
+<!-- 사용자 스크립트 추가 -->
+<th:block layout:fragment="script">
+  <script th:inline="javascript">
+    $(document).ready(function(){
+        var errorMessage = [[${errorMessage}]];
+
+        if(errorMessage != null){
+        Swal.fire({
+            icon:'error',
+            title:'error',
+            text:'첫 번째 파일은 필수 입력 값입니다',
+            confirmButtonColor: '#016064'
+            });
+        }
+        bindDomEvent();
+    });
+
+    function bindDomEvent(){
+      $(".imageFile.form-control").on("change", function(){
+          var fileName = $(this).val().split("\\").pop();
+          var fileExt = fileName.substring(fileName.lastIndexOf(".") + 1).toLowerCase();
+
+          if (fileExt !== "jpg" && fileExt !== "jpeg" && fileExt !== "gif" &&
+              fileExt !== "png" && fileExt !== "bmp") {
+
+              Swal.fire({
+                  icon: 'error',
+                  title: '잘못된 파일 형식입니다',
+                  text: '이미지 파일만 등록이 가능합니다.(jpg, jpeg, gif, png, bmp)',
+                  confirmButtonColor: '#016064'
+              });
+              $(this).val("");  // 파일 선택 초기화
+              return;
+          }
+      });
+
+      let imageCount = 1;
+      const maxImages = 5;
+
+      $("#addImageBtn").click(function() {
+        if (imageCount < maxImages) {
+          imageCount++;
+          const inputGroup = `
+            <div class="input-group mb-2 image-input-wrapper">
+              <input type="file" class="form-control imageFile custom-file-input shift-left" name="itemImgFile">
+            </div>`;
+          $("#imageInputWrapper").append(inputGroup);
+        }
+        if (imageCount >= maxImages) {
+          $(this).hide();
+        }
+      });
+    }
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</th:block>
+
+<!-- 사용자 CSS 추가 -->
+<th:block layout:fragment="css">
+  <style>
+    body {
+      background-color: #f8f9fa;
+    }
+    .form-control, .form-select, .form-control:focus, .form-select:focus {
+      background-color: #144C3B !important;
+      border: 1px solid #FFE066 !important;
+      color: #FFE066 !important;
+      box-shadow: none !important;
+      border-radius: 100px 30px !important;
+    }
+    .form-label, .input-group-text {
+      color: #FFE066 !important;
+      font-weight: bold;
+    }
+    .form-control::placeholder {
+      color: #FFE066;
+      opacity: 0.8;
+    }
+    .form-control.textarea-detail {
+      border-radius: 50px 30px !important;
+    }
+    .btn-custom {
+      background-color: #FFE066;
+      color: #144C3B;
+      border: none;
+      border-radius: 100px 30px;
+      padding: 10px 20px;
+      font-weight: bold;
+    }
+    .btn-custom:hover {
+      background-color: #e6c955;
+    }
+    .custom-file-input::-webkit-file-upload-button {
+      background-color: #FFE066;
+      color: #144C3B;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 100px 30px !important;
+      font-weight: bold;
+      cursor: pointer;
+      margin:0;
+    }
+    .custom-file-input::file-selector-button {
+      background-color: #FFE066;
+      color: #144C3B;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 100px 30px;
+      font-weight: bold;
+      cursor: pointer;
+      margin:0;
+    }
+    .shift-left {
+      padding-left: 15px;
+    }
+    .fieldError {
+      color : #FF6B6B;
+    }
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button {
+  appearance: none;
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Firefox */
+input[type=number] {
+  -moz-appearance: textfield;
+}
+  </style>
+</th:block>
+
+<div layout:fragment="content">
+  <form role="form" class="container py-4 px-4 rounded" style="background:#144C3B; max-width: 700px;" method="post" enctype="multipart/form-data" th:object="${itemFormDto}">
+    <p class="h3 text-center text-warning mb-4">상품 등록</p>
+
+    <input type="hidden" th:field="*{id}">
+
+    <div class="mb-3">
+      <label class="form-label">판매 상태</label>
+      <select th:field="*{itemSellStatus}" class="form-select">
+        <option value="SELL">판매중</option>
+        <option value="SOLD_OUT">품절</option>
+      </select>
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label">메뉴 분류</label>
+      <select th:field="*{menu}" class="form-select">
+        <option value="COMBO">콤보</option>
+        <option value="POPCORN">팝콘</option>
+        <option value="DRINK">음료</option>
+        <option value="SNACK">스낵</option>
+      </select>
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label">상품명</label>
+      <input type="text" th:field="*{itemNm}" class="form-control" placeholder="상품명을 입력해주세요.">
+      <p th:if="${#fields.hasErrors('itemNm')}" th:errors="*{itemNm}" class="fieldError">Incorrect data</p>
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label ">가격</label>
+      <input type="number" th:field="*{price}" class="form-control" placeholder="상품의 가격을 입력해주세요.">
+      <p th:if="${#fields.hasErrors('price')}" th:errors="*{price}" class="fieldError">Incorrect data</p>
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label">재고</label>
+      <input type="number" th:field="*{stockNumber}" class="form-control" placeholder="상품의 재고를 입력해주세요.">
+      <p th:if="${#fields.hasErrors('stockNumber')}" th:errors="*{stockNumber}" class="fieldError">Incorrect data</p>
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label">상품 상세 내용</label>
+      <textarea class="form-control textarea-detail" th:field="*{itemDetail}" rows="3"></textarea>
+      <p th:if="${#fields.hasErrors('itemDetail')}" th:errors="*{itemDetail}" class="fieldError">Incorrect data</p>
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label">상품 구성</label>
+      <textarea class="form-control" th:field="*{itemComposition}" rows="2"></textarea>
+      <p th:if="${#fields.hasErrors('itemComposition')}" th:errors="*{itemComposition}" class="fieldError">Incorrect data</p>
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label">상품 이미지 등록</label>
+      <div id="imageInputWrapper">
+        <div class="input-group mb-2 image-input-wrapper">
+          <input type="file" class="form-control imageFile custom-file-input shift-left" name="itemImgFile">
+        </div>
+      </div>
+      <button type="button" class="btn btn-custom mt-2" id="addImageBtn">+ 이미지 추가</button>
+    </div>
+
+    <div class="text-center mt-4">
+      <button th:if="${#strings.isEmpty(itemFormDto.id)}" th:formaction="@{/admin/item/new}" type="submit" class="btn btn-custom">저장</button>
+      <button th:unless="${#strings.isEmpty(itemFormDto.id)}" th:formaction="@{'/admin/item/'+${itemFormDto.id}}" type="submit" class="btn btn-custom">수정</button>
+    </div>
+
+    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+  </form>
+</div>
+</html>

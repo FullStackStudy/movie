@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/layout1}">
+<head>
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}">
+</head>
+
+<th:block layout:fragment="script">
+    <script th:inline="javascript">
+        $(document).ready(function(){
+            $("input[name=cartChkBox]").change(function(){
+                getOrderTotalPrice();
+            });
+            getOrderTotalPrice();
+        });
+
+        function getOrderTotalPrice(){
+            var orderTotalPrice = 0;
+            $("input[name=cartChkBox]:checked").each(function(){
+                var cartItemId = $(this).val();
+                var price = $("#price_" + cartItemId).attr("data-price");
+                var count = $("#count_" + cartItemId).val();
+                orderTotalPrice += price * count;
+            });
+
+            $("#orderTotalPrice").html(orderTotalPrice+'원');
+        }
+
+        function changeCount(obj){
+            var count = obj.value;
+            var cartItemId = obj.id.split('_')[1]; //th:id="'count_' + ${cartItem.cartItemId}"
+            var price = $("#price_"+cartItemId).data("price"); //price_' + ${cartItem.cartItemId} -> th:data-price="${cartItem.price}"
+            var totalPrice = count * price;
+            $("#totalPrice_" + cartItemId).html(totalPrice+"원");
+            getOrderTotalPrice();
+            updateCartItemCount(cartItemId, count);
+        }
+
+        function checkAll(){
+            const checked = $("#checkall").prop("checked");
+            $("input[name=cartChkBox]:not(:disabled)").prop("checked", checked);
+            getOrderTotalPrice();
+        }
+
+        function updateCartItemCount(cartItemId, count){
+            var token = $("meta[name='_csrf']").attr("content");
+            var header = $("meta[name='_csrf_header']").attr("content");
+
+            var url = "/cartItem/" + cartItemId + "?count=" + count;
+
+           $.ajax({
+    url: url,
+    type: "PATCH",
+    beforeSend: function(xhr){
+        xhr.setRequestHeader(header, token);
+    },
+    dataType: "json",
+    cache: false,
+    success: function(result, status){
+        console.log("cartItem count update success");
+    },
+    error: function(jqXHR, status, error){
+        if(jqXHR.status == '401'){
+            Swal.fire({
+                icon: 'warning',
+                title: '로그인이 필요해요',
+                text: '서비스를 이용하려면 로그인 해주세요.',
+                confirmButtonText: '로그인하기',
+                confirmButtonColor: '#016064'
+            }).then(() => {
+                location.href = '/members/login';
+            });
+        } else {
+            Swal.fire({
+                icon: 'error',
+                title: '오류 발생',
+                text: jqXHR.responseText,
+                confirmButtonColor: '#016064'
+            });
+        }
+    }
+});
+}
+        function deleteCartItem(obj){
+            var cartItemId = obj.dataset.id;
+            var token = $("meta[name='_csrf']").attr("content");
+            var header = $("meta[name='_csrf_header']").attr("content");
+
+            var url = "/cartItem/" + cartItemId;
+
+            $.ajax({
+                url : url,
+                type : "DELETE",
+                beforeSend : function(xhr){
+                    xhr.setRequestHeader(header, token);
+                },
+                dataType : "json",
+                cache : false,
+                success : function(result, status){
+                    location.href='/cart';
+                },
+                error: function(jqXHR, status, error){
+        if(jqXHR.status == '401'){
+            Swal.fire({
+                icon: 'warning',
+                title: '로그인이 필요합니다',
+                text: '이 기능을 사용하려면 로그인해주세요.',
+                confirmButtonText: '로그인 하기',
+                confirmButtonColor: '#016064'
+            }).then(() => {
+                location.href = '/members/login';
+            });
+        } else {
+            Swal.fire({
+                icon: 'error',
+                title: '오류 발생',
+                text: jqXHR.responseText,
+                confirmButtonColor: '#016064'
+            });
+        }
+    }
+});
+}
+
+    function syncToLatestPickupTime() {
+    const token = $("meta[name='_csrf']").attr("content");
+    const header = $("meta[name='_csrf_header']").attr("content");
+
+    $.ajax({
+    url: "/cart/updatePickupTime",
+    type: "PATCH",
+    beforeSend: function(xhr) {
+        xhr.setRequestHeader(header, token);
+    },
+    success: function() {
+        Swal.fire({
+            icon: 'success',
+            title: '성공!',
+            text: '모든 상품의 픽업 시간이 최근 상품 기준으로 적용되었습니다.',
+            confirmButtonColor: '#016064'
+        }).then(() => {
+            location.reload();
+        });
+    },
+    error: function(jqXHR) {
+        Swal.fire({
+            icon: 'error',
+            title: '실패',
+            text: '오류가 발생했습니다: ' + jqXHR.responseText,
+            confirmButtonColor: '#016064'
+        });
+    }
+});
+
+}
+       function orders(){
+    var token = $("meta[name='_csrf']").attr("content");
+    var header = $("meta[name='_csrf_header']").attr("content");
+
+    var dataList = [];
+
+    $("input[name=cartChkBox]:checked").each(function(){
+        var cartItemId = $(this).val();
+        dataList.push({ cartItemId: cartItemId });
+    });
+
+    var paramData = { cartOrderDtoList: dataList };
+    var param = JSON.stringify(paramData);
+
+    $.ajax({
+        url : "/store/cart/payment",
+        type : "POST",
+        contentType : "application/json",
+        data : param,
+        beforeSend : function(xhr){
+            xhr.setRequestHeader(header, token);
+        },
+        success : function(result){
+            location.href = result; // or show redirect manually
+        },
+        error : function(jqXHR){
+            Swal.fire({
+                icon: 'error',
+                title: '오류 발생',
+                text: jqXHR.responseText || "알 수 없는 오류가 발생했습니다.",
+                confirmButtonColor: '#016064'
+            });
+        }
+    });
+}
+
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</th:block>
+<!-- 사용자 CSS 추가 -->
+<th:block layout:fragment="css">
+    <style>
+        .content-mg {
+            margin: 2% auto 100px auto;
+            width: 60%;
+        }
+
+        .repImgDiv {
+            margin: 0 10px;
+            height: auto;
+        }
+
+        .repImg {
+            height: 130px;
+            width: 130px;
+            border-radius: 12px;
+            border: 2px solid #FFE066;
+        }
+
+        .card {
+            background: #144C3B;
+            color: #FFE066;
+            border-radius: 100px 30px;
+            box-shadow: 0 6px 32px rgba(20, 76, 59, 0.18);
+            border: 2px solid #FFE066;
+            padding: 36px 32px;
+            margin-bottom: 28px;
+            transition: all 0.2s ease-in-out;
+        }
+
+        .card:hover {
+            box-shadow: 0 12px 36px rgba(20, 76, 59, 0.3);
+            transform: translateY(-4px) scale(1.01);
+        }
+
+        .fs24, .fs18, .fs15, .fw-bold, .font-weight-bold {
+            color: #FFE066 !important;
+        }
+
+        .text-muted {
+            color: rgba(255, 224, 102, 0.7) !important;
+        }
+
+        .btn-outline-none {
+            color: #FFE066;
+            border: 1.5px solid #FFE066;
+            background: transparent;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+
+        .btn-outline-none:hover {
+            background: #FFE066;
+            color: #144C3B;
+        }
+
+        .btn-lg {
+            background-color: #144C3B;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 24px;
+            font-weight: bold;
+        }
+
+        .btn-lg:hover {
+            background-color: #01454e;
+        }
+
+        .table {
+            border-collapse: separate;
+            border-spacing: 0 12px;
+            background-color: transparent;
+        }
+
+        .table th, .table td {
+            background-color: #144C3B;
+            border: none;
+            vertical-align: middle;
+        }
+
+        .table thead tr {
+            background-color: #144C3B;
+            color: #FFE066;
+            font-weight: bold;
+        }
+
+        .table td {
+            padding: 16px;
+            color: #FFE066;
+        }
+
+        .custom-checkbox {
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #FFE06688;
+            border-radius: 4px;
+            background-color: white;
+            position: relative;
+            cursor: pointer;
+            vertical-align: middle;
+            color: #FFE066;
+        }
+
+        .custom-checkbox:checked {
+            background-color:  #144C3B;
+            border-color: #144C3B;
+        }
+
+        .custom-checkbox:checked::after {
+            content: "";
+            position: absolute;
+            left: 5px;
+            top: 1px;
+            width: 6px;
+            height: 10px;
+            border: solid white;
+            border-width: 0 2px 2px 0;
+            transform: rotate(45deg);
+        }
+
+        .form-control {
+            border: 1px solid #FFE066;
+            background-color:  #144C3B;
+            color: #FFE066;
+            border-radius: 6px;
+            padding: 4px;
+            font-weight: bold;
+        }
+
+        .form-control:focus {
+            border-color: #FFE066;
+            box-shadow: 0 0 4px #FFE06688;
+        }
+
+        .text-danger {
+            color: #FF6B6B !important;
+        }
+
+        .text-end {
+            text-align: right;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .gap-2 {
+            gap: 0.5rem;
+        }
+
+        .top-0 {
+            top: 0 !important;
+        }
+
+        .end-0 {
+            right: 0 !important;
+        }
+
+        .m-1 {
+            margin: 0.25rem !important;
+        }
+    </style>
+</th:block>
+
+<div layout:fragment="content" class="content-mg">
+    <h2 class="mb-4 text-center" style="color:#144C3B; font-weight:bold;">장바구니</h2>
+
+    <div class="mb-3 text-end">
+        <input type="checkbox" id="checkall" class="custom-checkbox me-1"
+               onclick="checkAll()" checked>
+        <label for="checkall" class="fw-bold">전체 선택</label>
+    </div>
+
+    <div class="cart-items">
+        <div class="card" th:each="cartItem : ${cartItems}">
+            <div class="d-flex align-items-center justify-content-between">
+                <input type="checkbox" name="cartChkBox"
+                       class="custom-checkbox me-3"
+                       th:value="${cartItem.cartItemId}"
+                       th:checked="${!cartItem.isPast}"
+                       th:disabled="${cartItem.isPast}">
+
+                <img th:src="${cartItem.imgUrl}" class="rounded repImg me-3" th:alt="${cartItem.itemNm}">
+
+                <div class="w-100 fw-bold">
+                    <div class="fs24 mb-2 fw-bold" th:text="${cartItem.itemNm}">팝콘</div>
+                    <div class="fs15 text-muted mb-1" th:utext="'<strong>구성 </strong>'+${cartItem.itemComposition}">구성 내용</div>
+                    <div class="fs15 text-muted mb-1" th:utext="'<strong>영화관 </strong>' + ${cartItem.cinemaName}">픽업 장소</div>
+
+                    <div class="fs15 text-muted mb-1" th:utext="'<strong>픽업 시간 </strong>'+${cartItem.pickupTime}"
+                         th:unless="${cartItem.isPast}"></div>
+                    <div th:if="${cartItem.isPast}" class="text-danger">픽업 시간이 지났습니다.</div>
+
+                    <div class="fs15 text-muted font-weight-bold" th:id="'price_' + ${cartItem.cartItemId}"
+                         th:data-price="${cartItem.price}"
+                         th:utext="'<strong>가격 </strong>'+${cartItem.price} + '원'">
+                    </div>
+
+                    <div class="d-flex align-items-center gap-2 mt-2">
+                        <span class="fs15 text-muted fw-bold">수량</span>
+                        <input type="number" name="count" class="form-control"
+                               style="width:60px; height:30px"
+                               th:id="'count_' + ${cartItem.cartItemId}"
+                               th:value="${cartItem.count}" min="1"
+                               onchange="changeCount(this)">
+                    </div>
+                </div>
+
+                <div class="text-end">
+                    <span th:id="'totalPrice_'+${cartItem.cartItemId}" name="totalPrice"
+                          th:utext="${cartItem.price * cartItem.count} + '&nbsp;원'"
+                          class="d-block mb-2 fw-bold"
+                          style="white-space: nowrap;"></span>
+                    <button type="button" class="btn btn-outline-none btn-sm"
+                            th:data-id="${cartItem.cartItemId}"
+                            onclick="deleteCartItem(this)">삭제</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="text-end mb-3">
+        <button type="button" class="btn btn-outline-none"
+                onclick="syncToLatestPickupTime()">최근 선택한 상품 시간으로 일괄 적용</button>
+    </div>
+
+    <div class="text-center mt-5" style="color:#144C3B;" >
+        <h3>총 주문 금액 : <span id="orderTotalPrice" class="text-danger">0원</span></h3>
+        <button type="button" class="btn btn-lg mt-3" style="color: #FFE066;"
+                onclick="orders()">주문하기</button>
+    </div>
+</div>
+
+</html>
