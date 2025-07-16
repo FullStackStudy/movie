@@ -14,7 +14,6 @@ import java.util.List;
 public class MainController {
 
     private final MovieService movieService;
-
     @Autowired
     public MainController(MovieService movieService) {
         this.movieService = movieService;
@@ -24,7 +23,15 @@ public class MainController {
     public String main(Model model, @RequestParam(required = false) String signupSuccess) {
         List<MovieDto> movies = movieService.getMainMovies(); // 크롤링 데이터 반환
         model.addAttribute("movies", movies);
-        
+
+
+        /*//영상 크롤링
+        List<String> videoInfo = mainService.crowlingMovieVideo();
+        String url = videoInfo.get(0);
+        String title = videoInfo.get(1);
+        model.addAttribute("url", url);
+        model.addAttribute("title", title);
+        */
         // 회원가입 성공 메시지 처리
         if ("true".equals(signupSuccess)) {
             model.addAttribute("signupSuccessMessage", "회원가입이 성공적으로 완료되었습니다! 🎉");
@@ -37,4 +44,6 @@ public class MainController {
     public String handleError() {
         return "error";
     }
+
+
 } 

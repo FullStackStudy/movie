@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://ultaq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/layout1}">
+<head>
+    <title>🎥MovieFlex</title>
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+    <style>
+
+      .container {
+        max-width: 600px;       /* 너비는 적당히 */
+        margin: 120px auto 0;   /* 위쪽 띄우고 좌우 중앙 */
+        padding: 0 20px;
+        text-align: center;     /* 텍스트 가운데 */
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        color: #333;
+        line-height: 1.5;
+      }
+
+      .container h1 {
+        font-weight: 600;
+        font-size: 1.6rem;
+        margin-bottom: 12px;
+      }
+
+      .container p {
+        font-size: 1.1rem;
+        color: #666;
+        margin-bottom: 20px;
+      }
+
+      .container button {
+        background-color: #007bff;
+        border: none;
+        padding: 12px 30px;
+        border-radius: 6px;
+        color: white;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+      }
+
+      .container button:hover {
+        background-color: #0056b3;
+      }
+    </style>
+</head>
+  <div layout:fragment="content">
+    <div class="container">
+      <h1>추천 서비스를 이용하려면 더 많은 활동이 필요해요!</h1>
+      <p>MovieFlex를 좀 더 즐긴 후 이용해주세요.</p>
+      <button onclick="location.href='/'">홈으로 가기</button>
+    </div>
+
+    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+</div>
+
+</html>

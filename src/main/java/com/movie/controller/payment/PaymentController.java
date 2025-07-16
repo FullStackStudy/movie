@@ -1,5 +1,6 @@
 package com.movie.controller.payment;
 
+import com.movie.controller.reservation.ReservationController;
 import com.movie.dto.payment.PaymentInfoDto;
 import com.movie.dto.payment.KakaoPayReadyRequestDto;
 import com.movie.dto.payment.KakaoPayReadyResponseDto;
@@ -14,6 +15,9 @@ import com.movie.entity.member.Member;
 import com.movie.service.payment.KakaoPayService;
 import com.movie.service.payment.CardPaymentService;
 import com.movie.service.payment.MovieOrderService;
+import com.movie.service.reservation.ReservationService;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -34,6 +38,7 @@ public class PaymentController {
     private final KakaoPayService kakaoPayService;
     private final CardPaymentService cardPaymentService;
     private final MovieOrderService movieOrderService;
+    private final ReservationService reservationService; //reservation db 이다은
 
     @Value("${kakao.pay.base-url}")
     private String kakaoPayBaseUrl;
@@ -101,6 +106,8 @@ public class PaymentController {
         model.addAttribute("paymentInfo", dto);
         model.addAttribute("memberPoint", memberPoint);
         model.addAttribute("usePoint", usePoint);
+
+        model.addAttribute("reservationData", reservationData);
         return "payment/moviePaymentPage";
     }
 
@@ -204,7 +211,8 @@ public class PaymentController {
     }
 
     @GetMapping("/movie/payment/kakao-pay-success")
-    public String kakaoPaySuccess(@RequestParam String pg_token,
+    public String kakaoPaySuccess(@AuthenticationPrincipal UserDetails userDetails,
+                                  @RequestParam String pg_token,
                                   HttpSession session,
                                   Model model) {
 
@@ -213,6 +221,14 @@ public class PaymentController {
         String orderId = (String) session.getAttribute("kakao_orderId");
         String memberId = (String) session.getAttribute("kakao_memberId");
         Integer usePoint = (Integer) session.getAttribute("kakao_usePoint");
+        //이다은 추가
+        ReservationResponseDto reservedData = (ReservationResponseDto) session.getAttribute("reservedData");
+        if(reservedData == null){
+            log.error("세션에서 예약 정보를 찾을 수 없습니다.(카카오페이)");
+            model.addAttribute("error", "예약 정보를 찾을 수 없습니다.");
+            return "payment/paymentFail";
+        }
+
 
         if (tid == null || orderId == null || memberId == null || usePoint == null) {
             log.error("세션에서 카카오페이 정보를 찾을 수 없습니다.");
@@ -271,6 +287,9 @@ public class PaymentController {
                 pg_token
             );
 
+            //reservation db 저장 이다은
+            reservedData.setPayMethod("KAKAOPAY");
+            reservationService.saveReservation(userDetails ,reservedData);
             // 세션 정리
             session.removeAttribute("kakao_tid");
             session.removeAttribute("kakao_orderId");
@@ -354,7 +373,8 @@ public class PaymentController {
     }
 
     @PostMapping("/movie/payment/card/process")
-    public String processCardPayment(@RequestParam String cardNumber,
+    public String processCardPayment(@AuthenticationPrincipal UserDetails userDetails,
+                                     @RequestParam String cardNumber,
                                      @RequestParam String cardExpiry,
                                      @RequestParam String cardCvc,
                                      @RequestParam String cardHolderName,
@@ -365,6 +385,13 @@ public class PaymentController {
         try {
             // 예약 정보에서 결제 정보 파싱
             PaymentInfoDto paymentInfo = parseReservationInfo(session);
+            //이다은 reservation db 추가
+            ReservationResponseDto reservedData = (ReservationResponseDto) session.getAttribute("reservedData");
+            if(reservedData == null){
+                log.error("세션에서 예약 정보를 찾을 수 없습니다.(카드)");
+                model.addAttribute("error", "예약 정보를 찾을 수 없습니다.");
+                return "payment/paymentFail";
+            }
             Member member = memberRepository.findById(memberId)
                     .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
 
@@ -426,6 +453,10 @@ public class PaymentController {
                     null  // pgToken (카드결제는 없음)
                 );
 
+                //reservation db 저장 이다은
+                reservedData.setPayMethod("CARD");
+                reservationService.saveReservation(userDetails ,reservedData);
+
                 // 성공 페이지에서 주문 정보를 표시하기 위해 주문번호를 세션에 저장
                 session.setAttribute("lastOrderNumber", orderId);
 
@@ -445,6 +476,7 @@ public class PaymentController {
 
     @PostMapping("/movie/payment/complete")
     public String completePayment(
+            @AuthenticationPrincipal UserDetails userDetails,
             @RequestParam String memberId,
             @RequestParam(defaultValue = "0") int usePoint,
             HttpSession session,
@@ -452,6 +484,15 @@ public class PaymentController {
         try {
             // 예약 정보에서 결제 정보 파싱
             PaymentInfoDto paymentInfo = parseReservationInfo(session);
+
+            //이다은 reservation db 추가
+            ReservationResponseDto reservedData = (ReservationResponseDto) session.getAttribute("reservedData");
+            if(reservedData == null){
+                log.error("세션에서 예약 정보를 찾을 수 없습니다.(포인트?)");
+                model.addAttribute("error", "예약 정보를 찾을 수 없습니다.");
+                return "payment/paymentFail";
+            }
+
             Member member = memberRepository.findById(memberId)
                     .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
 
@@ -496,6 +537,10 @@ public class PaymentController {
                 null  // pgToken (포인트결제는 없음)
             );
 
+            //reservation db 저장 이다은
+            reservedData.setPayMethod("KAKAOPAY");
+            reservationService.saveReservation(userDetails ,reservedData);
+
             // 성공 페이지에서 주문 정보를 표시하기 위해 주문번호를 세션에 저장
             session.setAttribute("lastOrderNumber", orderId);
 
@@ -511,9 +556,12 @@ public class PaymentController {
 
     @GetMapping("/movie/payment/success")
     public String paymentSuccess(@SessionAttribute(name = "lastOrderNumber", required = false) String lastOrderNumber,
-                                Model model) {
+                                Model model, HttpSession session) {
         if (lastOrderNumber != null) {
+            ReservationResponseDto reserve = (ReservationResponseDto) session.getAttribute("reservedData");
             try {
+                //결제완료시 reservation db에 넣는 로직 추가 이다은
+
                 MovieOrderDto orderInfo = movieOrderService.getOrderByOrderNumber(lastOrderNumber);
                 model.addAttribute("paymentInfo", orderInfo);
                 model.addAttribute("message", "결제가 성공적으로 완료되었습니다!");

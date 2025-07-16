@@ -31,7 +31,6 @@ import java.nio.file.AccessDeniedException;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Service
@@ -48,9 +47,8 @@ public class ReservationService {
 
     final private StringRedisTemplate redisTemplate; //redis
     final private SeatNotificationService seatNotificationService; //websocket
-    
-    @Value("${reservation.seat.hold.timeout:10}")
-    private int seatHoldTimeoutMinutes;
+
+    private static int SeatHoldTimeoutSeconds=60;
 
     public List<ScheduleDto> getScheduleInfo(){//
             List<Schedule> scheduleList = scheduleRepository.findAll();
@@ -104,24 +102,16 @@ public class ReservationService {
 
         //로그인 되어있는 유저랑 지금 가져온 유저가 같은지 검사
         if(reservationDto.getMemberId().equals(userDetails.getUsername())){
-            //reservationDto.setReservationStatus(RESERVED); //상태  reserve로 넣고
-
             Member member = memberRepository.findById(reservationDto.getMemberId()).orElseThrow(() ->new IllegalArgumentException("회원 없음"));
             Schedule schedule = scheduleRepository.findById(reservationDto.getScheduleId()).orElseThrow(()->new IllegalArgumentException("스케쥴 없음"));
             // dto -> entity 변환
             Reservation reservation = reservationDto.createReservation(schedule, member, reservationDto);
 
-            //seatId String으로 변환
-            //String seat_id = reservation.getSeat_id().toString(); //seatId String으로 변환
-
-            //seatId 저장
-           // reservation.setSeat_id(seat_id); //seatId 저장
-
             reservationRepository.save(reservation); //예약 정보 저장
-            //예약정보에는 list로 들어가있고 seat에서 나눠서 하나씩 넣고, redis도 삭제해줌
 
             scheduleService.updateAvailableSeats(schedule.getId());
 
+            //예약정보에는 list로 들어가있고 seat에서 나눠서 하나씩 넣고, redis도 삭제해줌
             //해당 유저 id랑 가져온 id 같으면 redis지움 and reservedSeat에 하나씩 넣음
             for (Long seat : reservationDto.getSeatId()) {
                 Seat reservedSeat = seatRepository.findById(seat).orElseThrow(() -> new IllegalArgumentException("좌석없음"));
@@ -144,6 +134,9 @@ public class ReservationService {
                     releaseSeat(reservationDto.getScheduleId(), seat, currentUser); //redis 삭제
                 }
             }
+
+            //예약하면 추천 ai 새로 받아오기 위해 redis 삭제
+            relaseRecomRedis(member.getMemberId());
             return true;
         }else{
             System.out.println("로그인 유저와 지금 저장하려는 유저가 다름");
@@ -269,7 +262,7 @@ public class ReservationService {
 
         // setIfAbsent = Redis SETNX (Set if Not Exists)
         // 성공하면 true, 이미 존재하면 false (이미 예약된 상태)
-        Boolean success = redisTemplate.opsForValue().setIfAbsent(key, userId, Duration.ofMinutes(seatHoldTimeoutMinutes));
+        Boolean success = redisTemplate.opsForValue().setIfAbsent(key, userId, Duration.ofSeconds(SeatHoldTimeoutSeconds));
 
         System.out.println("Redis 저장 시도: key=" + key + ", 결과=" + success);
 
@@ -281,7 +274,7 @@ public class ReservationService {
             boolean stillExists = redisTemplate.hasKey(key);
 
             if(!stillExists){
-                success = redisTemplate.opsForValue().setIfAbsent(key, userId, Duration.ofMinutes(seatHoldTimeoutMinutes));
+                success = redisTemplate.opsForValue().setIfAbsent(key, userId, Duration.ofSeconds(SeatHoldTimeoutSeconds));
             }
         }
         return Boolean.TRUE.equals(success);
@@ -318,5 +311,23 @@ public class ReservationService {
                 }).collect(Collectors.toList());
 
         return seatRepository.findAllById(seatId);
+    }
+    //예약완료하면 추천 ai 다시 보여주려고 redis 지움
+    public void relaseRecomRedis(String memberId){
+        try {
+            String hybridKey = "recommend:hybrid:"+memberId;
+            String collaboKey = "recommend:collabo:"+memberId;
+            String contentKey = "recommend:content:"+memberId;
+            String tmdbKey = "recommend:tmdb:"+memberId;
+
+            redisTemplate.delete(hybridKey);
+            redisTemplate.delete(collaboKey);
+            redisTemplate.delete(contentKey);
+            redisTemplate.delete(tmdbKey);
+            System.out.println("예약저장 추천레디스 삭제 성공");
+        }catch (Exception e){
+            e.printStackTrace();
+            System.out.println("예약저장 추천레디스 삭제과정에서 실패하였습니다.");
+        }
     }
 }

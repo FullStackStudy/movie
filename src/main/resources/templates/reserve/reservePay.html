@@ -456,8 +456,6 @@
 
         </form>
     </div>
-</div>
-
     <!--toast-->
     <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 1080">
         <div id="countdownToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
@@ -467,7 +465,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="닫기"></button>
             </div>
             <div class="toast-body">
-                좌석 예약 만료까지 <span id="toastTimer">60</span>초 남았습니다.
+                좌석 예약 만료까지 <span id="toastTimer">10</span>초 남았습니다.
             </div>
         </div>
     </div>
@@ -565,8 +563,8 @@
                     console.log(`[⏱️] 좌석 ${seatId} 남은 시간: ${timeLeft}초`);
                     timeLeft--;
 
-                    // 10분 대기 시간에 맞춰 토스트 알림 (마지막 1분 전부터 표시)
-                    if (timeLeft === 60) {
+                    // 10초
+                    if (timeLeft === 10) {
                        startToastCountdown(timeLeft);
                     }
 
@@ -578,6 +576,7 @@
                         setTimeout(() => {
                             window.location.href = "/";
                         }, 3000); // 3초 뒤 이동
+
                     }
                 }, 1000);
             }
@@ -601,7 +600,8 @@
 
                     //좌석이 hold고 ttl 있으면 websocket이 카운트다운함
                     if (seatStatusMessage.status === "hold" && seatStatusMessage.ttl) {
-                        startSeatCountdown(seatStatusMessage.seatId[0], seatStatusMessage.ttl);
+                        console.log("여긴오냐?");
+                        startSeatCountdown(seatStatusMessage.seatId[0].toString(), seatStatusMessage.ttl);
                     }
                 });
 
@@ -648,7 +648,7 @@
                     success: function (result) {
                         alert(result);
                         if (type === "back") {
-                            location.href = "/reservation/reserveSeats";
+                            location.href = "/reservation/reserve";
                         } else {
                             location.href = "/";
                         }
@@ -675,7 +675,7 @@
                 toastTimerEl.textContent = current;
                 if (current <= 0) {
                     clearInterval(toastInterval);
-                    toast.hide(); // 자동으로 닫히게도 가능
+                    toast.hide();
                 }
             }, 1000);
         }

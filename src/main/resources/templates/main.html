@@ -8,6 +8,47 @@
     <link th:href="@{/css/style.css}" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
     <style>
+        /* 영상 감싸는 박스 */
+        .video-section{
+            background-color: black;
+        }
+        .video_wrap {
+            position: relative;
+            width: 100%;
+            max-width: 720px;
+            aspect-ratio: 16 / 9;
+            background-color: black;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.6);
+            margin: 0 auto; /* 가운데 정렬 */
+        }
+
+        /* 영상 스타일 */
+        .video_wrap video {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            display: block;
+            background-color: black;
+        }
+
+        /* 영상 위 제목 */
+        .video-title {
+            position: absolute;
+            top: 70%;
+            left: 20px; /* 왼쪽 정렬 */
+            transform: translateY(-50%);
+            color: white;
+            font-size: 1.5rem;
+            font-weight: bold;
+            padding: 10px 20px;
+            border-radius: 8px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+            pointer-events: none;
+            z-index: 1;
+            user-select: none;
+        }
         .movie-card {
             transition: transform 0.2s;
         }
@@ -209,7 +250,6 @@
 <div layout:fragment="content">
     <!-- 회원가입 성공 알림 (JavaScript로 처리) -->
     <div th:if="${signupSuccessMessage}" id="signupSuccessMessage" th:data-message="${signupSuccessMessage}" style="display: none;"></div>
-    
     <div class="my-5 position-relative">
         <button class="scroll-btn left" onclick="scrollMovies(-1)">
             <span class="scroll-icon left">〈</span>
@@ -218,7 +258,6 @@
             <span class="scroll-icon right">〉</span>
         </button>
         <div class="mb-5 text-center">
-            <h1>🎬MovieFlex</h1>
             <p class="lead">현재 상영작</p>
         </div>
         <div class="movie-scroll-wrapper">

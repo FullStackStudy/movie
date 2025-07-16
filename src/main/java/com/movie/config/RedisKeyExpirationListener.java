@@ -52,7 +52,8 @@ public class RedisKeyExpirationListener implements MessageListener {
         String seatName = seat.getSeatRow() + seat.getSeatColumn();
 
 
-        SeatStatusMessageDto seatStatusMessage = new SeatStatusMessageDto(scheduleId, List.of(seatId), List.of(seatName),"released");
+        SeatStatusMessageDto seatStatusMessage =
+                new SeatStatusMessageDto(scheduleId, List.of(seatId), List.of(seatName),"released");
 
         messagingTemplate.convertAndSend("/topic/seats/" + scheduleId, seatStatusMessage);
     }
