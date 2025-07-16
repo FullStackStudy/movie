@@ -48,7 +48,7 @@ public class ReservationService {
     final private StringRedisTemplate redisTemplate; //redis
     final private SeatNotificationService seatNotificationService; //websocket
 
-    private static int SeatHoldTimeoutMinutes;
+    private static int SeatHoldTimeoutSeconds=60;
 
     public List<ScheduleDto> getScheduleInfo(){//
             List<Schedule> scheduleList = scheduleRepository.findAll();
@@ -262,7 +262,7 @@ public class ReservationService {
 
         // setIfAbsent = Redis SETNX (Set if Not Exists)
         // 성공하면 true, 이미 존재하면 false (이미 예약된 상태)
-        Boolean success = redisTemplate.opsForValue().setIfAbsent(key, userId, Duration.ofMinutes(SeatHoldTimeoutMinutes));
+        Boolean success = redisTemplate.opsForValue().setIfAbsent(key, userId, Duration.ofSeconds(SeatHoldTimeoutSeconds));
 
         System.out.println("Redis 저장 시도: key=" + key + ", 결과=" + success);
 
@@ -274,7 +274,7 @@ public class ReservationService {
             boolean stillExists = redisTemplate.hasKey(key);
 
             if(!stillExists){
-                success = redisTemplate.opsForValue().setIfAbsent(key, userId, Duration.ofMinutes(SeatHoldTimeoutMinutes));
+                success = redisTemplate.opsForValue().setIfAbsent(key, userId, Duration.ofSeconds(SeatHoldTimeoutSeconds));
             }
         }
         return Boolean.TRUE.equals(success);
