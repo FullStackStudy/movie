@@ -192,7 +192,8 @@ public class RecommendService {
     }
 
     //lightfm 가는 함수
-    public List<UserRecommendationResultDto> gotoLightfm(String url, String name,Map<String, Object> requestBody) throws JsonProcessingException {
+    public List<UserRecommendationResultDto> gotoLightfm(String url, String name,Map<String, Object> requestBody)
+            throws JsonProcessingException {
         RestTemplate restTemplate = new RestTemplate();
         String pythonApiUrl = "http://127.0.0.1:5000/"+url; //파이선 주소
 
@@ -206,7 +207,8 @@ public class RecommendService {
         System.out.println("요청 JSON = " + requestEntity);
         ResponseEntity<String> response =restTemplate.postForEntity(pythonApiUrl, requestEntity, String.class);
         // 받은 JSON을 다시 DTO로 변환
-        List<UserRecommendationResultDto> resultDto = mapper.readValue(response.getBody(), new TypeReference<List<UserRecommendationResultDto>>() {});
+        List<UserRecommendationResultDto> resultDto = mapper.readValue(response.getBody(),
+                new TypeReference<List<UserRecommendationResultDto>>() {});
         System.out.println(name+" 추천결과:"+resultDto);
 
         return resultDto;

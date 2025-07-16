@@ -54,7 +54,7 @@ public class ReservationController {
     private final SeatService seatService;
     private final ScheduleService scheduleService;
     private final MemberRepository memberRepository;
-    //예약페이지 in
+/*    //예약페이지 in
     @GetMapping({"/",""})
     public String reserveSet(@AuthenticationPrincipal UserDetails userDetails, Model model){
         System.out.println("들어오니");
@@ -112,7 +112,7 @@ public class ReservationController {
 
         //model.addAttribute("holdingSeatList", holdingSeatIds);
         return "seat/seatSelect"; // templates/reservation.html
-    }
+    }*/
 
     //예약하기
     @PostMapping("/reserve")
@@ -143,7 +143,8 @@ public class ReservationController {
             }
         }
 
-        ReservationRedisResultDto result = reservationService.reserveRedis(reservedSeatNow, userDetails.getUsername(),scheduleId); //redis에 저장
+        ReservationRedisResultDto result =
+                reservationService.reserveRedis(reservedSeatNow, userDetails.getUsername(),scheduleId); //redis에 저장
 
         //하나라도 redis 걸려있으면 (두 자리 선택했는데 한자리가 누가 예약중일 때)
         if(!result.getFailList().isEmpty()){
@@ -154,7 +155,8 @@ public class ReservationController {
         }else{
             //예약 -> 결제로 가져가는 정보인데 계속 가져가는거보다 세션 끝나면 없애주는게 좋을거같아 session에 저장
             System.out.println("reDto member_id" + userDetails.getUsername());
-            ReservationResponseDto reservationResponseDto = reservationService.getReservationResponseDto(scheduleId,seatDtos, userDetails.getUsername());
+            ReservationResponseDto reservationResponseDto =
+                    reservationService.getReservationResponseDto(scheduleId,seatDtos, userDetails.getUsername());
             session.setAttribute("scheduleId", scheduleId);
             System.out.println(reservedSeatNow);
             session.setAttribute("seatId", reservedSeatNow);
@@ -215,7 +217,7 @@ public class ReservationController {
         session.setAttribute("usePoint", usePoint);
         
         // movie/payment 페이지로 리다이렉트
-        return "redirect:/movie/payment?memberId=" + userDetails.getUsername();
+        return "redirect:/movie/payment?memberId=" + userDetails.getUsername ();
     }
 
     @PostMapping("/back")
@@ -257,7 +259,9 @@ public class ReservationController {
 
     //예약취소하기
     @PostMapping("/cancel")
-    public ResponseEntity<String> cancelReservation(@RequestBody Map<String, Object> data, @AuthenticationPrincipal UserDetails userDetails) throws AccessDeniedException {
+    public ResponseEntity<String> cancelReservation(
+            @RequestBody Map<String, Object> data,
+            @AuthenticationPrincipal UserDetails userDetails) throws AccessDeniedException {
         Long reservationId = Long.parseLong(data.get("reservationId").toString());
         System.out.println("취소할 에약번호: "+ reservationId);
         //예약한 유저아이디 가져옴 검사

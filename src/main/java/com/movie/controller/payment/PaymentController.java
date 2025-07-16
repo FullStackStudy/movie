@@ -203,7 +203,7 @@ public class PaymentController {
         }
     }
 
-    @GetMapping("/movie/payment/kakao-pay-success")
+    @GetMapping("/movie/payment/kakao-pay-successkakao-pay-success")
     public String kakaoPaySuccess(@RequestParam String pg_token,
                                   HttpSession session,
                                   Model model) {

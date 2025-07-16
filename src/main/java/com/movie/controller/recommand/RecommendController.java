@@ -42,7 +42,8 @@ public class RecommendController {
             //hybrid에서 가져온 리스트에서 상위 3개만 tmdb에서 아이디 뽑아옴
             for (int i = 0; i < Math.min(hybridList.size(), 3); i++) {
                 System.out.println("하이브리드 아이디:" + hybridList.get(i).getMovieTitle());
-                List<TmdbDto> tmdbList = recommendService.searchMovieInTMDB(userDetails.getUsername(), hybridList.get(i).getMovieTitle(), hybridList.get(i).getYear());
+                List<TmdbDto> tmdbList = recommendService.searchMovieInTMDB(
+                        userDetails.getUsername(), hybridList.get(i).getMovieTitle(), hybridList.get(i).getYear());
                 System.out.println("덜아오니?" + tmdbList);
                 tmdbDtoList.addAll(tmdbList);
             }

@@ -21,7 +21,7 @@ import java.util.Map;
 public class RecommendScheduler {
     private final RecommendService recommendService;
 
-    //스케줄러로 하루 한번씩 11시에 lightfm으로 영화 정보 보내는 함수
+    //스케줄러로 하루 한번씩 10시에 lightfm으로 영화 정보 보내는 함수
     @Scheduled(cron = "0 00 10 * * *", zone = "Asia/Seoul")
     public void sendMovieInfo() throws JsonProcessingException {
         Map<String, Object> requestBody = new HashMap<>();

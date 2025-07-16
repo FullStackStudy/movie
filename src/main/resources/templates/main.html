@@ -250,15 +250,6 @@
 <div layout:fragment="content">
     <!-- 회원가입 성공 알림 (JavaScript로 처리) -->
     <div th:if="${signupSuccessMessage}" id="signupSuccessMessage" th:data-message="${signupSuccessMessage}" style="display: none;"></div>
-    <section class="video-section">
-        <div class="video_wrap">
-            <div class="video-title" th:text="${title}">예고편 제목</div>
-            <video autoplay muted loop th:src="${url}">
-                <source th:src="${url}" type="video/mp4">
-                브라우저가 video 태그를 지원하지 않습니다.
-            </video>
-        </div>
-    </section>
     <div class="my-5 position-relative">
         <button class="scroll-btn left" onclick="scrollMovies(-1)">
             <span class="scroll-icon left">〈</span>
