@@ -2,11 +2,13 @@ package com.movie.controller.member;
 
 import com.movie.dto.member.MyPageDto;
 import com.movie.dto.payment.MovieOrderDto;
+import com.movie.dto.store.StoreMemberPaymentInfoDto;
 import com.movie.entity.member.Member;
 import com.movie.repository.member.MemberRepository;
 import com.movie.service.member.MemberService;
 import com.movie.service.common.FileService;
 import com.movie.service.payment.MovieOrderService;
+import com.movie.service.store.StoreMemberPaymentInfoService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
@@ -19,6 +21,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -32,6 +36,7 @@ public class MyPageController {
     private final FileService fileService;
     private final MemberRepository memberRepository;
     private final MovieOrderService movieOrderService;
+    private final StoreMemberPaymentInfoService storeMemberPaymentInfoService;
 
     @GetMapping("/mypage")
     public String myPage(Model model) {
@@ -190,5 +195,17 @@ public class MyPageController {
         String memberId = auth.getName();
         System.out.println("🔐 일반 사용자 ID: " + memberId);
         return memberId;
+    }
+    @GetMapping("mypage/storeOrders")
+    public String getStoreOrdersPage(Principal principal, Model model) {
+        if (principal == null) {
+            return "redirect:/login"; // 비로그인 시 로그인 페이지로
+        }
+
+        String memberId = principal.getName(); // 회원 아이디 또는 이메일 등
+        List<StoreMemberPaymentInfoDto> orders = storeMemberPaymentInfoService.getOrderHistoryByMemberId(memberId);
+        model.addAttribute("orders", orders);
+
+        return "mypage/storeOrders"; // templates/mypage/storeOrders.html
     }
 } 

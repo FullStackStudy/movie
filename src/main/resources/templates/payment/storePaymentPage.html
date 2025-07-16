@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>💳결제 페이지</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <style>
+        body {
+          background-color: #144C3B;
+          font-family: 'Pretendard', sans-serif;
+          margin: 0;
+          padding: 0;
+        }
+
+        .payment-container {
+          background-color: #144C3B;
+          border-radius: 24px;
+          padding: 3rem;
+          margin: 2rem auto;
+          max-width: 800px;
+          color: #FFE066;
+          box-shadow: 0 10px 40px rgba(0, 0, 0, 0.25);
+          border: 2px solid #FFE066;
+        }
+
+        .payment-container h2 {
+          text-align: center;
+          font-size: 2.5rem;
+          font-weight: bold;
+          margin-bottom: 2rem;
+          color: #FFE066;
+          border-bottom: 3px solid #FFE066;
+          padding-bottom: 1rem;
+        }
+
+        .payment-info,
+        .payment-methods {
+          background-color: #1d5a49;
+          border-radius: 20px;
+          padding: 2rem;
+          margin-bottom: 2rem;
+          box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .payment-info h3,
+        .payment-methods h3 {
+          color: #FFE066;
+          font-size: 1.5rem;
+          font-weight: 700;
+          margin-bottom: 1.5rem;
+          text-align: center;
+        }
+
+        .info-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+          gap: 1rem;
+        }
+
+        .info-item {
+            display: flex;
+            flex-direction: column;   /* 세로 정렬로 변경 */
+            align-items: flex-start;  /* 왼쪽 정렬 */
+}
+
+        .label {
+          font-weight: bold;
+        }
+
+        .final-price {
+          background-color: #FFE066;
+          color: #144C3B;
+          font-size: 1.5rem;
+          font-weight: bold;
+          padding: 1.5rem;
+          border-radius: 20px;
+          text-align: center;
+          margin-bottom: 2rem;
+        }
+
+        .payment-btn {
+          display: block;
+          width: 100%;
+          padding: 1rem;
+          font-size: 1.2rem;
+          font-weight: bold;
+          border: none;
+          border-radius: 30px;
+          transition: background-color 0.3s ease, transform 0.2s;
+          cursor: pointer;
+        }
+
+        .btn-card {
+          background-color: #FFE066;
+          color: #144C3B;
+        }
+
+        .btn-card:hover {
+          background-color: #f0d34d;
+          transform: translateY(-3px);
+        }
+
+        @media (max-width: 768px) {
+          .payment-container {
+            padding: 2rem;
+            margin: 1rem;
+          }
+
+          .payment-container h2 {
+            font-size: 2rem;
+          }
+
+          .info-grid {
+            grid-template-columns: 1fr;
+          }
+
+          .payment-btn {
+            font-size: 1rem;
+          }
+        }
+    </style>
+
+    <script src="https://cdn.iamport.kr/js/iamport.payment-1.2.0.js"></script>
+
+    <script th:inline="javascript">
+        const IMP = window.IMP;
+        IMP.init("imp21428454");
+
+        function requestPay() {
+          const form = document.getElementById('paymentForm');
+          const itemName = [[${storePaymentInfo.items[0].itemNm}]];
+          const amount = [[${storePaymentInfo.amount}]];
+          const memberId = [[${storePaymentInfo.memberId}]];
+
+          IMP.request_pay({
+            pg: "html5_inicis",
+            pay_method: "card",
+            merchant_uid: "mid_" + new Date().getTime(),
+            name: itemName,
+            amount: amount,
+            buyer_name: memberId
+          }, function (rsp) {
+            if (rsp.success) {
+              document.getElementById("impUid").value = rsp.imp_uid;
+              document.getElementById("merchantUid").value = rsp.merchant_uid;
+              form.submit();
+            } else {
+              alert("❌ 결제 실패: " + rsp.error_msg);
+            }
+          });
+        }
+    </script>
+</head>
+<body>
+<div class="payment-container">
+    <h2>결제 정보 확인</h2>
+
+    <div class="payment-info">
+        <h3>상품 정보</h3>
+
+        <div class="info-grid">
+            <div th:each="item, iterStat : ${storePaymentInfo.items}" class="info-item">
+                <div class="info-title">
+                    <span class="label">상품</span>: <span class="value" th:text="${item.itemNm}"></span>
+                </div>
+                <div class="info-detail">
+                    <p><span class="label">구성</span>: <span class="value" th:text="${item.itemComposition}"></span></p>
+                    <p><span class="label">수량</span>: <span class="value" th:text="${item.quantity}"></span></p>
+                    <p><span class="label">가격</span>: <span class="value" th:text="${item.price} + '원'"></span></p>
+                    <p><span class="label">픽업 시간</span>: <span class="value" th:text="${item.pickupTime}"></span></p>
+                    <p><span class="label">영화관</span>: <span class="value" th:text="${item.cinemaName}"></span></p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="final-price">
+         총 결제금액: <span th:text="${storePaymentInfo.amount}"></span>원
+    </div>
+    <form id="paymentForm" th:action="@{/store/payment/verify}" method="post">
+        <input type="hidden" name="memberId" th:value="${storePaymentInfo.memberId}">
+        <input type="hidden" id="impUid" name="impUid">
+        <input type="hidden" id="merchantUid" name="merchantUid">
+
+        <!-- 단일 상품 정보 -->
+        <input type="hidden" name="items[0].itemNm" th:value="${storePaymentInfo.items[0].itemNm}">
+        <input type="hidden" name="items[0].itemComposition" th:value="${storePaymentInfo.items[0].itemComposition}">
+        <input type="hidden" name="items[0].quantity" th:value="${storePaymentInfo.items[0].quantity}">
+        <input type="hidden" name="items[0].price" th:value="${storePaymentInfo.items[0].price}">
+        <input type="hidden" name="items[0].pickupTime" th:value="${storePaymentInfo.items[0].pickupTime}">
+        <input type="hidden" name="items[0].cinemaName" th:value="${storePaymentInfo.items[0].cinemaName}">
+
+        <button type="button" class="payment-btn btn-card" onclick="requestPay()"> 결제하기</button>
+    </form>
+</div>
+</body>
+</html>
