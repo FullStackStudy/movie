@@ -15,7 +15,7 @@ public class MovieDataInitializer implements CommandLineRunner {
     // 어플리케이션이 실행될때 한번은 크롤링이 되게 하는 기능
     @Override
     public void run(String... args) throws Exception {
-        log.info("🎬 애플리케이션 시작 - CGV 영화 정보 크롤링을 시작합니다...");
+        log.info("🎬 애플리케이션 시작 - 영화 정보 크롤링을 시작합니다...");
         
         try {
             movieCrawlingService.crawlAndSaveMovies();
