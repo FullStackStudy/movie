@@ -14,11 +14,9 @@ import java.util.List;
 public class MainController {
 
     private final MovieService movieService;
-    private final MainService mainService;
     @Autowired
-    public MainController(MovieService movieService, MainService mainService) {
+    public MainController(MovieService movieService) {
         this.movieService = movieService;
-        this.mainService = mainService;
     }
 
     @GetMapping("/")
