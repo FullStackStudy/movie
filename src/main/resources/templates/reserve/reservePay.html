@@ -17,25 +17,25 @@
         .detail{
             font-size:12px;
         }
-        
+
         /* 전체 컨테이너 스타일 */
         .payment-container {
             max-width: 60%;
             margin: 0 auto;
             padding: 2rem;
         }
-        
+
         /* 탭 스타일 */
         .tab-container {
             margin-bottom: 2rem;
         }
-        
+
         .tab-buttons {
             display: flex;
             gap: 0.5rem;
             margin-bottom: 1rem;
         }
-        
+
         .tab-button {
             padding: 0.75rem 1.5rem;
             border: 2px solid #dee2e6;
@@ -46,21 +46,21 @@
             transition: all 0.3s ease;
             font-weight: 600;
         }
-        
+
         .tab-button.active {
             background: #28a745;
             color: white;
             border-color: #28a745;
         }
-        
+
         .tab-button:hover {
             background: #e9ecef;
         }
-        
+
         .tab-button.active:hover {
             background: #218838;
         }
-        
+
         .tab-content {
             display: none;
             background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
@@ -69,11 +69,11 @@
             padding: 1.5rem;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
         }
-        
+
         .tab-content.active {
             display: block;
         }
-        
+
         .tab-content h6 {
             color: #495057;
             font-weight: 600;
@@ -81,7 +81,7 @@
             border-bottom: 2px solid #28a745;
             padding-bottom: 0.5rem;
         }
-        
+
         .point-row {
             display: flex;
             justify-content: space-between;
@@ -92,26 +92,26 @@
             border-radius: 8px;
             border-left: 4px solid #28a745;
         }
-        
+
         .point-label {
             font-weight: 600;
             color: #495057;
             font-size: 0.9rem;
         }
-        
+
         .point-value {
             font-weight: 700;
             color: #28a745;
             font-size: 1.1rem;
         }
-        
+
         .point-input-group {
             display: flex;
             align-items: center;
             gap: 0.5rem;
             margin: 0.75rem 0;
         }
-        
+
         .point-input {
             width: 100px;
             padding: 0.5rem;
@@ -120,13 +120,13 @@
             font-size: 0.9rem;
             text-align: center;
         }
-        
+
         .point-input:focus {
             border-color: #28a745;
             outline: none;
             box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.1);
         }
-        
+
         .final-price-section {
             background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
             color: white;
@@ -136,18 +136,18 @@
             margin-top: 1rem;
             box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
         }
-        
+
         .final-price-label {
             font-size: 0.9rem;
             opacity: 0.9;
             margin-bottom: 0.25rem;
         }
-        
+
         .final-price-value {
             font-size: 1.5rem;
             font-weight: 700;
         }
-        
+
         /* 버튼 스타일 */
         .btn {
             padding: 1rem 2rem;
@@ -161,47 +161,47 @@
             text-align: center;
             font-size: 1.1rem;
         }
-        
+
         .btn-primary {
             background: linear-gradient(135deg, #007bff, #0056b3);
             color: white;
         }
-        
+
         .btn-primary:hover {
             transform: translateY(-2px);
             box-shadow: 0 8px 25px rgba(0, 123, 255, 0.3);
         }
-        
+
         .btn-secondary {
             background: linear-gradient(135deg, #6c757d, #545b62);
             color: white;
         }
-        
+
         .btn-secondary:hover {
             transform: translateY(-2px);
             box-shadow: 0 8px 25px rgba(108, 117, 125, 0.3);
         }
-        
+
         .btn-success {
             background: linear-gradient(135deg, #28a745, #20c997);
             color: white;
         }
-        
+
         .btn-success:hover {
             transform: translateY(-2px);
             box-shadow: 0 8px 25px rgba(40, 167, 69, 0.3);
         }
-        
+
         .btn-danger {
             background: linear-gradient(135deg, #dc3545, #c82333);
             color: white;
         }
-        
+
         .btn-danger:hover {
             transform: translateY(-2px);
             box-shadow: 0 8px 25px rgba(220, 53, 69, 0.3);
         }
-        
+
         /* 버튼 그룹 스타일 */
         .button-group {
             display: flex;
@@ -209,39 +209,132 @@
             gap: 1rem;
             margin-top: 2rem;
         }
-        
+
         /* 반응형 디자인 */
         @media (max-width: 768px) {
             .payment-container {
                 max-width: 95%;
                 padding: 1rem;
             }
-            
+
             .point-row {
                 flex-direction: column;
                 align-items: flex-start;
                 gap: 0.5rem;
             }
-            
+
             .point-input-group {
                 flex-direction: column;
                 align-items: flex-start;
             }
-            
+
             .point-input {
                 width: 100%;
                 max-width: 150px;
             }
-            
+
             .button-group {
                 flex-direction: column;
                 align-items: stretch;
             }
-            
+
             .tab-buttons {
                 flex-wrap: wrap;
             }
         }
+        /* 모달 제목 꾸미기 */
+    .modal-title {
+        font-weight: 700;
+        color: #343a40;
+        font-size: 1.5rem;
+    }
+
+    /* 표 전반 스타일 정리 */
+    .table1 {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.95rem;
+    }
+
+    .table1 thead th {
+        background-color: #f8f9fa;
+        color: #495057;
+        padding: 0.75rem;
+        font-weight: 600;
+        border-bottom: 2px solid #dee2e6;
+    }
+
+    .table1 td {
+        padding: 0.5rem;
+        vertical-align: middle;
+        color: #343a40;
+    }
+
+    .table1 .table-borderless td:first-child {
+        font-weight: 600;
+        width: 30%;
+        color: #6c757d;
+    }
+
+    /* 영화 포스터 이미지 스타일 */
+    #myModal img {
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    /* detail 리스트 스타일 */
+    .detail {
+        font-size: 0.85rem;
+        color: #6c757d;
+        margin-top: 1rem;
+        padding-left: 1.25rem;
+    }
+
+    .detail li {
+        margin-bottom: 0.5rem;
+    }
+
+    /* 모달 버튼 스타일 */
+    .modal-footer .btn-primary {
+        background: linear-gradient(135deg, #28a745, #20913a);
+        font-weight: 600;
+        padding: 0.6rem 1.8rem;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+    }
+
+    .modal-footer .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0, 123, 255, 0.3);
+    }
+
+    .modal-footer .btn-secondary {
+        background: linear-gradient(135deg, #6c757d, #495057);
+        font-weight: 600;
+        padding: 0.6rem 1.8rem;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+    }
+
+    .modal-footer .btn-secondary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(108, 117, 125, 0.3);
+    }
+
+    /* 반응형 개선 */
+    @media (max-width: 768px) {
+        #myModal img {
+            max-width: 80px;
+        }
+
+        .table1 td {
+            font-size: 0.85rem;
+        }
+
+        .modal-title {
+            font-size: 1.2rem;
+        }
+    }
     </style>
 </div>
 <div layout:fragment="content">
@@ -368,8 +461,8 @@
                         <table class="table1 table-striped-columns">
                             <thead>
                             <tr>
-                                <th class="col-6">예약 정보</th>
-                                <th class="col-6">결제 정보</th>
+                                <th class="col-6" style="width:60%;">예약 정보</th>
+                                <th class="col-6" style="width:40%;">결제 정보</th>
                             </tr>
                             </thead>
                             <tbody class="table-group-divider">
