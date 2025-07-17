@@ -19,7 +19,15 @@ public class RecommendMovieDto {
     private String rating;
     private int runtime;
     private String country;
+    private String director;
 
+    public String noDirector(String director){
+        return director.equals("감독 정보 없음") ? "": director;
+    }
+
+    public String noMovieCast(String movieCast){
+        return movieCast.equals("출연진 정보 없음") ? "": movieCast;
+    }
     public void parseDetail(String detailInfo){
         this.detailInfo = detailInfo;
         if(detailInfo == null || detailInfo.isEmpty()){

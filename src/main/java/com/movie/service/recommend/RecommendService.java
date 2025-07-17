@@ -58,10 +58,11 @@ public class RecommendService {
             recommendMovieDto.setMovieId(movie.getMovieId());
             recommendMovieDto.setTitle(movie.getMovieTitle());
             recommendMovieDto.setGenres(movie.getGenre());
-            recommendMovieDto.setActors(movie.getMovieCast());
+            recommendMovieDto.setActors(recommendMovieDto.noMovieCast(movie.getMovieCast()));
             recommendMovieDto.setOpenDate(movie.getOpenDate());
             recommendMovieDto.setDetailInfo(movie.getDetailInfo());
             recommendMovieDto.parseDetail(movie.getDetailInfo());
+            recommendMovieDto.setDirector(recommendMovieDto.noDirector(movie.getMovieDirector()));
             recommendMovieDtoList.add(recommendMovieDto);
         }
         return recommendMovieDtoList;
