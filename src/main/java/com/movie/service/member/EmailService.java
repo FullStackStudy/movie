@@ -11,7 +11,7 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class EmailService {
 
-    private final JavaMailSender mailSender;
+    private final JavaMailSender mailSender; // ✅ 올바른 의존성
 
     public void sendVerificationEmail(String to, String verificationCode) {
         try {
@@ -24,11 +24,11 @@ public class EmailService {
                     "본인이 요청하지 않은 경우 이 메일을 무시하세요.\n\n" +
                     "감사합니다.\nMovieFlex 팀");
 
-            mailSender.send(message);
+            mailSender.send(message); // ✅ 메일 전송
             log.info("인증 이메일 전송 완료: {}", to);
         } catch (Exception e) {
             log.error("인증 이메일 전송 실패: {}", e.getMessage(), e);
             throw new RuntimeException("이메일 전송에 실패했습니다.", e);
         }
     }
-} 
+}

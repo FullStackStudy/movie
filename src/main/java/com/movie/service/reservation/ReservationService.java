@@ -135,6 +135,9 @@ public class ReservationService {
                 }
             }
 
+            // 모든 좌석 저장 후 잔여 좌석 업데이트
+            scheduleService.updateAvailableSeats(schedule.getId());
+
             //예약하면 추천 ai 새로 받아오기 위해 redis 삭제
             relaseRecomRedis(member.getMemberId());
             return true;
