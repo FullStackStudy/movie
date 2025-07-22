@@ -2,7 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
   <meta charset="UTF-8">
-  <title>주문 취소 완료</title>
+  <title>환불 완료</title>
   <style>
     body {
       font-family: 'Pretendard', sans-serif;
@@ -10,30 +10,26 @@
       padding: 50px;
       background-color: #f9f9f9;
     }
-
     .result-box {
       background-color: #fffde7;
       border: 2px solid #FFE066;
       padding: 40px;
       border-radius: 20px;
       display: inline-block;
-      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 8px 25px rgba(0,0,0,0.1);
       max-width: 600px;
     }
-
     .result-box h1 {
       color: #144C3B;
       margin-bottom: 20px;
       font-size: 2rem;
     }
-
     .result-box p {
       color: #555;
       font-size: 1.1rem;
       margin-bottom: 30px;
       line-height: 1.6;
     }
-
     .btn {
       padding: 12px 24px;
       background-color: #FFE066;
@@ -43,8 +39,9 @@
       font-weight: bold;
       font-size: 1rem;
       transition: background-color 0.3s ease;
+      margin: 0 10px;
+      display: inline-block;
     }
-
     .btn:hover {
       background-color: #f2d94f;
     }
@@ -52,12 +49,14 @@
 </head>
 <body>
 <div class="result-box">
-  <h1>📦 주문이 취소되었습니다</h1>
+  <h1>✅ 환불이 완료되었습니다</h1>
   <p>
-    주문이 성공적으로 취소 처리되었습니다.<br>
-    결제하신 금액은 카드사에 따라 환불까지 2~5일 정도 소요될 수 있습니다.
+    영화 예매가 성공적으로 환불 처리되었습니다.<br>
+    결제하신 금액은 카카오페이에 따라 1~3일 내에 환불됩니다.<br>
+    사용하신 포인트는 즉시 환급되었습니다.
   </p>
-  <a href="payment/storeOrders" class="btn">📝 주문 내역으로 돌아가기</a>
+  <a href="/mypage" class="btn">마이페이지로 이동</a>
+  <a href="/" class="btn">홈으로 돌아가기</a>
 </div>
 </body>
 </html>

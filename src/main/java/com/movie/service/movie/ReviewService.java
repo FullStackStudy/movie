@@ -8,6 +8,7 @@ import com.movie.constant.Role;
 import com.movie.repository.member.MemberRepository;
 import com.movie.repository.movie.MovieRepository;
 import com.movie.repository.movie.ReviewRepository;
+import com.movie.repository.payment.MovieOrderRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -28,6 +29,7 @@ public class ReviewService {
     private final ReviewRepository reviewRepository;
     private final MovieRepository movieRepository;
     private final MemberRepository memberRepository;
+    private final MovieOrderRepository movieOrderRepository;
 
     // 영화별 리뷰 목록 조회 (페이지네이션)
     public Page<ReviewDto> getReviewsByMovieIdPaged(Long movieId, int page, int size) {
@@ -71,22 +73,21 @@ public class ReviewService {
             return true;
         }
 
-        // 4. 일반 사용자의 경우 예매내역 확인
-        String memberReserve = member.getReserve();
-        if (memberReserve == null || memberReserve.isEmpty()) {
-            log.warn("예매내역이 없습니다: memberId={}", memberId);
+        // 4. 일반 사용자의 경우 주문 내역에서 결제 완료된 영화 확인
+        boolean hasPurchased = movieOrderRepository.existsByMemberMemberIdAndMovieTitleAndPaymentStatus(
+            memberId, movie.getMovieTitle(), "SUCCESS");
+        log.info("주문 내역 확인: movieTitle={}, hasPurchased={}", movie.getMovieTitle(), hasPurchased);
+        
+        if (!hasPurchased) {
+            log.warn("해당 영화를 결제한 내역이 없습니다: memberId={}, movieTitle={}", memberId, movie.getMovieTitle());
             return false;
         }
-
-        // 예매내역에 영화 제목이 포함되어 있는지 확인
-        boolean hasReserved = memberReserve.contains(movie.getMovieTitle());
-        log.info("예매내역 확인: reserve={}, hasReserved={}", memberReserve, hasReserved);
         
         // 5. 이미 리뷰를 작성했는지 확인
         boolean alreadyReviewed = reviewRepository.existsByMovieMovieIdAndMemberMemberId(movieId, memberId);
         log.info("이미 리뷰 작성 여부: {}", alreadyReviewed);
 
-        boolean result = hasReserved && !alreadyReviewed;
+        boolean result = hasPurchased && !alreadyReviewed;
         log.info("최종 리뷰 작성 권한: {}", result);
         return result;
     }
@@ -101,7 +102,7 @@ public class ReviewService {
         
         if (!canReview) {
             log.error("리뷰 작성 권한이 없습니다: movieId={}, memberId={}", movieId, memberId);
-            throw new IllegalArgumentException("리뷰를 작성할 수 없습니다. 영화를 예매했는지 확인해주세요.");
+            throw new IllegalArgumentException("리뷰를 작성할 수 없습니다. 해당 영화를 결제한 내역이 있는지 확인해주세요.");
         }
 
         Movie movie = movieRepository.findById(movieId)
@@ -178,6 +179,11 @@ public class ReviewService {
     public boolean isAdmin(String memberId) {
         Member member = memberRepository.findById(memberId).orElse(null);
         return member != null && member.getRole() == Role.ADMIN;
+    }
+
+    // 회원이 특정 영화에 이미 리뷰를 작성했는지 확인
+    public boolean hasAlreadyReviewed(Long movieId, String memberId) {
+        return reviewRepository.existsByMovieMovieIdAndMemberMemberId(movieId, memberId);
     }
 
     // 영화별 평균 평점 조회

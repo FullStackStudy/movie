@@ -86,9 +86,17 @@ public class MemberService implements UserDetailsService {
     public void updatePassword(String memberId, String currentPassword, String newPassword) {
         Member member = getMemberById(memberId);
         
-        // 현재 비밀번호 확인 (암호화된 비밀번호와 비교)
-        if (!passwordEncoder.matches(currentPassword, member.getPassword())) {
-            throw new IllegalArgumentException("현재 비밀번호가 일치하지 않습니다.");
+        // 소셜 로그인 사용자인지 확인
+        boolean isOAuth2User = "OAUTH2_USER".equals(member.getPassword());
+        
+        if (isOAuth2User) {
+            // 소셜 로그인 사용자는 현재 비밀번호 확인 없이 바로 변경 가능
+            System.out.println("🔐 소셜 로그인 사용자 비밀번호 변경: " + memberId);
+        } else {
+            // 일반 사용자는 현재 비밀번호 확인
+            if (!passwordEncoder.matches(currentPassword, member.getPassword())) {
+                throw new IllegalArgumentException("현재 비밀번호가 일치하지 않습니다.");
+            }
         }
         
         // 새 비밀번호 유효성 검사
@@ -96,10 +104,17 @@ public class MemberService implements UserDetailsService {
             throw new IllegalArgumentException("비밀번호는 8자 이상, 16자 이하로 입력해주세요.");
         }
         
+        // 새 비밀번호가 현재 비밀번호와 같은지 확인 (중복체크)
+        if (!isOAuth2User && passwordEncoder.matches(newPassword, member.getPassword())) {
+            throw new IllegalArgumentException("새 비밀번호는 현재 비밀번호와 달라야 합니다.");
+        }
+        
         // 새 비밀번호 암호화하여 저장
         String encodedNewPassword = passwordEncoder.encode(newPassword);
         member.setPassword(encodedNewPassword);
         memberRepository.save(member);
+        
+        System.out.println("✅ 비밀번호 변경 완료: " + memberId + (isOAuth2User ? " (소셜 로그인 사용자)" : " (일반 사용자)"));
     }
 
     // email 중복가입 체크

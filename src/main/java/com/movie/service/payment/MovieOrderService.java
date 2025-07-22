@@ -103,4 +103,16 @@ public class MovieOrderService {
         dto.setPgToken(order.getPgToken());
         return dto;
     }
+
+    /**
+     * 주문 상태 업데이트
+     */
+    @Transactional
+    public void updateOrderStatus(String orderNumber, String status) {
+        MovieOrder order = movieOrderRepository.findByOrderNumber(orderNumber)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 주문입니다."));
+        order.setPaymentStatus(status);
+        movieOrderRepository.save(order);
+        log.info("주문 상태 업데이트: orderNumber={}, status={}", orderNumber, status);
+    }
 } 

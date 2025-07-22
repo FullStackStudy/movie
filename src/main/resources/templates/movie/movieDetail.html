@@ -152,6 +152,9 @@
                 return;
             }
 
+            // CSRF 토큰 가져오기 (추가)
+            const csrfToken = document.querySelector('meta[name=\"_csrf\"]').getAttribute('content');
+
             fetch(`/review/${reviewId}`, {
                 method: 'PUT',
                 headers: {
@@ -249,6 +252,13 @@
             font-weight: 500;
             min-width: 80px;
             display: inline-block;
+            vertical-align: top;
+        }
+        .movie-info-value {
+            display: inline-block;
+            vertical-align: top;
+            max-width: calc(100% - 100px);
+            word-wrap: break-word;
         }
         .movie-content {
             white-space: pre-line;
@@ -479,27 +489,27 @@
                 <div class="movie-info-title mb-3" th:text="${movie.movieTitle}">영화 제목</div>
                 <div class="mb-2">
                     <span class="movie-info-label">장르</span>
-                    <span th:text="'🎥 '+${movie.genre}">장르</span>
+                    <span class="movie-info-value" th:text="'🎥 '+${movie.genre}">장르</span>
                 </div>
                 <div class="mb-2">
                     <span class="movie-info-label">평점</span>
-                    <span th:text="'🍿 '+${movie.movieRating}">0</span>
+                    <span class="movie-info-value" th:text="'🍿 '+${movie.movieRating}">0</span>
                 </div>
                 <div class="mb-2">
                     <span class="movie-info-label">출연</span>
-                    <span th:text="${movie.movieCast}">출연진</span>
+                    <span class="movie-info-value" th:text="${movie.movieCast}">출연진</span>
                 </div>
                 <div class="mb-2">
                     <span class="movie-info-label">상세정보</span>
-                    <span th:text="${movie.detailInfo}">상세정보</span>
+                    <span class="movie-info-value" th:text="${movie.detailInfo}">상세정보</span>
                 </div>
                 <div class="mb-2">
                     <span class="movie-info-label">개봉일</span>
-                    <span th:text="${movie.openDate}">개봉일</span>
+                    <span class="movie-info-value" th:text="${movie.openDate}">개봉일</span>
                 </div>
                 <div class="mb-2">
                     <span class="movie-info-label">가격</span>
-                    <span th:text="${movie.moviePrice} + '원'">12000원</span>
+                    <span class="movie-info-value" th:text="${movie.moviePrice} + '원'">12000원</span>
                 </div>
                 <div class="mb-4">
                     <span class="movie-info-label">줄거리</span>
@@ -550,8 +560,13 @@
             </div>
 
             <!-- 리뷰 작성 불가 안내 -->
-            <div class="review-alert" sec:authorize="isAuthenticated()" th:if="${!canReview}">
-                <strong>리뷰 작성 안내:</strong> 이 영화를 예매하신 후에만 리뷰를 작성할 수 있습니다.
+            <div class="review-alert" sec:authorize="isAuthenticated()" th:if="${!canReview and !alreadyReviewed}">
+                <strong>리뷰 작성 안내:</strong> 이 영화를 결제하신 후에만 리뷰를 작성할 수 있습니다.
+            </div>
+            
+            <!-- 이미 리뷰 작성 완료 안내 -->
+            <div class="review-alert alert-success" sec:authorize="isAuthenticated()" th:if="${alreadyReviewed}">
+                <strong>리뷰 작성 완료:</strong> 이미 이 영화에 대한 리뷰를 작성하셨습니다.
             </div>
 
             <!-- 로그인 안내 -->

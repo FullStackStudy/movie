@@ -13,6 +13,7 @@
 }
 
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@200;300;400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css?family=Roboto');
 
 * {
     font-family: 'Poppins', sans-serif;
@@ -259,7 +260,8 @@ body {
 .social-login-buttons {
     display: flex;
     flex-direction: column;
-    gap: 0.8rem;
+    gap: 1rem;
+    align-items: center;
 }
 
 .social-login-btn {
@@ -280,44 +282,6 @@ body {
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     text-decoration: none;
-}
-
-.google-btn {
-    background-color: var(--white);
-    color: var(--black);
-    border-color: #ddd;
-}
-
-.google-btn:hover {
-    background-color: #f8f9fa;
-    border-color: #ccc;
-}
-
-.google-btn i {
-    font-size: 1.2rem;
-    color: var(--google-color);
-}
-
-/* 소셜 로그인 버튼 반응형 */
-@media only screen and (max-width: 425px) {
-    .social-login-btn {
-        padding: 0.7rem 0.8rem;
-        font-size: 0.8rem;
-    }
-    
-    .social-login-btn i {
-        font-size: 1rem;
-    }
-    
-    .form button {
-        padding: 0.8rem 0;
-        font-size: 1.1rem;
-    }
-    
-    .form button:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12);
-    }
 }
 
 .input-group input[style*="border-color: #dc3545"] {

@@ -2,7 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
   <meta charset="UTF-8">
-  <title>주문 실패</title>
+  <title>환불 실패</title>
   <style>
     body {
       font-family: 'Pretendard', sans-serif;
@@ -10,30 +10,26 @@
       padding: 50px;
       background-color: #fffce5;
     }
-
     .result-box {
       background-color: #fffbe0;
       border: 2px solid #FFE066;
       padding: 40px;
       border-radius: 20px;
       display: inline-block;
-      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 8px 25px rgba(0,0,0,0.1);
       max-width: 600px;
     }
-
     .result-box h1 {
       color: #144C3B;
       margin-bottom: 20px;
       font-size: 2rem;
     }
-
     .result-box p {
       color: #144C3B;
       font-size: 1.1rem;
       margin-bottom: 30px;
       line-height: 1.6;
     }
-
     .btn {
       padding: 12px 24px;
       background-color: #FFE066;
@@ -43,8 +39,9 @@
       font-weight: bold;
       font-size: 1rem;
       transition: background-color 0.3s ease;
+      margin: 0 10px;
+      display: inline-block;
     }
-
     .btn:hover {
       background-color: #f2d94f;
     }
@@ -53,8 +50,13 @@
 <body>
 <div class="result-box">
   <h1>❌ 환불에 실패했습니다</h1>
-  <p>시스템 오류 또는 네트워크 문제로<br>주문이 정상 처리되지 않았습니다.<br>잠시 후 다시 시도해 주세요.</p>
-  <a href="payment/storeOrders" class="btn">📝 주문 내역으로 돌아가기</a>
+  <p>
+    시스템 오류 또는 네트워크 문제로<br>
+    환불이 정상 처리되지 않았습니다.<br>
+    잠시 후 다시 시도해 주세요.
+  </p>
+  <a href="/mypage" class="btn">마이페이지로 이동</a>
+  <a href="/" class="btn">홈으로 돌아가기</a>
 </div>
 </body>
 </html>

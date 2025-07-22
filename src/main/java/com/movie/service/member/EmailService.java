@@ -15,6 +15,8 @@ public class EmailService {
 
     public void sendVerificationEmail(String to, String verificationCode) {
         try {
+            log.info("이메일 전송 시작 - 수신자: {}", to);
+
             SimpleMailMessage message = new SimpleMailMessage();
             message.setTo(to);
             message.setSubject("[MovieFlex] 이메일 인증 코드");
@@ -27,8 +29,14 @@ public class EmailService {
             mailSender.send(message); // ✅ 메일 전송
             log.info("인증 이메일 전송 완료: {}", to);
         } catch (Exception e) {
-            log.error("인증 이메일 전송 실패: {}", e.getMessage(), e);
-            throw new RuntimeException("이메일 전송에 실패했습니다.", e);
+            log.error("인증 이메일 전송 실패 - 수신자: {}, 오류: {}", to, e.getMessage(), e);
+
+            // 구체적인 예외 정보 로깅
+            if (e.getCause() != null) {
+                log.error("원인: {}", e.getCause().getMessage());
+            }
+
+            throw new RuntimeException("이메일 전송에 실패했습니다: " + e.getMessage(), e);
         }
     }
 }
