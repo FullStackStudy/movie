@@ -53,11 +53,13 @@ public class MovieController {
         // 로그인한 사용자의 리뷰 작성 가능 여부 확인
         boolean canReview = false;
         boolean isAdmin = false;
+        boolean alreadyReviewed = false;
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getName())) {
             String memberId = auth.getName();
             canReview = reviewService.canWriteReview(movieId, memberId);
             isAdmin = reviewService.isAdmin(memberId);
+            alreadyReviewed = reviewService.hasAlreadyReviewed(movieId, memberId);
         }
         
         model.addAttribute("movie", movie);
@@ -69,6 +71,7 @@ public class MovieController {
         model.addAttribute("reviewCount", reviewCount);
         model.addAttribute("canReview", canReview);
         model.addAttribute("isAdmin", isAdmin);
+        model.addAttribute("alreadyReviewed", alreadyReviewed);
         
         return "movie/movieDetail";
     }

@@ -16,6 +16,9 @@
         
         .order-table .table {
             margin-bottom: 0;
+            table-layout: auto;
+            width: auto;
+            min-width: 100%;
         }
         
         .order-table .table thead th {
@@ -26,6 +29,7 @@
             padding: 1rem 0.75rem;
             font-size: 0.9rem;
             text-align: center;
+            white-space: nowrap;
         }
         
         .order-table .table tbody td {
@@ -34,6 +38,12 @@
             padding: 1rem 0.75rem;
             vertical-align: middle;
             font-size: 0.9rem;
+            color: #000000;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            white-space: nowrap;
+            overflow: visible;
+            text-overflow: clip;
+            min-width: 120px;
         }
         
         .order-table .table tbody tr:hover {
@@ -58,6 +68,7 @@
             overflow: hidden;
             text-overflow: ellipsis;
             max-width: 150px;
+            text-align: center;
         }
         
         /* 주문번호 스타일 */
@@ -70,9 +81,6 @@
             border-radius: 4px;
             font-size: 0.9rem;
             white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            max-width: 120px;
             display: inline-block;
         }
         
@@ -84,7 +92,7 @@
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            max-width: 150px;
+            max-width: 300px;
             display: inline-block;
         }
         
@@ -95,7 +103,7 @@
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            max-width: 100px;
+            max-width: 300px;
             display: inline-block;
         }
         
@@ -109,7 +117,7 @@
             font-weight: 600;
             text-align: center;
             display: inline-block;
-            min-width: 40px;
+            min-width: 60px;
             white-space: nowrap;
         }
         
@@ -124,7 +132,7 @@
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            max-width: 120px;
+            max-width: 300px;
             display: inline-block;
         }
         
@@ -134,6 +142,8 @@
             color: #000000;
             font-size: 0.9rem;
             white-space: nowrap;
+            min-width: 100px;
+            display: inline-block;
         }
         
         /* 결제수단 스타일 */
@@ -302,6 +312,7 @@
                                         <th>결제금액</th>
                                         <th>결제수단</th>
                                         <th>결제일시</th>
+                                        <th>결제취소</th>
                                     </tr>
                                     </thead>
                                     <tbody>
@@ -330,6 +341,27 @@
                                         </td>
                                         <td>
                                             <div class="payment-date" th:text="${#temporals.format(order.paymentDate, 'yyyy-MM-dd HH:mm')}"></div>
+                                        </td>
+                                        <td>
+                                            <!-- 카카오페이 결제이고 결제 상태가 SUCCESS인 경우에만 환불 버튼 표시 -->
+                                            <form th:if="${order.paymentMethod == 'KAKAO_PAY' and order.paymentStatus == 'SUCCESS'}" 
+                                                  th:action="@{/movie/payment/kakao-pay-cancel}" 
+                                                  method="post" 
+                                                  style="display: inline;">
+                                                <input type="hidden" name="tid" th:value="${order.transactionId}" />
+                                                <input type="hidden" name="orderId" th:value="${order.orderNumber}" />
+                                                <input type="hidden" name="memberId" th:value="${order.memberId}" />
+                                                <input type="hidden" name="usePoint" th:value="${order.usedPoint != null ? order.usedPoint : 0}" />
+                                                <button type="submit" 
+                                                        class="btn btn-danger btn-sm" 
+                                                        style="min-width: 60; white-space: nowrap;"
+                                                        onclick="return confirm('정말로 환불하시겠습니까?')">
+                                                    환불
+                                                </button>
+                                            </form>
+                                            <!-- 이미 환불된 경우 -->
+                                            <span th:if="${order.paymentStatus == 'CANCELLED'}" 
+                                                  class="badge bg-secondary">환불완료</span>
                                         </td>
                                     </tr>
                                     </tbody>

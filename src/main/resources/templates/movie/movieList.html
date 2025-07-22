@@ -111,10 +111,14 @@
     </style>
     <script>
         let page = 0;
-        const size = 12;
+        const size = 8;
         let loading = false;
         let lastPage = false;
-        const search = document.getElementById('searchInput') ? document.getElementById('searchInput').value : '';
+
+        function getSearchValue() {
+            const searchInput = document.getElementById('searchInput');
+            return searchInput ? searchInput.value : '';
+        }
 
         function appendMovies(movies) {
             const grid = document.getElementById('movieGrid');
@@ -141,21 +145,57 @@
             });
         }
 
-        window.addEventListener('scroll', function() {
+        function loadMoreMovies() {
             if (loading || lastPage) return;
+            
+            loading = true;
+            const search = getSearchValue();
+            
+            fetch(`/movie/list-ajax?page=${page}&size=${size}&search=${encodeURIComponent(search)}`)
+                .then(res => {
+                    if (!res.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return res.json();
+                })
+                .then(data => {
+                    if (data.length === 0) {
+                        lastPage = true;
+                    } else {
+                        appendMovies(data);
+                        page++;
+                    }
+                    loading = false;
+                })
+                .catch(error => {
+                    console.error('Error loading movies:', error);
+                    loading = false;
+                });
+        }
+
+        // 스크롤 이벤트 리스너
+        window.addEventListener('scroll', function() {
             if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 300) {
-                loading = true;
-                fetch(`/movie/list-ajax?page=${page+1}&size=${size}&search=${encodeURIComponent(search)}`)
-                    .then(res => res.json())
-                    .then(data => {
-                        if (data.length === 0) {
-                            lastPage = true;
-                        } else {
-                            appendMovies(data);
-                            page++;
-                        }
-                        loading = false;
-                    });
+                loadMoreMovies();
+            }
+        });
+
+        // 검색 폼 제출 시 페이지 초기화
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchForm = document.querySelector('form[th\\:action="@{/movie}"]');
+            if (searchForm) {
+                searchForm.addEventListener('submit', function() {
+                    // 검색 시 페이지 상태 초기화
+                    page = 0;
+                    lastPage = false;
+                    loading = false;
+                    
+                    // 기존 영화 그리드 초기화
+                    const grid = document.getElementById('movieGrid');
+                    if (grid) {
+                        grid.innerHTML = '';
+                    }
+                });
             }
         });
     </script>
@@ -204,7 +244,7 @@
                     <div class="card-body d-flex flex-column">
                         <h5 class="card-title movie-title" th:text="${movie.movieTitle}">영화 제목</h5>
                         <p class="card-text text-muted mb-2">
-                            <small th:text="${movie.genre}">장르</small>
+                            <small th:text="'장르: ' + ${movie.genre}">장르</small>
                         </p>
                         <p class="card-text text-muted mb-3">
                             <small th:text="'개봉일: ' + ${movie.openDate}">개봉일</small>

@@ -59,7 +59,7 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
             System.out.println("📧 이메일: " + attributes.getEmail());
             System.out.println("🖼️ 프로필: " + attributes.getPicture());
 
-            // 이메일 검증
+            // 이메일 검증 (임시 이메일도 허용)
             if (attributes.getEmail() == null || attributes.getEmail().trim().isEmpty()) {
                 System.out.println("❌ 이메일 정보 없음");
                 throw new OAuth2AuthenticationException("이메일 정보를 가져올 수 없습니다.");
@@ -75,13 +75,13 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
                         Collections.singleton(new SimpleGrantedAuthority(member.getRole().toString())),
                         oidcUser.getIdToken(),
                         oidcUser.getUserInfo(),
-                        "email" // nameAttributeKey를 "email"로 설정
+                        "id" // nameAttributeKey를 "id"로 설정 (카카오 ID 사용)
                 );
             } else {
                 return new DefaultOAuth2User(
                     Collections.singleton(new SimpleGrantedAuthority(member.getRole().toString())),
                     attributes.getAttributes(),
-                    "email" // nameAttributeKey를 "email"로 설정하여 auth.getName()이 이메일을 반환하도록 함
+                    "id" // nameAttributeKey를 "id"로 설정 (카카오 ID 사용)
             );
             }
         } catch (Exception e) {
@@ -143,6 +143,8 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
                                          Map<String, Object> attributes) {
             if ("google".equals(registrationId)) {
                 return ofGoogle(userNameAttributeName, attributes);
+            } else if ("kakao".equals(registrationId)) {
+                return ofKakao(userNameAttributeName, attributes);
             }
             return null;
         }
@@ -155,6 +157,39 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
             oAuthAttributes.picture = (String) attributes.get("picture");
             oAuthAttributes.attributes = attributes;
             oAuthAttributes.nameAttributeKey = userNameAttributeName;
+            return oAuthAttributes;
+        }
+
+        private static OAuthAttributes ofKakao(String userNameAttributeName,
+                                               Map<String, Object> attributes) {
+            OAuthAttributes oAuthAttributes = new OAuthAttributes();
+            
+            // 카카오는 attributes에서 kakao_account와 properties를 통해 정보를 제공
+            Map<String, Object> kakaoAccount = (Map<String, Object>) attributes.get("kakao_account");
+            Map<String, Object> properties = (Map<String, Object>) attributes.get("properties");
+            
+            oAuthAttributes.name = properties != null ? (String) properties.get("nickname") : "카카오 사용자";
+            
+            // 카카오에서 실제 이메일을 제공하는 경우 우선 사용
+            String email = null;
+            if (kakaoAccount != null) {
+                email = (String) kakaoAccount.get("email");
+            }
+            
+            // 이메일이 없는 경우에만 카카오 ID를 사용
+            if (email == null || email.trim().isEmpty()) {
+                String kakaoId = String.valueOf(attributes.get("id"));
+                email = kakaoId + "@kakao.com";
+                System.out.println("⚠️ 카카오 이메일 정보 없음, 카카오 ID 사용: " + email);
+            } else {
+                System.out.println("✅ 카카오 실제 이메일 사용: " + email);
+            }
+            
+            oAuthAttributes.email = email;
+            oAuthAttributes.picture = properties != null ? (String) properties.get("profile_image") : null;
+            oAuthAttributes.attributes = attributes;
+            oAuthAttributes.nameAttributeKey = userNameAttributeName;
+            
             return oAuthAttributes;
         }
 

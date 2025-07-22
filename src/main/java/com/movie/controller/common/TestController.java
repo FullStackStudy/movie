@@ -3,10 +3,13 @@ package com.movie.controller.common;
 import com.movie.entity.member.Member;
 import com.movie.repository.member.MemberRepository;
 import com.movie.service.movie.MovieCrawlingService;
+import com.movie.service.member.EmailService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.HashMap;
@@ -20,6 +23,7 @@ public class TestController {
 
     private final MemberRepository memberRepository;
     private final MovieCrawlingService movieCrawlingService;
+    private final EmailService emailService;
 
     @GetMapping("/accounts")
     public Map<String, Object> getTestAccounts() {
@@ -102,6 +106,32 @@ public class TestController {
         } catch (Exception e) {
             log.error("테스트 크롤링 실패: {}", e.getMessage(), e);
             return "크롤링 실패: " + e.getMessage();
+        }
+    }
+
+    @GetMapping("/test/email")
+    public ResponseEntity<Map<String, Object>> testEmail(@RequestParam String email) {
+        Map<String, Object> response = new HashMap<>();
+        
+        try {
+            log.info("메일 테스트 시작 - 수신자: {}", email);
+            emailService.sendVerificationEmail(email, "TEST123");
+            
+            response.put("success", true);
+            response.put("message", "테스트 이메일이 성공적으로 전송되었습니다.");
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            log.error("메일 테스트 실패: {}", e.getMessage(), e);
+            
+            response.put("success", false);
+            response.put("message", "이메일 전송 실패: " + e.getMessage());
+            response.put("error", e.getClass().getSimpleName());
+            
+            if (e.getCause() != null) {
+                response.put("cause", e.getCause().getMessage());
+            }
+            
+            return ResponseEntity.badRequest().body(response);
         }
     }
 } 

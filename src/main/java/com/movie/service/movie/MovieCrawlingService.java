@@ -90,60 +90,60 @@ public class MovieCrawlingService {
 
             for (WebElement card : movieCards) {
                 CompletableFuture<Movie> future = CompletableFuture.supplyAsync(() -> {
-                    try {
-                        String title = extractMovieTitleSelenium(card);
-                        if (title == null || title.trim().isEmpty()) {
+                try {
+                    String title = extractMovieTitleSelenium(card);
+                    if (title == null || title.trim().isEmpty()) {
                             return null;
-                        }
+                    }
 
-                        // 이미 DB에 있는 영화는 건너뜀
-                        if (movieRepository.existsByMovieTitle(title)) {
-                            log.debug("이미 존재하는 영화 건너뜀: {}", title);
+                    // 이미 DB에 있는 영화는 건너뜀
+                    if (movieRepository.existsByMovieTitle(title)) {
+                        log.debug("이미 존재하는 영화 건너뜀: {}", title);
                             return null;
-                        }
+                    }
 
-                        String posterUrl = extractPosterUrlSelenium(card);
-                        String rating = extractRatingSelenium(card);
-                        String openDate = extractOpenDateSelenium(card);
-                        String content = extractContentSelenium(card);
-                        String detailUrl = extractDetailUrlSelenium(card);
+                    String posterUrl = extractPosterUrlSelenium(card);
+                    String rating = extractRatingSelenium(card);
+                    String openDate = extractOpenDateSelenium(card);
+                    String content = extractContentSelenium(card);
+                    String detailUrl = extractDetailUrlSelenium(card);
 
-                        // 상세 정보 크롤링
-                        MovieDetailInfo detailInfo = null;
-                        if (detailUrl != null && !detailUrl.isEmpty()) {
-                            try {
-                                detailInfo = crawlMovieDetail(detailUrl, title);
+                    // 상세 정보 크롤링
+                    MovieDetailInfo detailInfo = null;
+                    if (detailUrl != null && !detailUrl.isEmpty()) {
+                        try {
+                            detailInfo = crawlMovieDetail(detailUrl, title);
                                 log.debug("상세 정보 크롤링 완료: {}", title);
-                            } catch (Exception e) {
+                        } catch (Exception e) {
                                 log.warn("상세 정보 크롤링 실패: {} - {}", title, e.getMessage());
                             }
-                        }
+                    }
 
-                        Movie movie = new Movie();
-                        movie.setMovieTitle(title);
+                    Movie movie = new Movie();
+                    movie.setMovieTitle(title);
 
-                        // 상세 정보가 있으면 사용, 없으면 기본값
-                        if (detailInfo != null) {
-                            movie.setGenre(detailInfo.getGenre() != null ? detailInfo.getGenre() : "기타");
-                            movie.setDetailInfo(detailInfo.getDetailInfo() != null ? detailInfo.getDetailInfo() : "상세정보 없음");
-                            movie.setOpenDate(detailInfo.getOpenDate() != null ? detailInfo.getOpenDate() : (openDate != null ? openDate : "개봉일 정보 없음"));
-                            movie.setMovieCast(detailInfo.getCast() != null ? detailInfo.getCast() : "출연진 정보 없음");
-                            movie.setMovieContent(detailInfo.getContent() != null ? detailInfo.getContent() : (content != null ? content : "줄거리 정보 없음"));
-                            movie.setMovieRating(detailInfo.getRating() != null ? detailInfo.getRating() : (rating != null ? rating : "?"));
-                            movie.setMovieDirector(detailInfo.getDirector() != null ? detailInfo.getDirector() : "감독 정보 없음");
-                        } else {
-                            movie.setGenre("기타");
-                            movie.setDetailInfo("상세정보 없음");
-                            movie.setOpenDate(openDate != null ? openDate : "개봉일 정보 없음");
-                            movie.setMovieCast("출연진 정보 없음");
-                            movie.setMovieContent(content != null ? content : "줄거리 정보 없음");
-                            movie.setMovieRating(rating != null ? rating : "?");
-                            movie.setMovieDirector("감독 정보 없음");
-                        }
+                    // 상세 정보가 있으면 사용, 없으면 기본값
+                    if (detailInfo != null) {
+                        movie.setGenre(detailInfo.getGenre() != null ? detailInfo.getGenre() : "기타");
+                        movie.setDetailInfo(detailInfo.getDetailInfo() != null ? detailInfo.getDetailInfo() : "상세정보 없음");
+                        movie.setOpenDate(detailInfo.getOpenDate() != null ? detailInfo.getOpenDate() : (openDate != null ? openDate : "개봉일 정보 없음"));
+                        movie.setMovieCast(detailInfo.getCast() != null ? detailInfo.getCast() : "출연진 정보 없음");
+                        movie.setMovieContent(detailInfo.getContent() != null ? detailInfo.getContent() : (content != null ? content : "줄거리 정보 없음"));
+                        movie.setMovieRating(detailInfo.getRating() != null ? detailInfo.getRating() : (rating != null ? rating : "?"));
+                        movie.setMovieDirector(detailInfo.getDirector() != null ? detailInfo.getDirector() : "감독 정보 없음");
+                    } else {
+                        movie.setGenre("기타");
+                        movie.setDetailInfo("상세정보 없음");
+                        movie.setOpenDate(openDate != null ? openDate : "개봉일 정보 없음");
+                        movie.setMovieCast("출연진 정보 없음");
+                        movie.setMovieContent(content != null ? content : "줄거리 정보 없음");
+                        movie.setMovieRating(rating != null ? rating : "?");
+                        movie.setMovieDirector("감독 정보 없음");
+                    }
 
-                        movie.setMoviePoster(posterUrl);
-                        movie.setMoviePrice(12000);
-                        movie.setRegDate(LocalDateTime.now());
+                    movie.setMoviePoster(posterUrl);
+                    movie.setMoviePrice(12000);
+                    movie.setRegDate(LocalDateTime.now());
 
                         log.info("영화 파싱 완료: {}", title);
                         return movie;
@@ -172,7 +172,7 @@ public class MovieCrawlingService {
                 try {
                     Movie movie = future.get(1, TimeUnit.SECONDS);
                     if (movie != null) {
-                        movies.add(movie);
+                    movies.add(movie);
                     }
                 } catch (Exception e) {
                     log.warn("영화 결과 수집 실패: {}", e.getMessage());

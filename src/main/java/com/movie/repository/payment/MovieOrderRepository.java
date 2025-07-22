@@ -24,4 +24,7 @@ public interface MovieOrderRepository extends JpaRepository<MovieOrder, Long> {
     
     // 회원별 결제 상태별 주문 목록 조회
     List<MovieOrder> findByMemberMemberIdAndPaymentStatus(String memberId, String paymentStatus);
+    
+    // 회원이 특정 영화를 결제했는지 확인 (결제 성공 상태만)
+    boolean existsByMemberMemberIdAndMovieTitleAndPaymentStatus(String memberId, String movieTitle, String paymentStatus);
 } 

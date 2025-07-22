@@ -40,7 +40,8 @@ public class PortOneClient {
             JsonNode node = objectMapper.readTree(response.body());
             JsonNode responseNode = node.get("response");
 
-            return PortOnePaymentResponse.builder()
+            return PortOnePaymentResponse
+                    .builder()
                     .impUid(responseNode.get("imp_uid").asText())
                     .merchantUid(responseNode.get("merchant_uid").asText())
                     .amount(responseNode.get("amount").asInt())

@@ -26,6 +26,7 @@ import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 @Controller
 @RequiredArgsConstructor
@@ -43,12 +44,8 @@ public class MyPageController {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String memberId = getMemberIdFromAuthentication(auth);
         
-        System.out.println("🔍 마이페이지 접근 - 인증 정보: " + auth.getName());
-        System.out.println("📧 추출된 이메일: " + memberId);
-        
         try {
             Member member = memberRepository.findById(memberId).orElseThrow();
-            System.out.println("✅ 회원 정보 조회 성공: " + member.getMemberId());
             
             String reserve = member.getReserve();
             List<String> reserveList = new ArrayList<>();
@@ -64,7 +61,6 @@ public class MyPageController {
             List<MovieOrderDto> orderList = movieOrderService.getOrdersByMemberId(memberId);
             model.addAttribute("orderList", orderList);
         } catch (Exception e) {
-            System.out.println("❌ 마이페이지 오류: " + e.getMessage());
             model.addAttribute("errorMessage", e.getMessage());
         }
         
@@ -137,33 +133,57 @@ public class MyPageController {
     }
 
     @GetMapping("/mypage/change-password")
-    public String changePasswordForm() {
+    public String changePasswordForm(Model model) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String memberId = getMemberIdFromAuthentication(auth);
+        
+        try {
+            Member member = memberRepository.findById(memberId).orElseThrow();
+            boolean isOAuth2User = "OAUTH2_USER".equals(member.getPassword());
+            model.addAttribute("isOAuth2User", isOAuth2User);
+            
+        } catch (Exception e) {
+            model.addAttribute("errorMessage", "사용자 정보를 불러올 수 없습니다.");
+        }
+        
         return "mypage/changePassword";
     }
 
     @PostMapping("/mypage/change-password")
-    public String changePassword(@RequestParam String currentPassword, 
+    public String changePassword(@RequestParam(required = false) String currentPassword, 
                                 @RequestParam String newPassword, 
                                 @RequestParam String confirmPassword, 
                                 Model model) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String memberId = getMemberIdFromAuthentication(auth);
         
-        // 새 비밀번호 확인
-        if (!newPassword.equals(confirmPassword)) {
-            model.addAttribute("errorMessage", "새 비밀번호가 일치하지 않습니다.");
-            return "mypage/changePassword";
-        }
-        
-        // 비밀번호 길이 검사
-        if (newPassword.length() < 8 || newPassword.length() > 16) {
-            model.addAttribute("errorMessage", "비밀번호는 8자 이상, 16자 이하로 입력해주세요.");
-            return "mypage/changePassword";
-        }
-        
         try {
+            // 사용자 정보 조회하여 소셜 로그인 사용자 여부 확인
+            Member member = memberRepository.findById(memberId).orElseThrow();
+            boolean isOAuth2User = "OAUTH2_USER".equals(member.getPassword());
+            model.addAttribute("isOAuth2User", isOAuth2User);
+            
+            // 새 비밀번호 확인
+            if (!newPassword.equals(confirmPassword)) {
+                model.addAttribute("errorMessage", "새 비밀번호가 일치하지 않습니다.");
+                return "mypage/changePassword";
+            }
+            
+            // 비밀번호 길이 검사
+            if (newPassword.length() < 8 || newPassword.length() > 16) {
+                model.addAttribute("errorMessage", "비밀번호는 8자 이상, 16자 이하로 입력해주세요.");
+                return "mypage/changePassword";
+            }
+            
+            // 소셜 로그인 사용자가 아닌 경우 현재 비밀번호 필수
+            if (!isOAuth2User && (currentPassword == null || currentPassword.trim().isEmpty())) {
+                model.addAttribute("errorMessage", "현재 비밀번호를 입력해주세요.");
+                return "mypage/changePassword";
+            }
+            
             memberService.updatePassword(memberId, currentPassword, newPassword);
             model.addAttribute("message", "비밀번호가 성공적으로 변경되었습니다.");
+            
         } catch (Exception e) {
             model.addAttribute("errorMessage", e.getMessage());
             return "mypage/changePassword";
@@ -186,14 +206,37 @@ public class MyPageController {
             org.springframework.security.oauth2.core.user.OAuth2User oauth2User = 
                 (org.springframework.security.oauth2.core.user.OAuth2User) auth.getPrincipal();
             
-            String email = oauth2User.getAttribute("email");
-            System.out.println("🔐 OAuth2 사용자 이메일 추출: " + email);
+            // 카카오 로그인의 경우 kakao_account에서 이메일 추출
+            String email = null;
+            Map<String, Object> attributes = oauth2User.getAttributes();
+            
+            // 카카오 로그인인지 확인 (id 속성이 있으면 카카오)
+            if (attributes.containsKey("id")) {
+                Map<String, Object> kakaoAccount = (Map<String, Object>) attributes.get("kakao_account");
+                if (kakaoAccount != null) {
+                    email = (String) kakaoAccount.get("email");
+                    System.out.println("🔍 카카오 계정에서 이메일 추출: " + email);
+                }
+            } else {
+                // 다른 OAuth2 제공자 (Google 등)의 경우
+                email = oauth2User.getAttribute("email");
+                System.out.println("🔍 일반 OAuth2에서 이메일 추출: " + email);
+            }
+            
+            // 이메일이 없는 경우 카카오 ID를 사용
+            if (email == null || email.trim().isEmpty()) {
+                String oauthId = oauth2User.getName(); // 카카오 ID
+                email = oauthId + "@kakao.com";
+                System.out.println("⚠️ OAuth2User에서 이메일 없음, 카카오 ID 사용: " + email);
+            } else {
+                System.out.println("✅ OAuth2User에서 실제 이메일 사용: " + email);
+            }
+            
             return email;
         }
         
         // 일반 로그인 사용자인 경우
         String memberId = auth.getName();
-        System.out.println("🔐 일반 사용자 ID: " + memberId);
         return memberId;
     }
     @GetMapping("mypage/storeOrders")

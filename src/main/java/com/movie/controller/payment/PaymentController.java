@@ -6,6 +6,8 @@ import com.movie.dto.payment.KakaoPayReadyRequestDto;
 import com.movie.dto.payment.KakaoPayReadyResponseDto;
 import com.movie.dto.payment.KakaoPayApprovalRequestDto;
 import com.movie.dto.payment.KakaoPayApprovalResponseDto;
+import com.movie.dto.payment.KakaoPayCancelRequestDto;
+import com.movie.dto.payment.KakaoPayCancelResponseDto;
 import com.movie.dto.payment.CardPaymentRequestDto;
 import com.movie.dto.payment.CardPaymentResponseDto;
 import com.movie.dto.payment.MovieOrderDto;
@@ -182,9 +184,9 @@ public class PaymentController {
         requestDto.setQuantity(1);
         requestDto.setTotal_amount(finalPrice);
         requestDto.setTax_free_amount(0);
-        String approvalUrl = "http://localhost:80/movie/payment/kakao-pay-success";
-        String cancelUrl = "http://localhost:80/movie/payment/kakao-pay-cancel";
-        String failUrl = "http://localhost:80/movie/payment/kakao-pay-fail";
+        String approvalUrl = kakaoPayBaseUrl + "/movie/payment/kakao-pay-success";
+        String cancelUrl = kakaoPayBaseUrl + "/movie/payment/kakao-pay-cancel";
+        String failUrl = kakaoPayBaseUrl + "/movie/payment/kakao-pay-fail";
 
         log.info("카카오페이 URL 설정 - approval: {}, cancel: {}, fail: {}", approvalUrl, cancelUrl, failUrl);
 
@@ -340,6 +342,7 @@ public class PaymentController {
     @GetMapping("/movie/payment/card")
     public String cardPaymentPage(@RequestParam String memberId,
                                   @RequestParam(defaultValue = "0") int usePoint,
+                                  HttpSession session,
                                   Model model) {
         // memberId로 회원 정보 조회
         Member member = memberRepository.findById(memberId).orElse(null);
@@ -348,7 +351,7 @@ public class PaymentController {
             return "payment/paymentFail";
         }
 
-        PaymentInfoDto dto = parseReservationInfo(null); // session 파라미터 제거
+        PaymentInfoDto dto = parseReservationInfo(session);
 
         // 회원 포인트 조회
         int memberPoint = 0;
@@ -369,6 +372,7 @@ public class PaymentController {
         model.addAttribute("paymentInfo", dto);
         model.addAttribute("memberPoint", memberPoint);
         model.addAttribute("usePoint", usePoint);
+        model.addAttribute("finalPrice", dto.getMoviePrice());
         return "payment/cardPaymentPage";
     }
 
@@ -570,5 +574,90 @@ public class PaymentController {
             }
         }
         return "payment/paymentSuccess";
+    }
+
+    @PostMapping("/movie/payment/kakao-pay-cancel")
+    public String kakaoPayCancel(@RequestParam String tid,
+                                 @RequestParam String orderId,
+                                 @RequestParam String memberId,
+                                 @RequestParam(defaultValue = "0") int usePoint,
+                                 @RequestParam(defaultValue = "사용자 요청") String cancelReason,
+                                 HttpSession session,
+                                 Model model) {
+        log.info("카카오페이 환불 요청 시작 - tid: {}, orderId: {}, memberId: {}, usePoint: {}", tid, orderId, memberId, usePoint);
+
+        try {
+            // 주문 정보 조회
+            log.info("주문 정보 조회 시작 - orderId: {}", orderId);
+            MovieOrderDto orderInfo = movieOrderService.getOrderByOrderNumber(orderId);
+            if (orderInfo == null) {
+                log.error("주문 정보를 찾을 수 없습니다 - orderId: {}", orderId);
+                model.addAttribute("error", "주문정보를 찾을 수 없습니다.");
+                return "payment/cancelFail";
+            }
+            log.info("주문 정보 조회 성공 - paymentAmount: {}", orderInfo.getPaymentAmount());
+
+            // 카카오페이 환불 요청
+            log.info("카카오페이 환불 API 호출 시작");
+            KakaoPayCancelRequestDto requestDto = new KakaoPayCancelRequestDto();
+            requestDto.setTid(tid);
+            requestDto.setCancel_amount(orderInfo.getPaymentAmount());
+            requestDto.setCancel_tax_free_amount(0);
+            requestDto.setCancel_reason(cancelReason);
+
+            KakaoPayCancelResponseDto responseDto = kakaoPayService.kakaoPayCancel(requestDto);
+            log.info("카카오페이 환불 API 호출 성공");
+
+            // 환불 성공 시 회원 정보 업데이트 (포인트 환급)
+            log.info("회원 정보 업데이트 시작 - memberId: {}", memberId);
+            Member member = memberRepository.findById(memberId)
+                    .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
+
+            int currentPoint = 0;
+            try {
+                currentPoint = Integer.parseInt(member.getPoint());
+            } catch (Exception e) {
+                log.warn("포인트 파싱 실패, 기본값0용: {}", member.getPoint());
+            }
+
+            // 사용한 포인트 환급
+            int newPoint = currentPoint + usePoint;
+            member.setPoint(String.valueOf(newPoint));
+            log.info("포인트 환급 완료 - 기존: {}, 환급: {} 포인트: {}", currentPoint, usePoint, newPoint);
+
+            // 예약 정보 업데이트 (환불 완료 표시)
+            String reserve = member.getReserve();
+            if (reserve != null && !reserve.isEmpty()) {
+                String[] reserveLines = reserve.split("\\n");
+                if (reserveLines.length > 0) {
+                    // 첫 번째 예약에 환불 완료 표시 추가
+                    reserveLines[0] = reserveLines[0] + ",환불완료";
+                    member.setReserve(String.join("\n", reserveLines));
+                    log.info("예약 정보 업데이트 완료");
+                }
+            }
+
+            memberRepository.save(member);
+            log.info("회원 정보 저장 완료");
+
+            // 주문 상태를 환불로 업데이트
+            log.info("주문 상태 업데이트 시작 - orderId: {}", orderId);
+            movieOrderService.updateOrderStatus(orderId, "CANCELLED");
+            log.info("주문 상태 업데이트 완료");
+
+            log.info("카카오페이 환불 성공 - memberId: {}, orderId: {}, tid: {}, usePoint: {}", memberId, orderId, tid, usePoint);
+            return "redirect:/movie/payment/cancel-success";
+
+        } catch (Exception e) {
+            log.error("카카오페이 환불 요청 실패 - tid: {}, orderId: {}, memberId: {}, e: {}", tid, orderId, memberId, e);
+            model.addAttribute("error", "환불 처리에 실패했습니다: " + e.getMessage());
+            return "payment/cancelFail";
+        }
+    }
+
+    @GetMapping("/movie/payment/cancel-success")
+    public String cancelSuccess(Model model) {
+        model.addAttribute("message", "환불이 성공적으로 처리되었습니다!");
+        return "payment/cancelSuccess";
     }
 }
